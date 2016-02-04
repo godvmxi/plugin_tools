@@ -1,0 +1,1 @@
+SUBDIRS=libClient include main

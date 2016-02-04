@@ -1,0 +1,8 @@
+{
+    "RPCMethod": "MessagePush",
+    "Plugin_Name": "Plugin_ID",
+    "time": 12345,
+    "MD5": true,
+    "mac": false,
+    "Message": null
+}
