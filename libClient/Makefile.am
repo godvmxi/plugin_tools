@@ -8,12 +8,12 @@ lib_LTLIBRARIES = libClient.la
 # Build information for each library
 
 # Sources for libClient
-libClient_la_SOURCES = libClient.c
+libClient_la_SOURCES = libClient.c logger.c
 
 # Linker options libTestProgram
-libClient_la_LDFLAGS = 
+libClient_la_LDFLAGS = -llog4c -lxml2
 
 # Compiler options. Here we are adding the include directory
 # to be searched for headers included in the source code.
-libClient_la_CPPFLAGS = -I$(top_srcdir)/include
+libClient_la_CPPFLAGS = -I$(top_srcdir)/include  -llog4c -lxml2
 
