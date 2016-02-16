@@ -1,23 +1,18 @@
-*.cache/
-*.o
-*.so
-*.m4
-*.in
-*.swp
-*.lo
-*.la
-*.a
+# http://www.gnu.org/software/automake
 
-#autotools
-compile
-*.guess
-depcomp
-ltmain.sh
-config.sub
-configure
-install-sh
-missing
-.deps
-.libs
-Makefile
-*.log
+Makefile.in
+
+# http://www.gnu.org/software/autoconf
+
+/autom4te.cache
+/autoscan.log
+/autoscan-*.log
+/aclocal.m4
+/compile
+/config.h.in
+/configure
+/configure.scan
+/depcomp
+/install-sh
+/missing
+/stamp-h1
