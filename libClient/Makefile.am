@@ -11,9 +11,9 @@ lib_LTLIBRARIES = libClient.la
 libClient_la_SOURCES = libClient.c logger.c
 
 # Linker options libTestProgram
-libClient_la_LDFLAGS = -llog4c -lxml2
+libClient_la_LDFLAGS = -L/usr/lib -llog4c `pkg-config --libs jansson`
 
 # Compiler options. Here we are adding the include directory
 # to be searched for headers included in the source code.
-libClient_la_CPPFLAGS = -I$(top_srcdir)/include  -llog4c -lxml2
+libClient_la_CPPFLAGS = -I$(top_srcdir)/include  `pkg-config --cflags jansson`
 
