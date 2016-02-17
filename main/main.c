@@ -18,13 +18,13 @@
 #include "logger.h"
 
 int main(int argc ,char **argv) {
-
-	log_open("<span style=\"color: rgb(51, 51, 51); line-height: 20px;\">logger</span>");
-	LOG_TRACE("trace");
-	LOG_ERROR("error");
-	LOG_WARN("warn");
-	LOG_NOTICE("notice");
-	LOG_DEBUG("hello log4c!");
-	log_close();
+	printf("hello world\n");
+	//log_open("<span style=\"color: rgb(51, 51, 51); line-height: 20px;\">logger</span>");
+	LOG_TRACE("trace\n");
+	LOG_ERROR("error\n");
+	LOG_WARN("warn\n");
+	LOG_NOTICE("notice\n");
+	LOG_DEBUG("hello log4c!\n");
+	//log_close();
 	return 0;
 }

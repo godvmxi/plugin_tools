@@ -18,12 +18,14 @@ int log_open(const char *category)
 void log_message(int priority , const char *fmt , ...)
 {
 	va_list ap;
-
-	assert(log_category != NULL);
+	char buf[128];
+	//assert(log_category != NULL);
 
 	va_start(ap, fmt);
-	log4c_category_vlog(log_category , priority , fmt , ap);
+	vsprintf((char *)buf,(const char *)fmt,ap);
+	//log4c_category_vlog(log_category , priority , fmt , ap);
 	va_end(ap);
+	printf(buf);
 }
 
 void log_trace(const char *file, int line, const char *fun,
@@ -34,7 +36,7 @@ void log_trace(const char *file, int line, const char *fun,
 	va_list ap;
 	int n;
 
-	assert(log_category != NULL);
+	//assert(log_category != NULL);
 	n = sprintf(new_fmt, head_fmt , file , line , fun);
 	strcat(new_fmt + n , fmt);
 

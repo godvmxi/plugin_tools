@@ -297,10 +297,10 @@ top_srcdir = ..
 main_SOURCES = main.c
 
 # Linker options for a.out
-main_LDFLAGS = $(top_srcdir)/libClient/libClient.la 
+main_LDFLAGS = $(top_srcdir)/libClient/libClient.la -L/usr/lib -llog4c 
 
 # Compiler options for a.out
-main_CPPFLAGS = -I$(top_srcdir)/include  -ljansson
+main_CPPFLAGS = -I$(top_srcdir)/include  
 all: all-am
 
 .SUFFIXES:
