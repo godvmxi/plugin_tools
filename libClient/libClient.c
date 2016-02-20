@@ -1,7 +1,8 @@
 #include "libClient.h"
 
+
 void
-print_hello(){
+get_version(){
   printf("$(?????????)\n");
 }
 int loginDistributePlatStep1WithUdp()
