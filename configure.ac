@@ -5,7 +5,6 @@ AC_INIT(gateway, 1.0)
 AC_PROG_CC
 
 AC_CANONICAL_SYSTEM
-
 dnl Initialize automake
 AM_INIT_AUTOMAKE
 

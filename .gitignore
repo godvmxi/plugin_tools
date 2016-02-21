@@ -16,3 +16,14 @@ Makefile.in
 /install-sh
 /missing
 /stamp-h1
+*.o
+*.so 
+*.so.*
+*.la 
+*.lai
+*.a
+*.Po
+*.Plo
+*.log
+*.deps*
+*.libs*
