@@ -2,6 +2,7 @@
 #define libClient_H
 
 #include "stdio.h"
+#include "logger.h"
 typedef enum{
 	LOGIN_DISTRI_PLAT_STEP1_UDP=0,
 	LOGIN_DISTRI_PLAT_STEP2_UDP =1 ,

@@ -17,9 +17,10 @@ Makefile.in
 /missing
 /stamp-h1
 *.o
+*.lo
 *.so 
 *.so.*
-*.la 
+*.la
 *.lai
 *.a
 *.Po
@@ -31,3 +32,6 @@ Makefile.in
 Makefile
 *.gch
 libtool
+main/main
+*.out
+.*.swp
