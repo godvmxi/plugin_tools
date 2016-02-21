@@ -97,7 +97,7 @@ static int  __sysutils_get_sys_time(char *buf){
 
 static int  __sysutils_get_buf_md5(char *buf,char *md5){
 	md5_calc(md5,buf,strlen(buf));
-	printf("md5: %s ->%s\n",buf,md5);
+	//printf("md5: %s ->%s\n",buf,md5);
 			return 0;
 	//get storage token data
 }
@@ -209,7 +209,7 @@ int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message
 			if (__sysutils_get_sys_time(time) < 0){
 				//return 0;
 			}
-		LOG_DEBUG("current system time ->%s\n",time);
+		//LOG_DEBUG("current system time ->%s\n",time);
 		if (message_len > 512){
 			message_len = 512;
 			LOG_DEBUG("message will be cut short to 512\n");
@@ -217,17 +217,25 @@ int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message
 		char message_base64[2048] = {0};
 		char *p = message;
 	 base64_encode(message,message_base64,message_len);
-		LOG_DEBUG("base64: %s  -> %s\n",p,message_base64);
+		//LOG_DEBUG("base64: %s  -> %s\n",p,message_base64);
+		message = p;
 
-		return 0;
+
 
 		char md5_hash_input[2048] =  {0};
-		sprintf(md5_hash_input,"%s%s%s",time,message_base64,mac,sn);
-		sprintf("will hash-> %s\n",md5_hash_input);
-		char md5[64] = {0};
-		if (__sysutils_get_buf_md5( mac,md5) < 0){
+		sprintf(md5_hash_input,"%s%s%s%s",time,message_base64,mac,sn);
+		//printf("will hash-> %s\n",md5_hash_input);
+
+		char temp[20] = {0};
+		if (__sysutils_get_buf_md5( md5_hash_input,temp) < 0){
 			//return 0;
 		}
+
+		char md5[20] = {0};
+		hash_bin2hex(temp,md5,16);
+
+		//printf("\nmd5->>>>>%d  %s\n",strlen(md5),md5);
+
 
 		//srand( (unsigned)time( NULL ) );
 		//thread safe
@@ -246,7 +254,7 @@ int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message
 		json_t *md5_obj =  json_string(md5);
 		json_object_set(obj,"MD5",md5_obj);
 		//file Message
-		json_t *message_obj =  json_string(message);
+		json_t *message_obj =  json_string(message_base64);
 				json_object_set(obj,"Message",message_obj);
 		//fill counter
 		json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );

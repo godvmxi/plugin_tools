@@ -298,4 +298,10 @@ static  void Decode (UINT4 * output, unsigned char * input, unsigned int len)
                         (((UINT4) input[j + 2]) << 16) | (((UINT4) input[j + 3]) << 24);
 }
 
+void hash_bin2hex(unsigned char *bin,unsigned char *hex,int len){
+		for(int i = 0;i<len;i++){
+				sprintf(hex+2*i ,"%02x",bin[i]);
+//				printf("%2x",bin[i]);
+		}
+}
  

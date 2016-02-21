@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 	sysutils_get_json_rpc_headbeat(buffer);
 	printf("Heartbeat  ->%s\n",buffer);
 	memset(buffer,0,1024);
-	sysutils_get_json_rpc_message_push(buffer,"test_name","test_message",12);
+	sysutils_get_json_rpc_message_push(buffer,"test_plugin","test_message",12);
 	printf("Push Message  ->%s\n",buffer);
 
 	break;

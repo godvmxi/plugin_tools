@@ -34,6 +34,7 @@ extern "C" {
 #pragma pack()
 
 void md5_calc(unsigned char *output, unsigned char * input , int len);
+void hash_bin2hex(unsigned char *bin,unsigned char *hex,int len);
 
 #endif
 
