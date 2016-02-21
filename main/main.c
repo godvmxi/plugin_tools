@@ -39,7 +39,10 @@ int main(int argc, char **argv) {
 	while(1){
 	memset(buffer,0,1024);
 	sysutils_get_json_rpc_boot(buffer);
-	printf("boot->%s\n",buffer);
+	printf("boot       ->%s\n",buffer);
+	memset(buffer,0,1024);
+	sysutils_get_json_rpc_headbeat(buffer);
+	printf("Heartbeat  ->%s\n",buffer);
 	}
 	//app_funcion_flow_ctrl_init();
 	//app_funcion_flow_ctrl_start();
