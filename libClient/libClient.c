@@ -3,15 +3,17 @@
 #include <stdlib.h>
 #include <string.h>
 AppFunctionFlowCtrl app_function_flow_ctrl ;
+AppDomainInfo  app_domain_info;
 
 void get_version(){
   printf("version 0.1\n");
 }
 #define   DEBUG_FLOW_CONTROL  1
+
 int manual_interactive_flow_control(const char *info){
 		char input[64] ;
 	  int ret = 0 ;
-		printf("please input your choice  << %s >>--> ",info);
+		printf("Input choice  << %s >>--> ",info);
 		scanf("%d",&ret);
 		printf("\n you input value -> %d\n",ret);
 		return ret ;
@@ -55,6 +57,7 @@ int login_distri_plat_step2_tcp(void *dat)
 	ret = manual_interactive_flow_control(__FUNCTION__) ;
 	return ret;
 #endif
+
 	return ret ;
 }
 
@@ -163,12 +166,33 @@ void app_funcion_flow_ctrl_init(void){
 
 	app_function_flow_ctrl.flow_list[4].ret_handler[5].handler_index =  -1;
 
+	//get system  setting from setting file
+	//Fix me
+	//soon if need
+	pthread_mutex_lock(&app_domain_info.mutex_lock);
+
+	memset(&app_domain_info.distri_server,0,sizeof(DnsAddressInfo));
+	memset(&app_domain_info.operate_server,0,sizeof(DnsAddressInfo));
+	sprintf(app_domain_info.distri_server.domain,"189cube.com");
+	app_domain_info.distri_server.cur_ip  = -1;
+	app_domain_info.distri_server.ip_list_number = 0 ;
+	app_domain_info.distri_server.tcp_port =   12112;
+	app_domain_info.distri_server.udp_port =   12112;
+
+	sprintf(app_domain_info.operate_server.domain,"189cube.com");
+	app_domain_info.operate_server.cur_ip  = -1;
+	app_domain_info.operate_server.ip_list_number = 0 ;
+	app_domain_info.distri_server.tcp_port =   12112;
+	app_domain_info.distri_server.udp_port =   12112;
+	pthread_mutex_unlock(&app_domain_info.mutex_lock);
+
 }
 
 void app_funcion_flow_ctrl_start(void){
 	FunctionStepPointer function_step_pointer = NULL;
 	int handler_index = 0;
 	int ret = 0;
+
 	while(1){
 			if (handler_index < 0 || handler_index >= app_function_flow_ctrl.handler_num){
 				LOG_ERROR("handler index is error ->%d ,and set to default\n",handler_index);

@@ -3,6 +3,8 @@
 
 #include "stdio.h"
 #include "logger.h"
+#include "netutils.h"
+#include <pthread.h>
 typedef enum{
 	LOGIN_DISTRI_PLAT_STEP1_UDP=0,
 	LOGIN_DISTRI_PLAT_STEP2_UDP =1 ,
@@ -43,8 +45,17 @@ typedef struct {
 	FunctionStepPointer 	hander_list[MAX_HANDLER_NUM];
 	FunctionFlowCtrl 			flow_list[MAX_HANDLER_NUM];
 } AppFunctionFlowCtrl;
+typedef struct {
+	pthread_mutex_t mutex_lock ;
+	DnsAddressInfo  distri_server ;
+	DnsAddressInfo  operate_server ;
+	DnsAddressInfo  plugin_server ;
+
+}AppDomainInfo;
 
 extern AppFunctionFlowCtrl app_function_flow_ctrl ;
+extern AppDomainInfo  app_domain_info;
+
 
 extern void app_funcion_flow_ctrl_init(void);
 extern void app_funcion_flow_ctrl_start(void);

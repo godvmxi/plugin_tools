@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <logger.h>
+
 int  get_ip_list_from_domain(char *domain,char *ip_list,int max_ret_ip,int max_len_ip){
 	struct hostent *answer;
 	int i;

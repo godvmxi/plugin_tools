@@ -35,6 +35,8 @@ int main(int argc, char **argv) {
 	printf(">>>>>>\n");
 	char ipResult[200] = {0};
 	int number = get_ip_list_from_domain(argv[1],ipResult,4,20);
+	app_funcion_flow_ctrl_init();
+	app_funcion_flow_ctrl_start();
 
 
 	exit(0);
