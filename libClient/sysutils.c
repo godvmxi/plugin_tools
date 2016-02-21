@@ -91,7 +91,7 @@ int sysutils_get_json_rpc_boot(char *buf){
 	}
 
 	srand( (unsigned)time( NULL ) );
-	//json_object_seed(rand());
+	json_object_seed(rand());
 	json_t *obj = json_object();
 	//file rpc
 	json_t *rpc_obj =  json_string("Boot");
@@ -100,11 +100,60 @@ int sysutils_get_json_rpc_boot(char *buf){
 	json_t *loid_obj =  json_string(loid);
 	json_object_set(obj,"LOID",loid_obj);
 	//file mac
-	json_t *mac_obj =  json_string(loid);
+	json_t *mac_obj =  json_string(mac);
 	json_object_set(obj,"MAC",mac_obj);
 	json_t *token_obj =  json_string(token);
-	json_object_set(obj,"MAC",token_obj);
+	json_object_set(obj,"Token",token_obj);
+	//fill counter
+	json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
+	json_object_set(obj,"Counter",counter_obj);
+	//dump
+	char *result =  json_dumps(obj,JSON_COMPACT);
+	memcpy(buf,result,strlen(result));
+	//free all
+	json_decref(rpc_obj);
+	json_decref(loid_obj);
+	json_decref(mac_obj);
+	json_decref(token_obj);
+	json_decref(counter_obj);
+	json_decref(obj);
+	free(result);
 
+	return 0;
+}
+int sysutils_get_json_rpc_headbeat(char *buf){
+	char loid[64] = {0};
+	if (__sysutils_get_loid(loid) <  0){
+		//return 0;
+	}
+	char mac[20] = {0};
+	if (__sysutils_get_wlan_mac(mac) < 0){
+		//return 0;
+	}
+	char token[64] = {0};
+	if (__sysutils_get_token(token) < 0){
+		//return 0;
+	}
+
+	srand( (unsigned)time( NULL ) );
+	json_object_seed(rand());
+	json_t *obj = json_object();
+	//file rpc
+	json_t *rpc_obj =  json_string("Boot");
+	json_object_set(obj,"RpcMethod",rpc_obj);
+	//file loid
+	json_t *loid_obj =  json_string(loid);
+	json_object_set(obj,"LOID",loid_obj);
+	//file mac
+	json_t *mac_obj =  json_string(mac);
+	json_object_set(obj,"MAC",mac_obj);
+	//fill Token
+	json_t *token_obj =  json_string(token);
+	json_object_set(obj,"Token",token_obj);
+	//fill counter
+		json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
+		json_object_set(obj,"Counter",counter_obj);
+		//dump
 
 	char *result =  json_dumps(obj,JSON_COMPACT);
 	memcpy(buf,result,strlen(result));
@@ -115,9 +164,6 @@ int sysutils_get_json_rpc_boot(char *buf){
 	json_decref(obj);
 	free(result);
 	return 0;
-}
-int sysutils_get_json_rpc_headbeat(char *buf){
-
 }
 int sysutils_get_json_rpc_token_update(char *buf){
 
