@@ -25,7 +25,7 @@ void log_message(int priority , const char *fmt , ...)
 	vsprintf((char *)buf,(const char *)fmt,ap);
 	//log4c_category_vlog(log_category , priority , fmt , ap);
 	va_end(ap);
-	printf(buf);
+	printf("%s",buf);
 }
 
 void log_trace(const char *file, int line, const char *fun,

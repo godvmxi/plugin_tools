@@ -4,17 +4,16 @@
 #include <string.h>
 AppFunctionFlowCtrl app_function_flow_ctrl ;
 
-void
-get_version(){
-  printf("ret version 0.1\n");
+void get_version(){
+  printf("version 0.1\n");
 }
 #define   DEBUG_FLOW_CONTROL  1
 int manual_interactive_flow_control(const char *info){
 		char input[64] ;
-	 int ret = 0 ;
+	  int ret = 0 ;
 		printf("please input your choice  << %s >>--> ",info);
 		scanf("%d",&ret);
-		printf("\nyou input value -> %d\n",ret);
+		printf("\n you input value -> %d\n",ret);
 		return ret ;
 }
 int login_distri_plat_step1_udp(void *dat)
@@ -107,60 +106,95 @@ void app_funcion_flow_ctrl_init(void){
 
 	app_function_flow_ctrl.handler_num = 6 ;
 	//handler LOGIN_DISTRI_PLAT_STEP1_UDP
-	app_function_flow_ctrl.flow_list[0].hander_index = LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[0].cur_handler_index = LOGIN_DISTRI_PLAT_STEP1_UDP;
 	app_function_flow_ctrl.flow_list[0].ret_handler[0].err_code =  RET_OK;
-	app_function_flow_ctrl.flow_list[0].ret_handler[0].hander_index =  LOGIN_DISTRI_PLAT_STEP2_UDP;
+	app_function_flow_ctrl.flow_list[0].ret_handler[0].handler_index =  LOGIN_DISTRI_PLAT_STEP2_UDP;
 	app_function_flow_ctrl.flow_list[0].ret_handler[1].err_code = RET_NO_ACK ;
-	app_function_flow_ctrl.flow_list[0].ret_handler[1].hander_index =  LOGIN_DISTRI_PLAT_STEP1_TCP;
+	app_function_flow_ctrl.flow_list[0].ret_handler[1].handler_index =  LOGIN_DISTRI_PLAT_STEP1_TCP;
 	app_function_flow_ctrl.flow_list[0].ret_handler[2].err_code =  RET_DNS_FAILED;
-	app_function_flow_ctrl.flow_list[0].ret_handler[3].hander_index =  LOGIN_DISTRI_PLAT_STEP1_TCP;
+	app_function_flow_ctrl.flow_list[0].ret_handler[3].handler_index =  LOGIN_DISTRI_PLAT_STEP1_TCP;
 	//handler LOGIN_DISTRI_PLAT_STEP2_UDP
-	app_function_flow_ctrl.flow_list[1].hander_index = LOGIN_DISTRI_PLAT_STEP2_UDP;
+	app_function_flow_ctrl.flow_list[1].cur_handler_index = LOGIN_DISTRI_PLAT_STEP2_UDP;
 	app_function_flow_ctrl.flow_list[1].ret_handler[0].err_code =  RET_OK;
-	app_function_flow_ctrl.flow_list[1].ret_handler[0].hander_index =  LOGIN_OPERATE_PLAT_STEP;
+	app_function_flow_ctrl.flow_list[1].ret_handler[0].handler_index =  LOGIN_OPERATE_PLAT_STEP;
 	app_function_flow_ctrl.flow_list[1].ret_handler[1].err_code = RET_NO_ACK ;
-	app_function_flow_ctrl.flow_list[1].ret_handler[1].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[1].ret_handler[1].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
 	app_function_flow_ctrl.flow_list[1].ret_handler[2].err_code =  RET_DNS_FAILED;
-	app_function_flow_ctrl.flow_list[1].ret_handler[3].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[1].ret_handler[3].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
 	app_function_flow_ctrl.flow_list[1].ret_handler[2].err_code =  RET_NOT_MATCH;
-	app_function_flow_ctrl.flow_list[1].ret_handler[3].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[1].ret_handler[3].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
 	//handler LOGIN_DISTRI_PLAT_STEP1_TCP
-	app_function_flow_ctrl.flow_list[2].hander_index = LOGIN_DISTRI_PLAT_STEP1_TCP;
+	app_function_flow_ctrl.flow_list[2].cur_handler_index = LOGIN_DISTRI_PLAT_STEP1_TCP;
 	app_function_flow_ctrl.flow_list[2].ret_handler[0].err_code =  RET_OK;
-	app_function_flow_ctrl.flow_list[2].ret_handler[0].hander_index =  LOGIN_DISTRI_PLAT_STEP2_TCP;
+	app_function_flow_ctrl.flow_list[2].ret_handler[0].handler_index =  LOGIN_DISTRI_PLAT_STEP2_TCP;
 	app_function_flow_ctrl.flow_list[2].ret_handler[1].err_code = RET_NO_ACK ;
-	app_function_flow_ctrl.flow_list[2].ret_handler[1].hander_index =  LOGIN_DISTRI_PLAT_STEP1_TCP;
+	app_function_flow_ctrl.flow_list[2].ret_handler[1].handler_index =  LOGIN_DISTRI_PLAT_STEP1_TCP;
 	app_function_flow_ctrl.flow_list[2].ret_handler[2].err_code =  RET_DNS_FAILED;
-	app_function_flow_ctrl.flow_list[2].ret_handler[3].hander_index =  LOGIN_DISTRI_PLAT_STEP1_TCP;
+	app_function_flow_ctrl.flow_list[2].ret_handler[3].handler_index =  LOGIN_DISTRI_PLAT_STEP1_TCP;
 	//handler LOGIN_DISTRI_PLAT_STEP2_TCP
-	app_function_flow_ctrl.flow_list[3].hander_index = LOGIN_DISTRI_PLAT_STEP2_TCP;
+	app_function_flow_ctrl.flow_list[3].cur_handler_index = LOGIN_DISTRI_PLAT_STEP2_TCP;
 	app_function_flow_ctrl.flow_list[3].ret_handler[0].err_code =  RET_OK;
-	app_function_flow_ctrl.flow_list[3].ret_handler[0].hander_index =  LOGIN_OPERATE_PLAT_STEP;
+	app_function_flow_ctrl.flow_list[3].ret_handler[0].handler_index =  LOGIN_OPERATE_PLAT_STEP;
 	app_function_flow_ctrl.flow_list[3].ret_handler[1].err_code = RET_NO_ACK ;
-	app_function_flow_ctrl.flow_list[3].ret_handler[1].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[3].ret_handler[1].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
 	app_function_flow_ctrl.flow_list[3].ret_handler[2].err_code =  RET_DNS_FAILED;
-	app_function_flow_ctrl.flow_list[3].ret_handler[3].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[3].ret_handler[3].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
 
 	//handler LOGIN_OPERATE_PLAT_STEP
-	app_function_flow_ctrl.flow_list[4].hander_index = LOGIN_DISTRI_PLAT_STEP2_UDP;
+	app_function_flow_ctrl.flow_list[4].cur_handler_index = LOGIN_DISTRI_PLAT_STEP2_UDP;
 	app_function_flow_ctrl.flow_list[4].ret_handler[0].err_code =  RET_OK;
-	app_function_flow_ctrl.flow_list[4].ret_handler[0].hander_index =  SOCKET_DATA_HANDLER_STEP;
+	app_function_flow_ctrl.flow_list[4].ret_handler[0].handler_index =  SOCKET_DATA_HANDLER_STEP;
 	app_function_flow_ctrl.flow_list[4].ret_handler[1].err_code = RET_NO_ACK ;
-	app_function_flow_ctrl.flow_list[4].ret_handler[1].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[4].ret_handler[1].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
 	app_function_flow_ctrl.flow_list[4].ret_handler[2].err_code =  RET_DNS_FAILED;
-	app_function_flow_ctrl.flow_list[4].ret_handler[3].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[4].ret_handler[3].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
 	//handler SOCKET_DATA_HANDLER_STEP
-	app_function_flow_ctrl.flow_list[4].hander_index = LOGIN_DISTRI_PLAT_STEP2_UDP;
+	app_function_flow_ctrl.flow_list[4].cur_handler_index = LOGIN_DISTRI_PLAT_STEP2_UDP;
 	app_function_flow_ctrl.flow_list[4].ret_handler[0].err_code =  RET_OK; //never reach here
-	app_function_flow_ctrl.flow_list[4].ret_handler[0].hander_index =  SOCKET_DATA_HANDLER_STEP;
+	app_function_flow_ctrl.flow_list[4].ret_handler[0].handler_index =  SOCKET_DATA_HANDLER_STEP;
 	app_function_flow_ctrl.flow_list[4].ret_handler[1].err_code = RET_NO_ACK ;
-	app_function_flow_ctrl.flow_list[4].ret_handler[1].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[4].ret_handler[1].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
 	app_function_flow_ctrl.flow_list[4].ret_handler[2].err_code =  RET_TOKEN_DOWN;
-	app_function_flow_ctrl.flow_list[4].ret_handler[3].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
-	app_function_flow_ctrl.flow_list[4].ret_handler[2].err_code =  RET_PLAT_ACK_ERR;
-	app_function_flow_ctrl.flow_list[4].ret_handler[3].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
-	app_function_flow_ctrl.flow_list[4].ret_handler[2].err_code =  RET_PLAT_RECONNECT;
-	app_function_flow_ctrl.flow_list[4].ret_handler[3].hander_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[4].ret_handler[2].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[4].ret_handler[3].err_code =  RET_PLAT_ACK_ERR;
+	app_function_flow_ctrl.flow_list[4].ret_handler[3].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+	app_function_flow_ctrl.flow_list[4].ret_handler[4].err_code =  RET_PLAT_RECONNECT;
+	app_function_flow_ctrl.flow_list[4].ret_handler[4].handler_index =  LOGIN_DISTRI_PLAT_STEP1_UDP;
+
+	app_function_flow_ctrl.flow_list[4].ret_handler[5].handler_index =  -1;
+
+}
+
+void app_funcion_flow_ctrl_start(void){
+	FunctionStepPointer function_step_pointer = NULL;
+	int handler_index = 0;
+	int ret = 0;
+	while(1){
+			if (handler_index < 0 || handler_index >= app_function_flow_ctrl.handler_num){
+				LOG_ERROR("handler index is error ->%d ,and set to default\n",handler_index);
+				handler_index = 0;
+				break;
+			}
+		function_step_pointer = app_function_flow_ctrl.hander_list[handler_index] ;
+		ret = function_step_pointer(NULL);
+		for(int i = 0 ;   ;i++){
+			FunctionRetHander ret_handler = app_function_flow_ctrl.flow_list[handler_index].ret_handler[i];
+			if (ret_handler.handler_index < 0 ){
+				LOG_ERROR("can find next handler -> %d %d\n",handler_index,ret);
+
+				handler_index = LOGIN_DISTRI_PLAT_STEP1_UDP ;
+				LOG_ERROR("set next hander to default -> %d\n",LOGIN_DISTRI_PLAT_STEP1_UDP);
+				break;
+			}
+			if (ret_handler.err_code ==  ret){
+				LOG_DEBUG("find next handler src :ret:next -> %d %d %d\n",handler_index,ret,ret_handler.handler_index);
+				handler_index = ret_handler.handler_index ;
+				break;
+			}
+
+		}
+	}
+
 
 }
 

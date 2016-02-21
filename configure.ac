@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.59)
 AC_INIT(gateway, 1.0)
 AC_PROG_CC
-
+AC_CONFIG_HEADERS("config.h")
 AC_CANONICAL_SYSTEM
 dnl Initialize automake
 AM_INIT_AUTOMAKE

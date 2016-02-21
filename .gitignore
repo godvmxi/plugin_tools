@@ -25,5 +25,8 @@ Makefile.in
 *.Po
 *.Plo
 *.log
+*.status
 *.deps*
 *.libs*
+Makefile
+*.gch

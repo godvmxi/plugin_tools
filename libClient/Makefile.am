@@ -15,5 +15,5 @@ libClient_la_LDFLAGS =  `pkg-config --libs jansson`  -L/usr/lib -llog4c
 
 # Compiler options. Here we are adding the include directory
 # to be searched for headers included in the source code.
-libClient_la_CPPFLAGS = -I$(top_srcdir)/include  `pkg-config --cflags jansson` 
+libClient_la_CPPFLAGS = -I$(top_srcdir)/include  `pkg-config --cflags jansson`  -std=c99
 

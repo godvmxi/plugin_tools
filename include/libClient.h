@@ -12,41 +12,41 @@ typedef enum{
 
 }HanderFunctionEnum;
 typedef enum{
+	RET_PLAT_RECONNECT = -6,
 	RET_PLAT_ACK_ERR = -5,
 	RET_TOKEN_DOWN = -4,
 	RET_NOT_MATCH = -3,
 	RET_DNS_FAILED = -2,
 	RET_NO_ACK  = -1,
 	RET_OK = 0,
-	RET_PLAT_RECONNECT = 1,
+
 }HanderRetEnum;
 #define MAX_RET_HANDLER_NUM  5
 #define MAX_HANDLER_NUM  10
 
-typedef int (*FunctionStep)(void *dat) ;
+typedef int (*FunctionStepPointer)(void *dat) ;
 
 typedef struct {
 	int err_code;
-	int hander_index;
+	int handler_index;
 }FunctionRetHander;
 
 typedef struct {
-		int hander_index ;
+		int cur_handler_index ;
 
 		FunctionRetHander  ret_handler[MAX_RET_HANDLER_NUM];
 }FunctionFlowCtrl;
 
 typedef struct {
 	int handler_num ;
-	int handler_flow_num;
-	//
-	FunctionStep hander_list[MAX_HANDLER_NUM];
-	FunctionFlowCtrl flow_list[MAX_HANDLER_NUM];
+	FunctionStepPointer 	hander_list[MAX_HANDLER_NUM];
+	FunctionFlowCtrl 			flow_list[MAX_HANDLER_NUM];
 } AppFunctionFlowCtrl;
 
 extern AppFunctionFlowCtrl app_function_flow_ctrl ;
 
-void app_funcion_flow_ctrl_init(void);
+extern void app_funcion_flow_ctrl_init(void);
+extern void app_funcion_flow_ctrl_start(void);
 
 int login_distri_plat_step1_udp(void *dat);
 int login_distri_plat_step2_udp(void *dat);
@@ -55,6 +55,6 @@ int login_distri_plat_step2_tcp(void *dat);
 int login_operation_plat(void *dat);
 int socket_data_handler_loop(void *dat);
 
-extern void get_version ();
+extern void get_version (void);
 
 #endif
