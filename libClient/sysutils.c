@@ -80,6 +80,11 @@ static int  __sysutils_get_sys_sn(char *buf){
 			return 0;
 	//get storage token data
 }
+static int  __sysutils_get_sys_ssn(char *buf){
+	sprintf(buf,"sn data");
+			return 0;
+	//get storage token data
+}
 static int  __sysutils_get_sys_time(char *buf){
 	time_t timer ;
 	struct tm * t_tm;
@@ -275,50 +280,72 @@ int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message
 		return 0;
 }
 int sysutils_get_json_rpc_token_update(char *buf){
-	char loid[64] = {0};
-	if (__sysutils_get_sys_loid(loid) <  0){
-		//return 0;
-	}
-	char mac[20] = {0};
-	if (__sysutils_get_wlan_mac(mac) < 0){
-		//return 0;
-	}
-	char token[64] = {0};
-	if (__sysutils_get_sys_token(token) < 0){
-		//return 0;
-	}
+	char ssn[64] = {0};
+			if (__sysutils_get_sys_ssn(ssn) <  0){
+				//return 0;
+			}
+			char time[20] = {0};
+				if (__sysutils_get_sys_time(time) < 0){
+					//return 0;
+				}
+			//LOG_DEBUG("current system time ->%s\n",time);
 
-	//srand( (unsigned)time( NULL ) );
-	//thread safe
-	//json_object_seed(rand());
-	json_t *obj = json_object();
-	//file rpc
-	json_t *rpc_obj =  json_string("Boot");
-	json_object_set(obj,"RpcMethod",rpc_obj);
-	//file loid
-	json_t *loid_obj =  json_string(loid);
-	json_object_set(obj,"LOID",loid_obj);
-	//file mac
-	json_t *mac_obj =  json_string(mac);
-	json_object_set(obj,"MAC",mac_obj);
-	json_t *token_obj =  json_string(token);
-	json_object_set(obj,"Token",token_obj);
-	//fill counter
-	json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-	json_object_set(obj,"Counter",counter_obj);
-	//dump
-	char *result =  json_dumps(obj,JSON_COMPACT);
-	memcpy(buf,result,strlen(result));
-	//free all
-	json_decref(rpc_obj);
-	json_decref(loid_obj);
-	json_decref(mac_obj);
-	json_decref(token_obj);
-	json_decref(counter_obj);
-	json_decref(obj);
-	free(result);
+			char token[128] = {0};
+			if(__sysutils_get_sys_token(token) < 0 ){
+				//
+			}
+			//char new_token[128] = {0};
 
-	return 0;
+			char md5_hash_input[128] =  {0};
+			sprintf(md5_hash_input,"%s%s%s",time,ssn,time);
+			printf("will hash-> %s\n",md5_hash_input);
+
+			char temp[20] = {0};
+			if (__sysutils_get_buf_md5( md5_hash_input,temp) < 0){
+				//return 0;
+			}
+
+			char md5[20] = {0};
+			hash_bin2hex(temp,md5,16);
+
+			//printf("\nmd5->>>>>%d  %s\n",strlen(md5),md5);
+
+
+			//srand( (unsigned)time( NULL ) );
+			//thread safe
+			//json_object_seed(rand());
+			json_t *obj = json_object();
+			//file rpc
+			json_t *rpc_obj =  json_string("TokenUpdate");
+			json_object_set(obj,"RpcMethod",rpc_obj);
+
+			//file token
+			json_t *token_obj =  json_string(token);
+			json_object_set(obj,"Token",token_obj);
+
+			//file time
+						json_t *time_obj =  json_string(time);
+						json_object_set(obj,"time",time_obj);
+
+			json_t *md5_obj =  json_string(md5);
+			json_object_set(obj,"MD5",md5_obj);
+
+			//fill counter
+			json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
+			json_object_set(obj,"Counter",counter_obj);
+			//dump
+			char *result =  json_dumps(obj,JSON_COMPACT);
+			memcpy(buf,result,strlen(result));
+			//free all
+			json_decref(rpc_obj);
+			json_decref(token_obj);
+			json_decref(time_obj);
+			json_decref(md5_obj);
+			json_decref(counter_obj);
+			json_decref(obj);
+			free(result);
+
+			return 0;
 }
 int sysutils_get_json_rpc_boot_first(char *buf ){
 

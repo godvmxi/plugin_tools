@@ -47,6 +47,10 @@ int main(int argc, char **argv) {
 	sysutils_get_json_rpc_message_push(buffer,"test_plugin","test_message",12);
 	printf("Push Message  ->%s\n",buffer);
 
+	memset(buffer,0,1024);
+	sysutils_get_json_rpc_token_update(buffer);
+	printf("TokenUpdate   ->%s\n",buffer);
+
 	break;
 	}
 	//app_funcion_flow_ctrl_init();
