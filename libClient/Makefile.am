@@ -8,7 +8,7 @@ lib_LTLIBRARIES = libClient.la
 # Build information for each library
 
 # Sources for libClient
-libClient_la_SOURCES = libClient.c logger.c netutils.c  buffer.c sysutils.c
+libClient_la_SOURCES = libClient.c logger.c netutils.c  buffer.c sysutils.c md5.c base64.c
 
 # Linker options libTestProgram
 libClient_la_LDFLAGS =  `pkg-config --libs jansson`  -L/usr/lib -llog4c

@@ -67,6 +67,9 @@ int login_distri_plat_step2_tcp(void *dat);
 int login_operation_plat(void *dat);
 int socket_data_handler_loop(void *dat);
 
+
+int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message,int message_len);
+
 extern void get_version (void);
 
 #endif

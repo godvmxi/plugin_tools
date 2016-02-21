@@ -9,7 +9,9 @@
 #include <jansson.h>
 #include <time.h>
 #include <string.h>
-
+#include <logger.h>
+#include "md5.h"
+#include "base64.h"
 //#include "capi.h"
 int sysutils_active_rpc_counter = 0;
 static int  __sysutils_get_vender(char *buf){
@@ -83,17 +85,19 @@ static int  __sysutils_get_sys_time(char *buf){
 	struct tm * t_tm;
 	time(&timer);
 	t_tm = localtime(&timer);
-	sprintf(buf,"%4d%02d%02d%02d%02d",t_tm.tm_year,t_tm->tm_mon,t_tm->tm_mday,t_tm.tm_hour,t_tm->tm_min);
+	sprintf(buf,"%4d%02d%02d%02d%02d",t_tm->tm_year+1900,t_tm->tm_mon,t_tm->tm_mday,t_tm->tm_hour,t_tm->tm_min);
 	for(int i = 0 ;i<strlen(buf);i++){
 		if(buf[i] == ' '){
-			buf[i] == '0';
+			buf[i] = '0';
 		}
 	}
 			return 0;
 	//get storage token data
 }
-static int  __sysutils_get_md5(char *buf,char *md5){
-	sprintf(buf,"sn data");
+
+static int  __sysutils_get_buf_md5(char *buf,char *md5){
+	md5_calc(md5,buf,strlen(buf));
+	printf("md5: %s ->%s\n",buf,md5);
 			return 0;
 	//get storage token data
 }
@@ -102,7 +106,7 @@ int sysutils_get_json_rpc_boot(char *buf){
 
 
 	char loid[64] = {0};
-	if (__sysutils_get_loid(loid) <  0){
+	if (__sysutils_get_sys_loid(loid) <  0){
 		//return 0;
 	}
 	char mac[20] = {0};
@@ -188,8 +192,11 @@ int sysutils_get_json_rpc_headbeat(char *buf){
 	free(result);
 	return 0;
 }
-
-int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message){
+/*
+ *
+ * message_len is limited short than 512
+ * */
+int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message,int message_len){
 		char sn[64] = {0};
 		if (__sysutils_get_sys_sn(sn) <  0){
 			//return 0;
@@ -199,16 +206,26 @@ int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message
 			//return 0;
 		}
 		char time[20] = {0};
-			if (__sysutils_get_sys_time(mac) < 0){
+			if (__sysutils_get_sys_time(time) < 0){
 				//return 0;
 			}
 		LOG_DEBUG("current system time ->%s\n",time);
-		char mac[20] = {0};
-				if (__sysutils_get_wlan_mac(mac) < 0){
-					//return 0;
-				}
+		if (message_len > 512){
+			message_len = 512;
+			LOG_DEBUG("message will be cut short to 512\n");
+		}
+		char message_base64[2048] = {0};
+		char *p = message;
+	 base64_encode(message,message_base64,message_len);
+		LOG_DEBUG("base64: %s  -> %s\n",p,message_base64);
+
+		return 0;
+
+		char md5_hash_input[2048] =  {0};
+		sprintf(md5_hash_input,"%s%s%s",time,message_base64,mac,sn);
+		sprintf("will hash-> %s\n",md5_hash_input);
 		char md5[64] = {0};
-		if (__sysutils_get_sys_token(token) < 0){
+		if (__sysutils_get_buf_md5( mac,md5) < 0){
 			//return 0;
 		}
 

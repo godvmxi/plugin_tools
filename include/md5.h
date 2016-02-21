@@ -1,18 +1,18 @@
 /*
- * Copyright (c) 2004,½ðÉ½KSG
+ * Copyright (c) 2004,ï¿½ï¿½É½KSG
  * All rights reserved.
  * 
- * ÎÄ¼þÃû³Æ: mysocket.h
- * ÎÄ¼þ±êÊ¶:
- * Õª    Òª: ÓÃÓÚmd5¶¨Òå
- * µ±Ç°°æ±¾: 1.0
- * ×÷    Õß: chen.qian.jiang
- * ¿ªÊ¼ÈÕÆÚ: 2004-08-13
- * Íê³ÉÈÕÆÚ: 
- * ÆäËüËµÃ÷£º 
- * ÐÞ¸ÄÈÕÆÚ        °æ±¾ºÅ     ÐÞ¸ÄÈË          ÐÞ¸ÄÄÚÈÝ
+ * ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½: mysocket.h
+ * ï¿½Ä¼ï¿½ï¿½ï¿½Ê¶:
+ * Õª    Òª: ï¿½ï¿½ï¿½ï¿½md5ï¿½ï¿½ï¿½ï¿½
+ * ï¿½ï¿½Ç°ï¿½æ±¾: 1.0
+ * ï¿½ï¿½    ï¿½ï¿½: chen.qian.jiang
+ * ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½: 2004-08-13
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: 
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½ï¿½ï¿½ 
+ * ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½        ï¿½æ±¾ï¿½ï¿½     ï¿½Þ¸ï¿½ï¿½ï¿½          ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½
  * -----------------------------------------------
- * 2004/08/13      V1.0       ³ÂÇ­½­          ´´½¨
+ * 2004/08/13      V1.0       ï¿½ï¿½Ç­ï¿½ï¿½          ï¿½ï¿½ï¿½ï¿½
  */ 
 
 #ifndef _MY_MD5__H
@@ -28,63 +28,12 @@
 extern "C" {
 #endif
 
-typedef unsigned  int UINT4;
 
-#define S11 7
-#define S12 12
-#define S13 17
-#define S14 22
-#define S21 5
-#define S22 9
-#define S23 14
-#define S24 20
-#define S31 4
-#define S32 11
-#define S33 16
-#define S34 23
-#define S41 6
-#define S42 10
-#define S43 15
-#define S44 21
-
-/* F, G, H and I are basic MD5 functions.*/
-#define F(x, y, z) (((x) & (y)) | ((~x) & (z)))
-#define G(x, y, z) (((x) & (z)) | ((y) & (~z)))
-#define H(x, y, z) ((x) ^ (y) ^ (z))
-#define I(x, y, z) ((y) ^ ((x) | (~z)))
-
-/* ROTATE_LEFT rotates x left n bits.
- */
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
-
-/* FF, GG, HH, and II transformations for rounds 1, 2, 3, and 4.
-Rotation is separate from addition to prevent recomputation.
- */
-#define FF(a, b, c, d, x, s, ac) { \
- (a) += F ((b), (c), (d)) + (x) + (UINT4)(ac); \
- (a) = ROTATE_LEFT ((a), (s)); \
- (a) += (b); \
-  }
-#define GG(a, b, c, d, x, s, ac) { \
- (a) += G ((b), (c), (d)) + (x) + (UINT4)(ac); \
- (a) = ROTATE_LEFT ((a), (s)); \
- (a) += (b); \
-  }
-#define HH(a, b, c, d, x, s, ac) { \
- (a) += H ((b), (c), (d)) + (x) + (UINT4)(ac); \
- (a) = ROTATE_LEFT ((a), (s)); \
- (a) += (b); \
-  }
-#define II(a, b, c, d, x, s, ac) { \
- (a) += I ((b), (c), (d)) + (x) + (UINT4)(ac); \
- (a) = ROTATE_LEFT ((a), (s)); \
- (a) += (b); \
-  }
 
 
 #pragma pack()
 
-void Md5_calc(unsigned char *output, unsigned char * input , int len);
+void md5_calc(unsigned char *output, unsigned char * input , int len);
 
 #endif
 
