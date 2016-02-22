@@ -50,7 +50,8 @@ static int  __sysutils_get_plugin_info(char *name){
 
 }
 static int  __sysutils_get_wlan_mac(char *buf){
-		sprintf(buf,"00112233445566");
+		char mac[] =  {0x84,0x82,0xf4,0x1c,0xe9,0x28 };
+		sprintf(buf,"8482F41CE928");
 		return 0;
 		//use capi get system info
 }
@@ -417,7 +418,7 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 
 		json_decref(obj);
 		free(result);
-		return 0;
+		return strlen(buf);
 }
 int sysutils_get_json_rpc_register_first(char *buf){
 	 char vendor[64] = {0};

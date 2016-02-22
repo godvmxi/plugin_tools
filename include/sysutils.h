@@ -67,12 +67,12 @@ typedef enum {
 
 
 
-int sysutils_get_json_boot(char *buf);
-int sysutils_get_json_headbeat(char *buf);
-int sysutils_get_json_token_update(char *buf);
-int sysutils_get_json_boot_first(char *buf );
-int sysutils_get_json_register_first(char *buf);
+int sysutils_get_json_rpc_boot(char *buf);
+int sysutils_get_json_rpc_heartbeat(char *buf);
+int sysutils_get_json_rpc_token_update(char *buf);
+int sysutils_get_json_rpc_register_first(char *buf);
 int sysutils_parse_json_type(char *buf,int cmdType);
+int sysutils_get_json_rpc_boot_first(char *buf );
 
 
 #endif /* SYSUTILS_H_ */
