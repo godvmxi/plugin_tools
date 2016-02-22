@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <logger.h>
 
-int  get_ip_list_from_domain(char *domain,char *ip_list,int max_ret_ip,int max_len_ip){
+int  netutils_dns_resolver(char *domain,char *ip_list,int max_ret_ip,int max_len_ip){
 	struct hostent *answer;
 	int i;
 	char *ipstr = ip_list;
@@ -25,9 +25,9 @@ int  get_ip_list_from_domain(char *domain,char *ip_list,int max_ret_ip,int max_l
 	max_ret_ip--;
 	for (i = 0; ( (answer->h_addr_list)[i] != NULL  )|| (i == max_ret_ip ); i++) {
 		inet_ntop(AF_INET, (answer->h_addr_list)[i], ipstr, 16);
-		printf("%s ->%d\n", ipstr,ipstr-ip_list);
+		printf("dns-> %s ->%d\n", ipstr,ipstr-ip_list);
 		ipstr+= max_len_ip;
 	}
-	return i+1;
+	return i;
 }
 

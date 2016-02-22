@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <netutils.h>
 AppFunctionFlowCtrl app_function_flow_ctrl ;
 AppDomainInfo  app_domain_info;
 
 void get_version(){
   printf("version 0.1\n");
 }
-#define   DEBUG_FLOW_CONTROL  1
+#define   DEBUG_FLOW_CONTROL  0
 
 int manual_interactive_flow_control(const char *info){
 		char input[64] ;
@@ -26,6 +27,11 @@ int login_distri_plat_step1_udp(void *dat)
 	ret = manual_interactive_flow_control(__FUNCTION__) ;
 	return ret;
 #endif
+	char *dns = app_domain_info.distri_server.domain;
+	char *ip_list =  app_domain_info.distri_server.ip_list[0] ;
+	int ip_num = netutils_dns_resolver(dns,ip_list,NETUTIIS_MAX_IP_PER_DOMAIN,NETUTILS_MAX_IP_LEN);
+	LOG_DEBUG("dns resolver result -> %d\n",ip_num);
+
 	return ret ;
 }
 int login_distri_plat_step2_udp(void *dat)

@@ -140,7 +140,7 @@ int sysutils_get_json_rpc_boot(char *buf){
 	json_object_set(obj,"Token",token_obj);
 	//fill counter
 	json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-	json_object_set(obj,"Counter",counter_obj);
+	json_object_set(obj,"ID",counter_obj);
 	//dump
 	char *result =  json_dumps(obj,JSON_COMPACT);
 	memcpy(buf,result,strlen(result));
@@ -185,7 +185,7 @@ int sysutils_get_json_rpc_headbeat(char *buf){
 
 	//fill counter
 		json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-		json_object_set(obj,"Counter",counter_obj);
+		json_object_set(obj,"ID",counter_obj);
 		//dump
 
 	char *result =  json_dumps(obj,JSON_COMPACT);
@@ -263,7 +263,7 @@ int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message
 				json_object_set(obj,"Message",message_obj);
 		//fill counter
 		json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-		json_object_set(obj,"Counter",counter_obj);
+		json_object_set(obj,"ID",counter_obj);
 		//dump
 		char *result =  json_dumps(obj,JSON_COMPACT);
 		memcpy(buf,result,strlen(result));
@@ -332,7 +332,7 @@ int sysutils_get_json_rpc_token_update(char *buf){
 
 			//fill counter
 			json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-			json_object_set(obj,"Counter",counter_obj);
+			json_object_set(obj,"ID",counter_obj);
 			//dump
 			char *result =  json_dumps(obj,JSON_COMPACT);
 			memcpy(buf,result,strlen(result));
@@ -402,7 +402,7 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 
 		//fill counter
 			json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-			json_object_set(obj,"Counter",counter_obj);
+			json_object_set(obj,"ID",counter_obj);
 			//dump
 
 		char *result =  json_dumps(obj,JSON_COMPACT);
@@ -474,7 +474,7 @@ int sysutils_get_json_rpc_register_first(char *buf){
 
 		//fill counter
 			json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-			json_object_set(obj,"Counter",counter_obj);
+			json_object_set(obj,"ID",counter_obj);
 			//dump
 
 		char *result =  json_dumps(obj,JSON_COMPACT);
@@ -546,7 +546,7 @@ int sysutils_parse_rpc_json_type(char *buf,int cmdType){
 
 		//fill counter
 			json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-			json_object_set(obj,"Counter",counter_obj);
+			json_object_set(obj,"ID",counter_obj);
 			//dump
 
 		char *result =  json_dumps(obj,JSON_COMPACT);

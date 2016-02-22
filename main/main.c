@@ -15,6 +15,7 @@
 #include <jansson.h>
 #include "libClient.h"
 #include "stdio.h"
+#include "stdlib.h"
 #include "logger.h"
 #include "netutils.h"
 #include "sysutils.h"
@@ -66,8 +67,10 @@ int main(int argc, char **argv) {
 
 	break;
 	}
-	//app_funcion_flow_ctrl_init();
+	app_funcion_flow_ctrl_init();
 	//app_funcion_flow_ctrl_start();
+
+	login_distri_plat_step1_udp(NULL);
 
 
 	exit(0);
