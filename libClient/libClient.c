@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <netutils.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
 AppFunctionFlowCtrl app_function_flow_ctrl ;
 AppDomainInfo  app_domain_info;
 
@@ -27,10 +32,45 @@ int login_distri_plat_step1_udp(void *dat)
 	ret = manual_interactive_flow_control(__FUNCTION__) ;
 	return ret;
 #endif
+
 	char *dns = app_domain_info.distri_server.domain;
 	char *ip_list =  app_domain_info.distri_server.ip_list[0] ;
 	int ip_num = netutils_dns_resolver(dns,ip_list,NETUTIIS_MAX_IP_PER_DOMAIN,NETUTILS_MAX_IP_LEN);
 	LOG_DEBUG("dns resolver result -> %d\n",ip_num);
+	app_domain_info.distri_server.cur_ip = 0;
+	app_domain_info.distri_server.ip_list_number =  ip_num ;
+
+
+	int socket_descriptor;
+	int iter=0;
+
+	struct sockaddr_in address;
+
+	bzero(&address,sizeof(address));
+	address.sin_family=AF_INET;
+	address.sin_addr.s_addr=inet_addr(ip_list[0]);
+	address.sin_port=htons(app_domain_info.distri_server.udp_port);
+	//create socket
+	socket_descriptor=socket(AF_INET,SOCK_DGRAM,0);
+
+	char buf[1024] = {0};
+	sysutils_get_json_rpc_boot_first(buf+4);
+	uint32_t buf_len = strlen(buf+4);
+	uint32_t *json_len = buf ;
+	*json_len = htons(buf_len);
+	LOG_DEBUG("send -> %d ->%s\n",json_len,buf+4);
+	sendto(socket_descriptor,buf,buf_len+4,0,(struct sockaddr *)&address,sizeof(address));
+	memset(buf,0 ,1024);
+	buf_len = recv(socket_descriptor,buf,1024,0);
+	if (buf_len > 0 ){
+	int recv_json_len =ntohl(buf);
+	LOG_DEBUG("receive data -> %d -> %s\n",recv_json_len,buf+4);
+	}
+	else {
+			LOG_DEBUG("receive data error -> %d\n",buf_len);
+	}
+
+
 
 	return ret ;
 }
