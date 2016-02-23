@@ -52,6 +52,9 @@ typedef struct {
 	DnsAddressInfo  plugin_server ;
 
 }AppDomainInfo;
+typedef struct {
+	char chanllege_code[20];
+}AppSecutryInfo;
 
 extern AppFunctionFlowCtrl app_function_flow_ctrl ;
 extern AppDomainInfo  app_domain_info;

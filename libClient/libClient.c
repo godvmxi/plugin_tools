@@ -72,6 +72,7 @@ int login_distri_plat_step1_udp(void *dat)
 
 	int socket_descriptor;
 	int iter=0;
+	int ret ;
 	int send_counter = 0;
 	struct sockaddr_in address;
 	char buf[1024] = {0};
@@ -150,6 +151,24 @@ int login_distri_plat_step1_udp(void *dat)
 				}
 
 				send_counter = 0;
+				int result =  -1;
+				int interval_temp = 0;
+				char challenge_code[20] = {0};
+				char server_ip[20] = {0};
+				ret = sysutils_parse_distri_server_ack_step_1(buf,&result,challenge_code,&interval_temp,server_ip);
+				if (ret == 0){
+					if (result == 0  ){
+						app_login_distri_server_retry_interval =  interval_temp ;
+						LOG_DEBUG("boot first registe ok ,continue \n");
+						//server_ip is the wlan ip ,do not care it .
+
+						return RET_OK;
+					}
+					else {
+						 LOG_ERROR("Boot first reigister failed \n");
+						 sleep(app_login_distri_server_retry_interval*1000);
+					}
+				}
 				//fifo_buffer_put(&socket_rx_fifo_header,buf+4,recv_json_len);
 
 				//try parse json data 
@@ -348,10 +367,7 @@ void app_funcion_flow_ctrl_start(void){
 				handler_index = ret_handler.handler_index ;
 				break;
 			}
-
 		}
 	}
-
-
 }
 

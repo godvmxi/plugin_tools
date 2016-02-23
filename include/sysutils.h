@@ -9,6 +9,8 @@
 #define SYSUTILS_H_
 
 typedef enum {
+	RPC_METHOD_INVALID = -1,
+	RPC_METHOD_ACK  = 0,
 	RPC_METHOD_BOOT = 1,
 	RPC_METHOD_HEARTBEAT    ,
 	RPC_METHOD_DISCONNECT    ,
@@ -28,12 +30,13 @@ typedef enum {
 	RPC_METHOD_REGISTER_FIRST    ,
 
 
+
 }RPC_METHOD_ENUM;
 //SUCCESS RET
-#define 	RPC_RET_SUCCESS = 0,
-#define 	RPC_RET_NEW_DEVRND  = 1
-#define 	RPC_RET_IDENTIFY_OK = 2
-#define 	RPC_RET_GW_SET_DEFAULT = 3
+#define 	RPC_RET_SUCCESS          0
+#define 	RPC_RET_NEW_DEVRND       1
+#define 	RPC_RET_IDENTIFY_OK      2
+#define 	RPC_RET_GW_SET_DEFAULT   3
 //FAILED RET
 #define 	RPC_RET_NORNAL_FAILED   -1
 #define 	RPC_RET_INVALID_SSN_LOID   -2
@@ -60,6 +63,9 @@ typedef enum {
 #define 	RPC_RET_DEV_NOT_IN_DATABASE       -1002
 #define 	RPC_RET_DEV_TOKEN_INVALID         -1003
 
+#define  SOCKET_CMD_TYPE_ACK    0
+#define  SOCKET_CMD_TYPE_ACK    0
+
 
 
 
@@ -73,6 +79,7 @@ int sysutils_get_json_rpc_token_update(char *buf);
 int sysutils_get_json_rpc_register_first(char *buf);
 int sysutils_parse_json_type(char *buf,int cmdType);
 int sysutils_get_json_rpc_boot_first(char *buf );
+
 int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challenge_code,int *interval,char * server_ip);
 int sysutils_parse_distri_server_ack_step_2(char *buf,
 		int *result,
@@ -83,6 +90,9 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 		char *token,
 		char *exp_date,
 		char *ca_download_url);
+int sysutils_parse_operate_login_ack(char *buf,int *result);
+int sysutils_parse_json_cmd_type(char *buf, RPC_METHOD_ENUM  type , int ID);
+
 
 
 #endif /* SYSUTILS_H_ */
