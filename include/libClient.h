@@ -56,7 +56,7 @@ typedef struct {
 extern AppFunctionFlowCtrl app_function_flow_ctrl ;
 extern AppDomainInfo  app_domain_info;
 
-
+void app_function_fifo_buffer_init(void);
 extern void app_funcion_flow_ctrl_init(void);
 extern void app_funcion_flow_ctrl_start(void);
 

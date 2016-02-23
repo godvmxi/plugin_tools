@@ -15,14 +15,34 @@
 #include "sysutils.h"
 #include "fifobuffer.h"
 
+
+#define   DEBUG_FLOW_CONTROL  0
+
 AppFunctionFlowCtrl app_function_flow_ctrl ;
 AppDomainInfo  app_domain_info;
+
+FIFO_BUFFER_HEADER  socket_rx_fifo_header ;
+FIFO_BUFFER_HEADER  socket_tx_fifo_header ;
+FIFO_BUFFER_HEADER  plugins_control_down_link_header ;
+FIFO_BUFFER_HEADER  plugins_control_ack_fifo_header ;
+FIFO_BUFFER_HEADER  system_report_fifo_header ;
+FIFO_BUFFER_HEADER  system_report_ack_fifo_header ;
+
+int app_login_distri_server_retry_interval = 30 ;
+#define APP_DEFAULT_FIFO_BUFFER_SIZE   10
 
 void get_version(){
   printf("version 0.1\n");
 }
-#define   DEBUG_FLOW_CONTROL  0
 
+void app_function_fifo_buffer_init(void){
+	fifo_buffer_init(&socket_rx_fifo_header,APP_DEFAULT_FIFO_BUFFER_SIZE);
+	fifo_buffer_init(&socket_tx_fifo_header,APP_DEFAULT_FIFO_BUFFER_SIZE);
+	fifo_buffer_init(&plugins_control_down_link_header,APP_DEFAULT_FIFO_BUFFER_SIZE);
+	fifo_buffer_init(&plugins_control_ack_fifo_header,APP_DEFAULT_FIFO_BUFFER_SIZE);
+	fifo_buffer_init(&system_report_fifo_header,APP_DEFAULT_FIFO_BUFFER_SIZE);
+	fifo_buffer_init(&system_report_ack_fifo_header,APP_DEFAULT_FIFO_BUFFER_SIZE);
+}
 int manual_interactive_flow_control(const char *info){
 		char input[64] ;
 	  int ret = 0 ;
@@ -49,6 +69,7 @@ int login_distri_plat_step1_udp(void *dat)
 	int cur_ip_index = 0;
 
 
+
 	int socket_descriptor;
 	int iter=0;
 	int send_counter = 0;
@@ -68,6 +89,9 @@ int login_distri_plat_step1_udp(void *dat)
 		address.sin_addr.s_addr=inet_addr(app_domain_info.distri_server.ip_list[cur_ip_index]);
 		address.sin_port=htons(app_domain_info.distri_server.udp_port);
 		//create socket
+		if (socket_descriptor> 0 ){
+			close(socket_descriptor);
+		}
 		socket_descriptor=socket(AF_INET,SOCK_DGRAM,0);
 
 
@@ -119,6 +143,15 @@ int login_distri_plat_step1_udp(void *dat)
 				}
 				recv_json_len =ntohl(buf);
 				LOG_DEBUG("receive data -> %d -> %s\n",recv_json_len,buf+4);
+				if (recv_json_len != (buf_len - 4) ) {
+						LOG_ERROR("receive data len not match -> %d %d\n",recv_json_len,buf_len);
+						send_counter++;
+						continue ;
+				}
+
+				send_counter = 0;
+				//fifo_buffer_put(&socket_rx_fifo_header,buf+4,recv_json_len);
+
 				//try parse json data 
 			}
 		}

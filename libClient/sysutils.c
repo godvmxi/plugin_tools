@@ -6,12 +6,14 @@
  */
 #include"sysutils.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <jansson.h>
 #include <time.h>
 #include <string.h>
 #include <logger.h>
 #include "md5.h"
 #include "base64.h"
+#include <assert.h>
 //#include "capi.h"
 int sysutils_active_rpc_counter = 0;
 static int  __sysutils_get_vender(char *buf){
@@ -563,4 +565,406 @@ int sysutils_parse_rpc_json_type(char *buf,int cmdType){
 		json_decref(obj);
 		free(result);
 		return 0;
+}
+
+int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challenge_code,int *interval,char * server_ip){
+	json_error_t json_error ;
+	json_t *json_root  = NULL;
+	json_t *obj_result = NULL;
+	json_t *obj_challenge_code = NULL;
+	json_t *obj_interval = NULL;
+	json_t *obj_server_ip =  NULL;
+	char *temp= NULL;
+
+	assert(buf == NULL) ;
+	assert(result ==  NULL);
+	assert(challenge_code == NULL);
+	assert(interval == NULL );
+	assert(server_ip == NULL);
+
+	json_root = json_loads(buf, 0 ,&json_error);
+	//Result
+	obj_result =  json_object_get(json_root,"Result" ) ;
+	if (json_is_number(obj_result)  ==  JSON_TRUE ){
+		*result = json_integer_value(obj_result) ;
+	}
+	else if(json_is_string(obj_result ) ==  JSON_TRUE ){
+		*temp =  (char *) json_string_value(obj_result ) ;
+		if (temp != NULL) {
+						*result = atoi(temp);
+						free(temp);
+					 }
+					 else {
+						 	 LOG_ERROR("reuslt get result code error\n");
+						 		goto sysutils_parse_distri_server_ack_step_1_error ;
+					 }
+
+	}
+	else {
+		LOG_ERROR("reuslt value error\n");
+		goto sysutils_parse_distri_server_ack_step_1_error ;
+	}
+	//ChallengeCode
+	obj_challenge_code =  json_object_get(json_root,"ChallengeCode" ) ;
+		 if(json_is_string(obj_challenge_code ) ==  JSON_TRUE ){
+			 temp =  (char *) json_string_value(obj_challenge_code) ;
+			 if (temp != NULL) {
+				memcpy(challenge_code,  temp,strlen(temp) ) ;
+				free(temp);
+			 }
+			 else {
+				 	 LOG_ERROR("reuslt get challenge code error\n");
+				 		goto sysutils_parse_distri_server_ack_step_1_error ;
+			 }
+		}
+		else {
+			LOG_ERROR("reuslt challenge code error\n");
+			goto sysutils_parse_distri_server_ack_step_1_error ;
+		}
+
+	 //interval code
+		obj_interval =  json_object_get(json_root,"Interval" ) ;
+		if (json_is_number(obj_interval)  ==  JSON_TRUE ){
+				 		*interval = json_integer_value(obj_interval) ;
+				 	}
+		else		if(json_is_string(obj_interval ) ==  JSON_TRUE ){
+				 temp =  (char *) json_string_value(obj_interval) ;
+				 if (temp != NULL) {
+					 *interval = atoi(temp);
+					free(temp);
+				 }
+				 else {
+						 LOG_ERROR("reuslt get obj_intervale error\n");
+							goto sysutils_parse_distri_server_ack_step_1_error ;
+				 }
+			}
+			else {
+				LOG_ERROR("reuslt obj_interval error\n");
+				goto sysutils_parse_distri_server_ack_step_1_error ;
+			}
+		//ip addr
+		 obj_server_ip =  json_object_get(json_root,"ServerIP" ) ;
+		 		 if(json_is_string(obj_server_ip ) ==  JSON_TRUE ){
+						 temp =  (char *) json_string_value(obj_server_ip) ;
+						 if (temp != NULL) {
+							memcpy(server_ip,  temp,strlen(temp) ) ;
+							free(temp);
+						 }
+						 else {
+								 LOG_ERROR("reuslt get obj_server_ip  error\n");
+									goto sysutils_parse_distri_server_ack_step_1_error ;
+						 }
+					}
+					else {
+						LOG_ERROR("reuslt obj_server_ip error\n");
+						goto sysutils_parse_distri_server_ack_step_1_error ;
+			 			}
+
+
+	json_decref(json_root);
+	return 0;
+sysutils_parse_distri_server_ack_step_1_error :
+	if (json_root != NULL) {
+		json_decref(json_root);
+	}
+	if (obj_result != NULL) {
+			json_decref(obj_result);
+		}
+	if (obj_challenge_code != NULL) {
+			json_decref(obj_challenge_code);
+		}
+	if (obj_interval != NULL) {
+			json_decref(obj_interval);
+		}
+	if (obj_server_ip != NULL) {
+				json_decref(obj_server_ip);
+			}
+	return -1 ;
+
+
+
+}
+
+int sysutils_parse_distri_server_ack_step_2(char *buf,
+		int *result,
+		char *server_addr,
+		char *server_port,
+		int *interval,
+		char * server_ip,
+		char *token,
+		char *exp_date,
+		char *ca_download_url)
+{
+	json_error_t json_error ;
+		json_t *json_root  = NULL;
+		json_t *obj_result = NULL;
+		json_t *obj_challenge_code = NULL;
+		json_t *obj_interval = NULL;
+		json_t *obj_server_ip =  NULL;
+		json_t *obj_server_addr = NULL;
+		json_t *obj_server_port = NULL;
+		json_t *obj_token = NULL;
+		json_t *obj_exp_date = NULL;
+		json_t *obj_ca_download_url = NULL;
+
+
+		char *temp= NULL;
+
+		assert(buf == NULL) ;
+		assert(result ==  NULL);
+		assert(server_addr == NULL);
+		assert(server_port == NULL);
+		assert(interval == NULL);
+		assert(server_ip == NULL);
+		assert(token == NULL);
+		assert(exp_date == NULL );
+		assert(ca_download_url == NULL );
+
+
+		json_root = json_loads(buf, 0 ,&json_error);
+		//Result
+		obj_result =  json_object_get(json_root,"Result" ) ;
+		if (json_is_number(obj_result)  ==  JSON_TRUE ){
+			*result = json_integer_value(obj_result) ;
+		}
+		else if(json_is_string(obj_result ) ==  JSON_TRUE ){
+			*temp =  (char *) json_string_value(obj_result ) ;
+			if (temp != NULL) {
+							*result = atoi(temp);
+							free(temp);
+						 }
+						 else {
+							 	 LOG_ERROR("reuslt get result code error\n");
+							 		goto sysutils_parse_distri_server_ack_step_2_error ;
+						 }
+
+		}
+		else {
+			LOG_ERROR("reuslt value error\n");
+			goto sysutils_parse_distri_server_ack_step_2_error ;
+		}
+		//ServerAddr
+		obj_challenge_code =  json_object_get(json_root,"ServerAddr" ) ;
+			 if(json_is_string(obj_challenge_code ) ==  JSON_TRUE ){
+				 temp =  (char *) json_string_value(obj_challenge_code) ;
+				 if (temp != NULL) {
+					memcpy(server_addr,  temp,strlen(temp) ) ;
+					free(temp);
+				 }
+				 else {
+					 	 LOG_ERROR("reuslt get server_addr code error\n");
+					 		goto sysutils_parse_distri_server_ack_step_2_error ;
+				 }
+			}
+			else {
+				LOG_ERROR("reuslt server_addr code error\n");
+				goto sysutils_parse_distri_server_ack_step_2_error ;
+			}
+			 //ServerPort
+			 		obj_challenge_code =  json_object_get(json_root,"ServerPort" ) ;
+			 			 if(json_is_string(obj_challenge_code ) ==  JSON_TRUE ){
+			 				 temp =  (char *) json_string_value(obj_challenge_code) ;
+			 				 if (temp != NULL) {
+			 					memcpy(server_port,  temp,strlen(temp) ) ;
+			 					free(temp);
+			 				 }
+			 				 else {
+			 					 	 LOG_ERROR("reuslt get server_port code error\n");
+			 					 		goto sysutils_parse_distri_server_ack_step_2_error ;
+			 				 }
+			 			}
+			 			else {
+			 				LOG_ERROR("reuslt server_port code error\n");
+			 				goto sysutils_parse_distri_server_ack_step_2_error ;
+			 			}
+
+
+		 //interval code
+			obj_interval =  json_object_get(json_root,"Interval" ) ;
+			if (json_is_number(obj_interval)  ==  JSON_TRUE ){
+					 		*interval = json_integer_value(obj_interval) ;
+					 	}
+			else		if(json_is_string(obj_interval ) ==  JSON_TRUE ){
+					 temp =  (char *)  json_string_value(obj_interval) ;
+					 if (temp != NULL) {
+						 *interval = atoi(temp);
+						free(temp);
+					 }
+					 else {
+							 LOG_ERROR("reuslt get obj_intervale error\n");
+								goto sysutils_parse_distri_server_ack_step_2_error ;
+					 }
+				}
+				else {
+					LOG_ERROR("reuslt obj_interval error\n");
+					goto sysutils_parse_distri_server_ack_step_2_error ;
+				}
+			//ServerIP
+			 obj_server_ip =  json_object_get(json_root,"ServerIP" ) ;
+			 		 if(json_is_string(obj_server_ip ) ==  JSON_TRUE ){
+							 temp =  (char *)  json_string_value(obj_server_ip) ;
+							 if (temp != NULL) {
+								memcpy(server_ip,  temp,strlen(temp) ) ;
+								free(temp);
+							 }
+							 else {
+									 LOG_ERROR("reuslt get obj_server_ip  error\n");
+										goto sysutils_parse_distri_server_ack_step_2_error ;
+							 }
+						}
+						else {
+							LOG_ERROR("reuslt obj_server_ip error\n");
+							goto sysutils_parse_distri_server_ack_step_2_error ;
+				 			}
+		//Token
+		obj_token =  json_object_get(json_root,"Token" ) ;
+		if(json_is_string(obj_token ) ==  JSON_TRUE ){
+		temp =  (char *) json_string_value(obj_token) ;
+		if (temp != NULL) {
+		memcpy(token,  temp,strlen(temp) ) ;
+		free(temp);
+		}
+		else {
+		LOG_ERROR("reuslt get obj_token  error\n");
+		goto sysutils_parse_distri_server_ack_step_2_error ;
+		}
+		}
+		else {
+		LOG_ERROR("reuslt obj_token error\n");
+		goto sysutils_parse_distri_server_ack_step_2_error ;
+		}
+		//ExpDate
+		obj_exp_date =  json_object_get(json_root,"ExpDate" ) ;
+		if(json_is_string(obj_exp_date ) ==  JSON_TRUE ){
+			 temp =  (char *) json_string_value(obj_exp_date) ;
+			 if (temp != NULL) {
+				memcpy(exp_date,  temp,strlen(temp) ) ;
+				free(temp);
+			 }
+			 else {
+					 LOG_ERROR("reuslt get obj_exp_date  error\n");
+						goto sysutils_parse_distri_server_ack_step_2_error ;
+			 }
+		}
+		else {
+			LOG_ERROR("reuslt obj_exp_date error\n");
+			goto sysutils_parse_distri_server_ack_step_2_error ;
+			}
+		//CADownloadURL
+				obj_ca_download_url =  json_object_get(json_root,"CADownloadURL" ) ;
+				if(json_is_string(obj_ca_download_url ) ==  JSON_TRUE ){
+					 temp =  (char *) json_string_value(obj_ca_download_url) ;
+					 if (temp != NULL) {
+						memcpy(ca_download_url,  temp,strlen(temp) ) ;
+						free(temp);
+					 }
+					 else {
+							 LOG_ERROR("reuslt get obj_ca_download_url  error\n");
+								goto sysutils_parse_distri_server_ack_step_2_error ;
+					 }
+				}
+				else {
+					LOG_ERROR("reuslt obj_ca_download_url error\n");
+					goto sysutils_parse_distri_server_ack_step_2_error ;
+					}
+
+
+
+		json_decref(json_root);
+		json_decref(obj_result);
+		json_decref(obj_challenge_code);
+		json_decref(obj_interval);
+		json_decref(obj_server_ip);
+		json_decref(obj_server_addr);
+		json_decref(obj_server_port);
+		json_decref(obj_token);
+		json_decref(obj_exp_date);
+		json_decref(obj_ca_download_url);
+		return 0;
+	sysutils_parse_distri_server_ack_step_2_error :
+		if (json_root != NULL) {
+			json_decref(json_root);
+		}
+		if (obj_result != NULL) {
+				json_decref(obj_result);
+			}
+		if (obj_challenge_code != NULL) {
+				json_decref(obj_challenge_code);
+			}
+		if (obj_interval != NULL) {
+				json_decref(obj_interval);
+			}
+		if (obj_server_ip != NULL) {
+					json_decref(obj_server_ip);
+				}
+		if (obj_server_addr != NULL) {
+			json_decref(obj_server_addr);
+		}
+		if (obj_server_port != NULL) {
+				json_decref(obj_server_port);
+			}
+		if (obj_token != NULL) {
+				json_decref(obj_token);
+			}
+		if (obj_exp_date != NULL) {
+				json_decref(obj_exp_date);
+			}
+		if (obj_ca_download_url != NULL) {
+					json_decref(obj_ca_download_url);
+				}
+
+
+		return -1 ;
+
+}
+
+int sysutils_parse_operate_login_ack(char *buf,int *result){
+	json_error_t json_error ;
+	json_t *json_root  = NULL;
+	json_t *obj_result = NULL;
+	json_t *obj_challenge_code = NULL;
+	json_t *obj_interval = NULL;
+	json_t *obj_server_ip =  NULL;
+	char *temp= NULL;
+
+	assert(buf == NULL) ;
+	assert(result ==  NULL);
+
+	json_root = json_loads(buf, 0 ,&json_error);
+	//Result
+	obj_result =  json_object_get(json_root,"Result" ) ;
+	if (json_is_number(obj_result)  ==  JSON_TRUE ){
+		*result = json_integer_value(obj_result) ;
+	}
+	else if(json_is_string(obj_result ) ==  JSON_TRUE ){
+		*temp =  (char *) json_string_value(obj_result ) ;
+		if (temp != NULL) {
+						*result = atoi(temp);
+						free(temp);
+					 }
+					 else {
+						 	 LOG_ERROR("reuslt get result code error\n");
+						 		goto sysutils_parse_distri_server_ack_step_1_error ;
+					 }
+
+	}
+	else {
+		LOG_ERROR("reuslt value error\n");
+		goto sysutils_parse_distri_server_ack_step_1_error ;
+	}
+
+	json_decref(obj_result);
+	json_decref(json_root);
+	return 0;
+sysutils_parse_distri_server_ack_step_1_error :
+	if (json_root != NULL) {
+		json_decref(json_root);
+	}
+	if (obj_result != NULL) {
+			json_decref(obj_result);
+		}
+	if (obj_server_ip != NULL) {
+				json_decref(obj_server_ip);
+			}
+	return -1 ;
 }

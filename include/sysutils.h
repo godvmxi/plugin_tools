@@ -73,6 +73,16 @@ int sysutils_get_json_rpc_token_update(char *buf);
 int sysutils_get_json_rpc_register_first(char *buf);
 int sysutils_parse_json_type(char *buf,int cmdType);
 int sysutils_get_json_rpc_boot_first(char *buf );
+int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challenge_code,int *interval,char * server_ip);
+int sysutils_parse_distri_server_ack_step_2(char *buf,
+		int *result,
+		char *server_addr,
+		char *server_port,
+		int *interval,
+		char * server_ip,
+		char *token,
+		char *exp_date,
+		char *ca_download_url);
 
 
 #endif /* SYSUTILS_H_ */

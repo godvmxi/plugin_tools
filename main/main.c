@@ -12,7 +12,7 @@
                Here the script will be called exampleProgram.
  ============================================================================
  */
-#include <jansson.h>
+
 #include "libClient.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -51,7 +51,6 @@ int main(int argc, char **argv) {
 	memset(buffer,0,1024);
 	sysutils_get_json_rpc_token_update(buffer);
 	printf("TokenUpdate   ->%s\n",buffer);
-
 
 
 	memset(buffer,0,1024);

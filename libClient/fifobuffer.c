@@ -5,6 +5,8 @@
  *      Author: dan
  */
 #include "fifobuffer.h"
+#include <string.h>
+#include <pthread.h>
 
 int fifo_buffer_init(FIFO_BUFFER_HEADER *header ,int max_size)
 {
@@ -31,7 +33,7 @@ int fifo_buffer_put(FIFO_BUFFER_HEADER *header ,char *buf,int buf_size){
 		ret = -1;
 	}
 
-	pthread_metex_unlock(&header->rw_lock);
+	pthread_mutex_unlock(&header->rw_lock);
 	return ret ;
 }
 int fifo_buffer_get(FIFO_BUFFER_HEADER *header ,char *buf,int *buf_size){
@@ -49,13 +51,13 @@ int fifo_buffer_get(FIFO_BUFFER_HEADER *header ,char *buf,int *buf_size){
 		return -1;
 	}
 
-	pthread_metex_unlock(&header->rw_lock);
+	pthread_mutex_unlock(&header->rw_lock);
 }
 int fifo_buffet_get_size(FIFO_BUFFER_HEADER *header){
 	int ret =  0;
 	pthread_mutex_lock(&header->rw_lock);
 
 	ret =  header->cur_size;
-	pthread_metex_unlock(&header->rw_lock);
+	pthread_mutex_unlock(&header->rw_lock);
 	return ret;
 }
