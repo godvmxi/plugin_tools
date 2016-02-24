@@ -581,10 +581,18 @@ int socket_data_handler(int sockfd ){
 	int resend_heartbeat_counter = 0;
 	time_t time_old ;
 	time_t time_new ;
+	time_t time_rx_monitor ;
 	time(&time_old) ;
 	time_new =time_old ;
+	time_rx_monitor = time_new ;
 	while(app_socket_working_state ) { //every 0.5s 检查一次
-		memset(buf,0,1024);
+		time(&time_new);
+		//try to check ack message ,if 3*heartbeat interval no ack message ,will deifine the network down ,try reconnect network
+		if ( (time_new -  time_rx_monitor )  > (3*app_login_operate_server_heartbeat_interval) ){
+			LOG_ERROR("TCP network no ack for long time ,please reconnect it \n");
+			return RET_NETWORK_DOWN;
+		}
+		//try send message
 		if(( time_new - time_old ) > app_login_operate_server_heartbeat_interval ) {
 			LOG_TRACE("send heartbeat info\n");
 			time_old =  time_new ;
@@ -658,6 +666,8 @@ int socket_data_handler(int sockfd ){
 					LOG_ERROR("receive data len not match -> %d %d,just drop it \n", recv_json_len, buf_len);
 				}
 				fifo_buffer_put(&socket_rx_fifo_header , buf, buf_len);	
+				//update time_rx_monitor 
+				time(&time_rx_monitor);
 			}
 		}
 
