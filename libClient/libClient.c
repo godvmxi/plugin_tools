@@ -31,6 +31,10 @@ FIFO_BUFFER_HEADER system_report_fifo_header;
 FIFO_BUFFER_HEADER system_report_ack_fifo_header;
 AppMessageWaitAckInfo app_message_wait_ack_info ;
 
+
+
+AppSocketLoopExitEvent  app_socket_loop_exit_event  = ExitEventNone ;
+
 int app_login_distri_server_retry_interval = 30;
 int app_login_operate_server_retry_interval = 60;
 int app_login_operate_server_heartbeat_interval = 60;
@@ -568,6 +572,11 @@ int login_operation_plat(void *dat) {
 			sleep(app_login_distri_server_retry_interval);
 			continue;
 		}
+		if (app_socket_loop_exit_event == ExitEventReConnectDistriServer )
+			return RET_DISTRI_SERVER_RECONNECT ;
+		else {
+
+		}
 	}
 	return ret;
 }
@@ -589,8 +598,12 @@ int socket_data_handler(int sockfd ){
 	time_new =time_old ;
 	time_rx_monitor = time_new ;
 	while(app_socket_working_state ) { //every 0.5s 检查一次
-		time(&time_new);
+		//check reconnect event or others
+		if(app_socket_loop_exit_event != ExitEventNone ){
+			return RET_OK ;
+		}
 		//try to check ack message ,if 3*heartbeat interval no ack message ,will deifine the network down ,try reconnect network
+		time(&time_new);
 		if ( (time_new -  time_rx_monitor )  > (3*app_login_operate_server_heartbeat_interval) ){
 			LOG_ERROR("TCP network no ack for long time ,please reconnect it \n");
 			app_socket_working_state = -1;

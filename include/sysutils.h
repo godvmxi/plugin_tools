@@ -7,7 +7,7 @@
 
 #ifndef SYSUTILS_H_
 #define SYSUTILS_H_
-
+#include "jansson.h"
 typedef enum {
 	RPC_METHOD_INVALID = -1,
 	RPC_METHOD_ACK  = 0,
@@ -99,4 +99,17 @@ int sysutils_try_handler_server_push_message(char *buf);
 
 
 RPC_METHOD_ENUM sysutils_get_rpc_type(char *buf) ;
+
+
+
+
+int sysutils_downlink_rpc_handler_disconnect(json_t *obj );
+int sysutils_downlink_rpc_handler_install(json_t *obj );
+int sysutils_downlink_rpc_handler_install_query(json_t *obj );
+int sysutils_downlink_rpc_handler_install_cancel(json_t *obj );
+int sysutils_downlink_rpc_handler_uninstall(json_t *obj );
+int sysutils_downlink_rpc_handler_stop(json_t *obj );
+int sysutils_downlink_rpc_handler_run(json_t *obj );
+int sysutils_downlink_rpc_handler_list_plugin(json_t *obj );
+int sysutils_downlink_rpc_handler_set_plugin_para(json_t *obj );
 #endif /* SYSUTILS_H_ */

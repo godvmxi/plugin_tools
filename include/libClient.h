@@ -15,6 +15,7 @@ typedef enum{
 
 }HanderFunctionEnum;
 typedef enum{
+	RET_EXIT_EVENT   = -7,
 	RET_DISTRI_SERVER_RECONNECT = -6,
 	RET_NETWORK_DOWN = -8 ,
 	RET_SYS_ERROR = -7,
@@ -72,6 +73,14 @@ typedef struct {
 	pthread_mutex_t lock ;
 	MessageWaitAckInfo messsage_wait_ack_list[10];
 }AppMessageWaitAckInfo ;
+
+
+typedef enum {
+	ExitEventInvalid = -1,
+	ExitEventNone = 0 ,
+	ExitEventReConnectDistriServer  = 1,
+
+}AppSocketLoopExitEvent;
 
 extern AppFunctionFlowCtrl app_function_flow_ctrl ;
 extern AppDomainInfo  app_domain_info;

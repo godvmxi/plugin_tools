@@ -14,6 +14,7 @@
 #include "md5.h"
 #include "base64.h"
 #include <assert.h>
+#include "jansson.h"
 //#include "capi.h"
 int sysutils_active_rpc_counter = 0;
 static int  __sysutils_get_vender(char *buf){
@@ -1158,6 +1159,7 @@ int sysutils_try_handler_server_push_message(char *buf){
 	json_error_t json_error ;
 	json_t *json_root  = NULL;
 	json_t *obj_rpc_method = NULL;
+	RPC_METHOD_ENUM rpc_method_type = 0 ;
 	int result = 0 ;
 	char *temp =NULL ;
 	char rpc_method[20];
@@ -1191,12 +1193,63 @@ int sysutils_try_handler_server_push_message(char *buf){
 		goto sysutils_try_handler_server_push_message_error;
 	}
 //	
+	rpc_method_type =  sysutils_get_rpc_type(rpc_method);
+/*
+ * Disconnect
+ * Install
+ * Install_query
+ * Install_cancel
+ * UnInstall
+ * Stop
+ * Run
+ * FactoryPlugin
+ * ListPlugin
+ * SetPlug-inParameterValues
+ */
+	switch(rpc_method_type) {
+		case RPC_METHOD_DISCONNECT :
 
+			break;
+		case RPC_METHOD_INSTALL :
 
+			break;
+		case RPC_METHOD_INSTALL_QUERY :
 
+			break;
+		case RPC_METHOD_INSTALL_CANCEL :
+
+			break;
+		case RPC_METHOD_UNINSTALL :
+
+			break;
+		case RPC_METHOD_STOP :
+
+			break;
+		case RPC_METHOD_RUN :
+
+			break;
+		case RPC_METHOD_FACTORY_PLUGIN :
+
+			break;
+		case RPC_METHOD_LIST_PLUGIN :
+
+			break;
+		case RPC_METHOD_SET_PLUGIN_PARA :
+
+			break;
+		default :
+			LOG_ERROR("unknown rpc method -> %d %s \n",rpc_method_type,rpc_method);
+	}
+	if(json_root  != NULL)
+		json_decref(json_root);
+	if(obj_rpc_method  != NULL)
+		json_decref(obj_rpc_method);
 	return 1;
 sysutils_try_handler_server_push_message_error:
-
+	if(json_root  != NULL)
+		json_decref(json_root);
+	if(obj_rpc_method  != NULL)
+		json_decref(obj_rpc_method);
 	return -1;
 
 }
@@ -1211,8 +1264,6 @@ sysutils_try_handler_server_push_message_error:
  * FactoryPlugin
  * ListPlugin
  * SetPlug-inParameterValues
- *
- *
  */
 RPC_METHOD_ENUM sysutils_get_rpc_type(char *buf) {
 	if (strncmp(buf,"Disconnect",strlen("Disconnect") ) == 0 ){
@@ -1246,4 +1297,49 @@ RPC_METHOD_ENUM sysutils_get_rpc_type(char *buf) {
 		return RPC_METHOD_SET_PLUGIN_PARA ;
 	}
 	return RPC_METHOD_INVALID;
+}
+/*
+ * Disconnect
+ * Install
+ * Install_query
+ * Install_cancel
+ * UnInstall
+ * Stop
+ * Run
+ * FactoryPlugin
+ * ListPlugin
+ * SetPlug-inParameterValues
+ */
+int sysutils_downlink_rpc_handler_disconnect(json_t *obj ){
+//get distri_server info 
+}
+int sysutils_downlink_rpc_handler_install(json_t *obj ){
+//try lock install process
+}
+int sysutils_downlink_rpc_handler_install_query(json_t *obj ){
+
+//try lock install process
+}
+int sysutils_downlink_rpc_handler_install_cancel(json_t *obj ){
+
+//try lock install process
+}
+int sysutils_downlink_rpc_handler_uninstall(json_t *obj ){
+
+//try lock install process
+}
+int sysutils_downlink_rpc_handler_stop(json_t *obj ){
+
+//try lock install process
+}
+int sysutils_downlink_rpc_handler_run(json_t *obj ){
+
+//try lock install process
+}
+int sysutils_downlink_rpc_handler_list_plugin(json_t *obj ){
+
+//try lock install process
+}
+int sysutils_downlink_rpc_handler_set_plugin_para(json_t *obj ){
+//try lock install process
 }
