@@ -1059,7 +1059,7 @@ int sysutils_parse_json_is_result(char *buf,int *result ,int *id){
 		LOG_ERROR("reuslt value error\n");
 		goto sysutils_parse_json_is_result_error ;
 	}
-	return result ;
+	return 0 ;
 sysutils_parse_json_is_result_error :
 	if (json_root != NULL) {
 		json_decref(json_root);
@@ -1067,4 +1067,26 @@ sysutils_parse_json_is_result_error :
 	if (obj_result != NULL) {
 		json_decref(obj_result);
 	}
+}
+/*
+ * 
+ *
+ * return value : 1 :message is result ack 
+ * 0: not result ack 
+ * -1 :handler error 
+ *
+ */
+int sysutils_try_handler_ack_result_message(char *buf){
+	return 0;
+}
+/*
+ * 
+ *
+ * return value : 1 :message is result ack 
+ * 0: not result ack 
+ * -1 :handler error 
+ *
+ */
+int sysutils_try_handler_server_push_message(char *buf){
+
 }

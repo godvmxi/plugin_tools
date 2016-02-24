@@ -93,7 +93,9 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 int sysutils_parse_operate_login_ack(char *buf,int *result);
 int sysutils_parse_json_cmd_type(char *buf, RPC_METHOD_ENUM  *type , int ID);
 int sysutils_parse_json_is_result(char *buf,int *result ,int *id) ;
+int sysutils_try_handler_ack_result_message(char *buf);
 
+int sysutils_try_handler_server_push_message(char *buf);
 
 
 #endif /* SYSUTILS_H_ */

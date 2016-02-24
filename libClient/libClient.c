@@ -29,11 +29,13 @@ FIFO_BUFFER_HEADER plugins_control_down_link_header;
 FIFO_BUFFER_HEADER plugins_control_ack_fifo_header;
 FIFO_BUFFER_HEADER system_report_fifo_header;
 FIFO_BUFFER_HEADER system_report_ack_fifo_header;
+AppMessageWaitAckInfo app_message_wait_ack_info ;
 
 int app_login_distri_server_retry_interval = 30;
 int app_login_operate_server_retry_interval = 60;
 int app_login_operate_server_heartbeat_interval = 60;
 int app_socket_working_state =  1;
+int app_theard_exit_flag = 0;
 #define APP_DEFAULT_FIFO_BUFFER_SIZE   10
 
 void get_version() {
@@ -47,6 +49,7 @@ void app_function_fifo_buffer_init(void) {
 	fifo_buffer_init(&plugins_control_ack_fifo_header, APP_DEFAULT_FIFO_BUFFER_SIZE);
 	fifo_buffer_init(&system_report_fifo_header, APP_DEFAULT_FIFO_BUFFER_SIZE);
 	fifo_buffer_init(&system_report_ack_fifo_header, APP_DEFAULT_FIFO_BUFFER_SIZE);
+	memset(&app_message_wait_ack_info,0,sizeof(AppMessageWaitAckInfo) );
 }
 int manual_interactive_flow_control(const char *info) {
 	char input[64];
@@ -590,6 +593,7 @@ int socket_data_handler(int sockfd ){
 		//try to check ack message ,if 3*heartbeat interval no ack message ,will deifine the network down ,try reconnect network
 		if ( (time_new -  time_rx_monitor )  > (3*app_login_operate_server_heartbeat_interval) ){
 			LOG_ERROR("TCP network no ack for long time ,please reconnect it \n");
+			app_socket_working_state = -1;
 			return RET_NETWORK_DOWN;
 		}
 		//try send message
@@ -601,6 +605,7 @@ int socket_data_handler(int sockfd ){
 				ret = sysutils_get_json_rpc_heartbeat(buf+4);
 				if (ret < 0 ){
 					if(resend_heartbeat_counter > 3 ){
+						app_socket_working_state = -1;
 						return RET_SYS_ERROR ;
 					}
 					else {
@@ -629,6 +634,7 @@ int socket_data_handler(int sockfd ){
 			ret = send(sockfd, buf,buf_len+4 ,0);
 			if (ret <  0){
 				LOG_ERROR("send data error ,network down ,please reconnect\n");
+				app_socket_working_state = -1;
 				return RET_NETWORK_DOWN;
 			}
 		}
@@ -783,6 +789,10 @@ void app_funcion_flow_ctrl_start(void) {
 	int ret = 0;
 
 	while (1) {
+		if(app_theard_exit_flag  > 0 ){
+			LOG_TRACE("app thread exit ->%s\n",__FUNCTION__);
+			return ;
+		}
 		if (handler_index < 0 || handler_index >= app_function_flow_ctrl.handler_num) {
 			LOG_ERROR("handler index is error ->%d ,and set to default\n", handler_index);
 			handler_index = 0;
@@ -808,4 +818,44 @@ void app_funcion_flow_ctrl_start(void) {
 	}
 }
 
-
+int app_parse_fifo_buffer_thread(void){
+	char buf[1024];
+	int buf_len = 0 ;
+	int ret = 0;
+	while(1 ){
+		if(app_theard_exit_flag  > 0 ){
+			LOG_TRACE("app thread exit ->%s\n",__FUNCTION__);
+			return 0 ;
+		}
+		ret = fifo_buffer_get(&socket_rx_fifo_header ,buf,&buf_len);
+		if (ret < 0 ){
+			//no message 
+			sleep(1);
+			continue ;
+		}
+		ret = sysutils_try_handler_ack_result_message(buf);
+		if(ret  > 0 ){
+			LOG_TRACE("ack messge \n");
+			continue ;	
+		}
+		else if (ret == 0 ){
+			ret = sysutils_try_handler_server_push_message(buf);
+			if(ret  > 0 ){
+				LOG_TRACE(" push message \n");
+				continue ;	
+			}
+			else if(ret  ==  0){
+				LOG_TRACE("never reach here\n");
+				continue ;
+			}
+			else {
+				LOG_ERROR("unknown message \n");
+				continue;
+			}
+		}
+		else {
+			LOG_ERROR("parse error ,skip\n");
+		}
+	}
+	return 0;
+}

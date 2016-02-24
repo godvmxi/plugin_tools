@@ -62,6 +62,16 @@ typedef struct {
 	char ca_local_path[64]; //contain ca 
 }AppSecurityInfo;
 
+typedef struct {
+	int id ;
+	int message_type ;
+
+}MessageWaitAckInfo ;
+typedef struct {
+	pthread_mutex_t lock ;
+	MessageWaitAckInfo messsage_wait_ack_list[10];
+}AppMessageWaitAckInfo ;
+
 extern AppFunctionFlowCtrl app_function_flow_ctrl ;
 extern AppDomainInfo  app_domain_info;
 
