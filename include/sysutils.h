@@ -113,4 +113,5 @@ int sysutils_downlink_rpc_handler_run(json_t *obj );
 int sysutils_downlink_rpc_handler_list_plugin(json_t *obj );
 int sysutils_downlink_rpc_handler_set_plugin_para(json_t *obj );
 int sysutils_downlink_rpc_handler_factory_plugin(json_t *ojb);
+
 #endif /* SYSUTILS_H_ */
