@@ -594,7 +594,7 @@ int socket_data_handler(int sockfd ){
 		if ( (time_new -  time_rx_monitor )  > (3*app_login_operate_server_heartbeat_interval) ){
 			LOG_ERROR("TCP network no ack for long time ,please reconnect it \n");
 			app_socket_working_state = -1;
-			return RET_NETWORK_DOWN;
+			return RET_DISTRI_SERVER_RECONNECT; //need to reconnect distri_server
 		}
 		//try send message
 		if(( time_new - time_old ) > app_login_operate_server_heartbeat_interval ) {

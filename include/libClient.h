@@ -15,6 +15,7 @@ typedef enum{
 
 }HanderFunctionEnum;
 typedef enum{
+	RET_DISTRI_SERVER_RECONNECT = -6,
 	RET_NETWORK_DOWN = -8 ,
 	RET_SYS_ERROR = -7,
 	RET_PLAT_RECONNECT = -6,

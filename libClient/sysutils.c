@@ -1077,7 +1077,74 @@ sysutils_parse_json_is_result_error :
  *
  */
 int sysutils_try_handler_ack_result_message(char *buf){
-	return 0;
+	json_error_t json_error ;
+	json_t *json_root  = NULL;
+	json_t *obj_result = NULL;
+	int result = 0 ;
+	char *temp =NULL ;
+	
+	json_root = json_loads(buf, 0 ,&json_error);
+	if (json_root == NULL){
+		LOG_ERROR("parse json error -> %s\n",buf);
+		return -1;
+	}
+	//Result
+	obj_result =  json_object_get(json_root,"Result" ) ;
+	if(obj_result == NULL ){
+		//not ack result
+		return 0;
+	}
+
+	if (json_is_number(obj_result)  ==  JSON_TRUE ){
+		result = json_integer_value(obj_result) ;
+	}
+	else if(json_is_string(obj_result ) ==  JSON_TRUE ){
+		temp =  (char *) json_string_value(obj_result ) ;
+		if (temp != NULL) {
+			result = atoi(temp);
+			free(temp);
+		}
+		else {
+			LOG_ERROR("reuslt get result code error\n");
+			goto sysutils_try_handler_ack_result_message_error ;
+		}
+
+	}
+	else {
+		LOG_ERROR("reuslt value error\n");
+		goto sysutils_try_handler_ack_result_message_error ;
+	}
+
+	switch (result ){
+		case  0: //ok ,try parse other info
+			break ;
+		case -1: //????
+			LOG_DEBUG("ack result -1, how to handler it ?? \n");
+			break;
+		case -2 :
+			LOG_DEBUG("ack result -2 ,how to handler it ??  \n");
+			break ;
+		case -3:
+			LOG_DEBUG("device should re-register to distri_server\n");
+			break;
+	}
+
+	if (obj_result != NULL){
+		json_decref(obj_result);
+	}
+	if (json_root != NULL){
+		json_decref(json_root);
+	}
+	return 1;
+sysutils_try_handler_ack_result_message_error:
+	if (obj_result != NULL){
+		json_decref(obj_result);
+	}
+	if (json_root != NULL){
+		json_decref(json_root);
+	}
+
+	return -1;
 }
 /*
  * 
@@ -1088,5 +1155,95 @@ int sysutils_try_handler_ack_result_message(char *buf){
  *
  */
 int sysutils_try_handler_server_push_message(char *buf){
+	json_error_t json_error ;
+	json_t *json_root  = NULL;
+	json_t *obj_rpc_method = NULL;
+	int result = 0 ;
+	char *temp =NULL ;
+	char rpc_method[20];
+	
+	json_root = json_loads(buf, 0 ,&json_error);
+	if (json_root == NULL){
+		LOG_ERROR("parse json error -> %s\n",buf);
+		return -1;
+	}
+	//Result
+	obj_rpc_method =  json_object_get(json_root,"RPCMethod" ) ;
+	if(obj_rpc_method == NULL ){
+		//not ack result
+		return 0;
+	}
 
+	if(json_is_string(obj_rpc_method ) ==  JSON_TRUE ){
+		temp =  (char *) json_string_value(obj_rpc_method ) ;
+		if (temp != NULL) {
+			memcpy(rpc_method,temp,strlen(temp));
+			free(temp);
+		}
+		else {
+			LOG_ERROR("get rpc method  error\n");
+			goto sysutils_try_handler_server_push_message_error;
+		}
+
+	}
+	else {
+		LOG_ERROR("rpc value is error\n");
+		goto sysutils_try_handler_server_push_message_error;
+	}
+//	
+
+
+
+	return 1;
+sysutils_try_handler_server_push_message_error:
+
+	return -1;
+
+}
+/*
+ * Disconnect
+ * Install
+ * Install_query
+ * Install_cancel
+ * UnInstall
+ * Stop
+ * Run
+ * FactoryPlugin
+ * ListPlugin
+ * SetPlug-inParameterValues
+ *
+ *
+ */
+RPC_METHOD_ENUM sysutils_get_rpc_type(char *buf) {
+	if (strncmp(buf,"Disconnect",strlen("Disconnect") ) == 0 ){
+		return RPC_METHOD_DISCONNECT ;
+	}
+	if (strncmp(buf,"Install_cancel",strlen("Install_cancel") ) == 0 ){
+		return RPC_METHOD_INSTALL_CANCEL ;
+	}
+	if (strncmp(buf,"Install_query",strlen("Install_query") ) == 0 ){
+		return RPC_METHOD_INSTALL_QUERY ;
+	}
+	if (strncmp(buf,"Install",strlen("Install") ) == 0 ){
+		return RPC_METHOD_INSTALL ;
+	}
+	if (strncmp(buf,"UnInstall",strlen("UnInstall") ) == 0 ){
+		return RPC_METHOD_UNINSTALL ;
+	}
+	if (strncmp(buf,"Stop",strlen("Stop") ) == 0 ){
+		return RPC_METHOD_STOP ;
+	}
+	if (strncmp(buf,"Run",strlen("Run") ) == 0 ){
+		return RPC_METHOD_RUN ;
+	}
+	if (strncmp(buf,"FactoryPlugin",strlen("FactoryPlugin") ) == 0 ){
+		return RPC_METHOD_FACTORY_PLUGIN ;
+	}
+	if (strncmp(buf,"ListPlugin",strlen("ListPlugin") ) == 0 ){
+		return RPC_METHOD_LIST_PLUGIN ;
+	}
+	if (strncmp(buf,"SetPlug-inParameterValues",strlen("SetPlug-inParameterValues") ) == 0 ){
+		return RPC_METHOD_SET_PLUGIN_PARA ;
+	}
+	return RPC_METHOD_INVALID;
 }

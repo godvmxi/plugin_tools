@@ -98,4 +98,5 @@ int sysutils_try_handler_ack_result_message(char *buf);
 int sysutils_try_handler_server_push_message(char *buf);
 
 
+RPC_METHOD_ENUM sysutils_get_rpc_type(char *buf) ;
 #endif /* SYSUTILS_H_ */
