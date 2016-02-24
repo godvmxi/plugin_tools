@@ -84,14 +84,15 @@ int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challeng
 int sysutils_parse_distri_server_ack_step_2(char *buf,
 		int *result,
 		char *server_addr,
-		char *server_port,
+		unsigned int *server_port,
 		int *interval,
-		char * server_ip,
+		char *server_ip,
 		char *token,
 		char *exp_date,
 		char *ca_download_url);
 int sysutils_parse_operate_login_ack(char *buf,int *result);
-int sysutils_parse_json_cmd_type(char *buf, RPC_METHOD_ENUM  type , int ID);
+int sysutils_parse_json_cmd_type(char *buf, RPC_METHOD_ENUM  *type , int ID);
+int sysutils_parse_json_is_result(char *buf,int ID);
 
 
 

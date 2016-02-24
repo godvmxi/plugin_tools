@@ -54,7 +54,10 @@ typedef struct {
 }AppDomainInfo;
 typedef struct {
 	char chanllege_code[20];
-	char token[20];
+	char token[64];
+	char exp_date[64] ;//may be useless
+	char ca_download_url[64]; //contain ca 
+	char ca_local_path[64]; //contain ca 
 }AppSecurityInfo;
 
 extern AppFunctionFlowCtrl app_function_flow_ctrl ;

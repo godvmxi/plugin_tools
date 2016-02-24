@@ -593,7 +593,7 @@ int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challeng
 		*result = json_integer_value(obj_result) ;
 	}
 	else if(json_is_string(obj_result ) ==  JSON_TRUE ){
-		*temp =  (char *) json_string_value(obj_result ) ;
+		temp =  (char *) json_string_value(obj_result ) ;
 		if (temp != NULL) {
 						*result = atoi(temp);
 						free(temp);
@@ -692,7 +692,7 @@ sysutils_parse_distri_server_ack_step_1_error :
 int sysutils_parse_distri_server_ack_step_2(char *buf,
 		int *result,
 		char *server_addr,
-		char *server_port,
+		unsigned int *server_port,
 		int *interval,
 		char * server_ip,
 		char *token,
@@ -736,7 +736,7 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 			*result = json_integer_value(obj_result) ;
 		}
 		else if(json_is_string(obj_result ) ==  JSON_TRUE ){
-			*temp =  (char *) json_string_value(obj_result ) ;
+			temp =  (char *) json_string_value(obj_result ) ;
 			if (temp != NULL) {
 							*result = atoi(temp);
 							free(temp);
@@ -949,7 +949,7 @@ int sysutils_parse_operate_login_ack(char *buf,int *result){
 		*result = json_integer_value(obj_result) ;
 	}
 	else if(json_is_string(obj_result ) ==  JSON_TRUE ){
-		*temp =  (char *) json_string_value(obj_result ) ;
+		temp =  (char *) json_string_value(obj_result ) ;
 		if (temp != NULL) {
 						*result = atoi(temp);
 						free(temp);
@@ -986,6 +986,8 @@ int sysutils_parse_json_cmd_type(char *buf, RPC_METHOD_ENUM  *type , int ID){
 	json_t *json_root  = NULL;
 	json_t *obj_result = NULL;
 	json_t *obj_challenge_code = NULL;
+	int result = -1;
+	char *temp;
 
 	json_root = json_loads(buf, 0 ,&json_error);
 	if (json_root == NULL){
@@ -995,35 +997,73 @@ int sysutils_parse_json_cmd_type(char *buf, RPC_METHOD_ENUM  *type , int ID){
 		//Result
 		obj_result =  json_object_get(json_root,"Result" ) ;
 		if (json_is_number(obj_result)  ==  JSON_TRUE ){
-			*result = json_integer_value(obj_result) ;
-			if (result != NULL){
-						*type = RPC_METHOD_ACK;
-			}
+			result = json_integer_value(obj_result) ;
+			*type = RPC_METHOD_ACK;
 		}
 		else if(json_is_string(obj_result ) ==  JSON_TRUE ){
-			*temp =  (char *) json_string_value(obj_result ) ;
+			temp =  (char *) json_string_value(obj_result ) ;
 			if (temp != NULL) {
-							*result = atoi(temp);
-							free(temp);
-						 }
-						 else {
-							 	 LOG_ERROR("reuslt get result code error\n");
-							 		goto sysutils_parse_distri_server_ack_step_1_error ;
-						 }
+				result = atoi(temp);
+				free(temp);
+			}
+			else {
+				LOG_ERROR("reuslt get result code error\n");
+				goto sysutils_parse_json_cmd_type_error ;
+			}
 
 		}
 		else {
 			LOG_ERROR("reuslt value error\n");
-			goto sysutils_parse_distri_server_ack_step_1_error ;
+			goto sysutils_parse_json_cmd_type_error ;
 		}
-		sysutils_parse_json_cmd_type_error :
-	if (json_root != NULL) {
+sysutils_parse_json_cmd_type_error :
+		if (json_root != NULL) {
 			json_decref(json_root);
 		}
 		if (obj_result != NULL) {
-				json_decref(obj_result);
-			}
-		if (obj_server_ip != NULL) {
-					json_decref(obj_server_ip);
-				}
+			json_decref(obj_result);
+		}
+}
+int sysutils_parse_json_is_result(char *buf,int ID){
+	json_error_t json_error ;
+	json_t *json_root  = NULL;
+	json_t *obj_result = NULL;
+	json_t *obj_challenge_code = NULL;
+	int result = -1;
+	char *temp;
+
+	json_root = json_loads(buf, 0 ,&json_error);
+	if (json_root == NULL){
+		LOG_ERROR("parse json error -> %s\n",buf);
+		return -1;
+	}
+	//Result
+	obj_result =  json_object_get(json_root,"Result" ) ;
+	if (json_is_number(obj_result)  ==  JSON_TRUE ){
+		result = json_integer_value(obj_result) ;
+	}
+	else if(json_is_string(obj_result ) ==  JSON_TRUE ){
+		temp =  (char *) json_string_value(obj_result ) ;
+		if (temp != NULL) {
+			result = atoi(temp);
+			free(temp);
+		}
+		else {
+			LOG_ERROR("reuslt get result code error\n");
+			goto sysutils_parse_json_is_result_error ;
+		}
+
+	}
+	else {
+		LOG_ERROR("reuslt value error\n");
+		goto sysutils_parse_json_is_result_error ;
+	}
+	return result ;
+sysutils_parse_json_is_result_error :
+	if (json_root != NULL) {
+		json_decref(json_root);
+	}
+	if (obj_result != NULL) {
+		json_decref(obj_result);
+	}
 }
