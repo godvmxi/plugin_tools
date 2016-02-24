@@ -15,6 +15,7 @@
 #include <string.h>
 #include "sysutils.h"
 #include "fifobuffer.h"
+#include <time.h>
 
 #define   DEBUG_FLOW_CONTROL  0
 
@@ -30,6 +31,9 @@ FIFO_BUFFER_HEADER system_report_fifo_header;
 FIFO_BUFFER_HEADER system_report_ack_fifo_header;
 
 int app_login_distri_server_retry_interval = 30;
+int app_login_operate_server_retry_interval = 60;
+int app_login_operate_server_heartbeat_interval = 60;
+int app_socket_working_state =  1;
 #define APP_DEFAULT_FIFO_BUFFER_SIZE   10
 
 void get_version() {
@@ -59,11 +63,19 @@ int login_distri_plat_step1_udp(void *dat) {
 	ret = manual_interactive_flow_control(__FUNCTION__);
 	return ret;
 #endif
-
+	int dns_retry_counter = 0 ;
 	char *dns = app_domain_info.distri_server.domain;
 	char *ip_list = app_domain_info.distri_server.ip_list[0];
-	int ip_num = netutils_dns_resolver(dns, ip_list, NETUTIIS_MAX_IP_PER_DOMAIN, NETUTILS_MAX_IP_LEN);
-	LOG_DEBUG("dns resolver result -> %d\n", ip_num);
+	int ip_num  = 0;
+	while (1) {
+		ip_num = netutils_dns_resolver(dns, ip_list, NETUTIIS_MAX_IP_PER_DOMAIN, NETUTILS_MAX_IP_LEN);
+		LOG_DEBUG("dns resolver result -> %d\n", ip_num);
+		if (ip_num <= 0 ){
+			LOG_ERROR("operate_server dns failed,sleep and retry\n");
+			sleep(app_login_distri_server_retry_interval);
+			return RET_DNS_FAILED ;
+		}
+	}
 	app_domain_info.distri_server.cur_ip = 0;
 	app_domain_info.distri_server.ip_list_number = ip_num;
 	int cur_ip_index = 0;
@@ -96,6 +108,10 @@ int login_distri_plat_step1_udp(void *dat) {
 
 		memset(buf, 0, 1024);
 		sysutils_get_json_rpc_boot_first(buf + 4);
+		if(ret < 0 ){
+			LOG_ERROR("get rpc boot first_json error \n");
+			return RET_SYS_ERROR ;
+		}
 		LOG_DEBUG("json->%s\n", buf + 4);
 		uint32_t buf_len = strlen(buf + 4);
 		uint32_t *json_len = (uint32_t *) buf;
@@ -103,24 +119,16 @@ int login_distri_plat_step1_udp(void *dat) {
 		LOG_DEBUG("send -> %d ->%s\n", json_len, buf + 4);
 		sendto(socket_descriptor, buf, buf_len + 4, 0, (struct sockaddr *) &address, sizeof(address));
 		int recv_counter = 0;
-		while (1) {
-			FD_ZERO(&rdfds);
-			FD_SET(socket_descriptor, &rdfds);
-			tv.tv_sec = 0;
-			tv.tv_usec = 500;
-			ret = select(socket_descriptor + 1, &rdfds, NULL, NULL, &tv);
-			if (ret == 0) {
-				LOG_DEBUG("no data and timeout\n");
-				recv_counter++;
-				if (recv_counter > 10) {
-					close(socket_descriptor);
-					socket_descriptor =  -1;
-					LOG_DEBUG("wait for 15s and time out ,no data\n");
-					LOG_DEBUG("try next ip\n");
-					cur_ip_index++;
-
-				}
-			}
+		FD_ZERO(&rdfds);
+		FD_SET(socket_descriptor, &rdfds);
+		tv.tv_sec = 15;
+		tv.tv_usec = 500;
+		ret = select(socket_descriptor + 1, &rdfds, NULL, NULL, &tv);
+		if (ret == 0) {
+			LOG_DEBUG("no data and timeout\n");
+			recv_counter++;
+			sleep(app_login_distri_server_retry_interval);
+			continue;
 		}
 		if (ret < 0)
 			perror("select");/* 这说明select函数出错 */
@@ -220,6 +228,10 @@ int login_distri_plat_step2_udp(void *dat) {
 
 		memset(buf, 0, 1024);
 		sysutils_get_json_rpc_register_first(buf + 4);
+		if(ret < 0 ){
+			LOG_ERROR("get rpc register_first json error \n");
+			return RET_SYS_ERROR ;
+		}
 		LOG_DEBUG("json->%s\n", buf + 4);
 		uint32_t buf_len = strlen(buf + 4);
 		uint32_t *json_len = (uint32_t *) buf;
@@ -227,22 +239,20 @@ int login_distri_plat_step2_udp(void *dat) {
 		LOG_DEBUG("send -> %d ->%s\n", json_len, buf + 4);
 		sendto(socket_descriptor, buf, buf_len + 4, 0, (struct sockaddr *) &address, sizeof(address));
 		int recv_counter = 0;
-		while (1) { //try wait for ack for 15s
-			FD_ZERO(&rdfds);
-			FD_SET(socket_descriptor, &rdfds);
-			tv.tv_sec = 0;
-			tv.tv_usec = 500;
-			ret = select(socket_descriptor + 1, &rdfds, NULL, NULL, &tv);
-			if (ret == 0) {
-				LOG_DEBUG("no data and timeout\n");
-				recv_counter++;
-				if (recv_counter > 10) {
-					close(socket_descriptor);
-					socket_descriptor =  -1;
-					LOG_DEBUG("wait for 15s and time out ,no data\n");
-					LOG_DEBUG("try next ip\n");
-					return RET_NO_ACK ;
-				}
+		FD_ZERO(&rdfds);
+		FD_SET(socket_descriptor, &rdfds);
+		tv.tv_sec = 15;
+		tv.tv_usec = 500;
+		ret = select(socket_descriptor + 1, &rdfds, NULL, NULL, &tv);
+		if (ret == 0) {
+			LOG_DEBUG("no data and timeout\n");
+			recv_counter++;
+			if (recv_counter > 10) {
+				close(socket_descriptor);
+				socket_descriptor =  -1;
+				LOG_DEBUG("wait for 15s and time out ,no data\n");
+				LOG_DEBUG("try next ip\n");
+				return RET_NO_ACK ;
 			}
 		}
 		if (ret < 0)
@@ -325,6 +335,9 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 						else {
 							memcpy(app_domain_info.operate_server.domain,server_addr,strlen(server_addr) ) ;
 						}
+						app_domain_info.operate_server.tcp_port =  server_port ;
+						app_domain_info.operate_server.udp_port =  server_port ;
+
 						memcpy(app_security_info.token, token, strlen(token)) ;
 						memcpy(app_security_info.exp_date, exp_date, strlen(exp_date)) ;
 						memcpy(app_security_info.ca_download_url, ca_download_url, strlen(ca_download_url)) ;
@@ -379,7 +392,277 @@ int login_operation_plat(void *dat) {
 	ret = manual_interactive_flow_control(__FUNCTION__);
 	return ret;
 #endif
+	int sockfd = -1;
+	char buf[1024];
+	struct hostent *he; 
+	struct sockaddr_in server;
+	int resend_counter = 0 ;
+	fd_set rdfds;
+	struct timeval tv;
+	int current_ip_index = 0;
+
+
+	if (app_domain_info.operate_server.ip_flag == 0 ){
+		//do dns resolver
+		int ip_num = netutils_dns_resolver(app_domain_info.operate_server.domain, 
+				app_domain_info.operate_server.ip_list[0], NETUTIIS_MAX_IP_PER_DOMAIN, NETUTILS_MAX_IP_LEN);
+		LOG_DEBUG("operate dns resolver result -> %d\n", ip_num);
+		if (ip_num <= 0 ){
+			LOG_ERROR("operate_server dns failed,sleep and retry\n");
+			sleep(app_login_distri_server_retry_interval);
+			return RET_DNS_FAILED ;
+		}
+
+	}
+	while(1)  { //check next dns
+		if (current_ip_index > app_domain_info.operate_server.ip_list_number ) {
+			LOG_ERROR("no ip address can reached \n");
+			return RET_NO_ACK ;
+
+		}
+
+		char *operate_server_ip = app_domain_info.operate_server.ip_list[current_ip_index] ;
+		uint32_t operate_server_port = app_domain_info.operate_server.tcp_port ;
+		current_ip_index++;
+		while (1) {
+			if (resend_counter >= 3 ){
+				LOG_ERROR("login to operate failed \n");
+				return RET_NO_ACK ;
+			}
+			if((sockfd=socket(AF_INET,SOCK_STREAM, 0))==-1)
+			{
+				printf("socket() error\n");
+				exit(1);
+			}
+			bzero(&server,sizeof(server));
+			server.sin_family = AF_INET;
+			server.sin_port = htons(operate_server_port);
+			server.sin_addr.s_addr = inet_addr(operate_server_ip);
+			LOG_DEBUG("try connect %s %d\n",operate_server_ip,operate_server_port);
+			if(connect(sockfd, (struct sockaddr *)&server, sizeof(server))==-1)
+			{
+				LOG_ERROR("connect  error\n");
+				resend_counter++;
+				sleep(app_login_distri_server_retry_interval);
+				continue ;
+			}
+			ret = sysutils_get_json_rpc_boot(buf+4);		
+			if(ret < 0 ){
+				LOG_ERROR("get rpc boot json error \n");
+				return RET_SYS_ERROR ;
+			}
+			LOG_DEBUG("json->%s\n", buf + 4);
+			uint32_t buf_len = strlen(buf + 4);
+			uint32_t *json_len = (uint32_t *) buf;
+			*json_len = htons(buf_len);
+			LOG_DEBUG("send -> %d ->%s\n", json_len, buf + 4);
+			ret = send(sockfd,buf,buf_len+4 ,0 );
+			LOG_DEBUG("tcp send result -> %d\n",ret);
+			//try receive ack
+			FD_ZERO(&rdfds);
+			FD_SET(sockfd, &rdfds);
+			tv.tv_sec = 15;
+			tv.tv_usec = 0;
+			ret = select(sockfd + 1, &rdfds, NULL, NULL, &tv);
+			if (ret == 0) {
+				LOG_DEBUG("no data and timeout\n");
+				close(sockfd);
+				resend_counter++ ;
+				LOG_DEBUG("wait for 15s and time out ,no data\n");
+				sleep(app_login_distri_server_retry_interval);
+				continue ;
+			}
+		}
+		if (ret < 0)
+		{
+			LOG_ERROR("select error ->%d \n",ret);
+		}
+		else if (ret == 0) {
+			//have been handler before ,never run to here
+			printf("no data and timeout\n");
+		}
+
+		else { /* 说明等待时间还未到1秒加500毫秒，socket的状态发生了变化 */
+			ssize_t buf_len ;
+			printf("ret=%d\n", ret); /* if ret>1，more handler changed  */
+			if (FD_ISSET(sockfd, &rdfds)) {
+				/* read data */
+				memset(buf, 0, 1024);
+				buf_len = recv(sockfd, buf, 1024, 0);
+				if (buf_len < 0) {
+					LOG_DEBUG("receive data error -> %d\n", buf_len);
+					resend_counter++;
+					sleep(app_login_distri_server_retry_interval);
+					close(sockfd);
+					sockfd = -1;
+				}
+				uint32_t recv_json_len = ntohl(  *( (uint32_t *)  buf) );
+				LOG_DEBUG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+				if (recv_json_len != (buf_len - 4)) {
+					LOG_ERROR("receive data len not match,server error -> %d %d\n", recv_json_len, buf_len);
+					resend_counter++;
+					sleep(app_login_distri_server_retry_interval);
+					continue;
+				}
+
+				resend_counter = 0;
+				int result = -1;
+				int id = 0;
+				ret = sysutils_parse_json_is_result(buf,&result,&id);
+				printf("result ack ->%d %d %d %s\n",result,id ,ret,buf);
+				if (ret == 0) {
+					if (result == 0) {
+						LOG_DEBUG("boot first registe ok ,continue \n");
+						//server_ip is the wlan ip ,do not care it .
+
+						return RET_OK;
+					} else {
+						LOG_ERROR("Boot first reigister failed \n");
+						sleep(app_login_distri_server_retry_interval * 1000);
+					}
+				}
+				else if (result ==  -1 ){
+					LOG_ERROR("try another ip -1\n");
+					close(sockfd);
+					sockfd = -1;
+					return RET_DNS_FAILED ;
+
+				}
+				else if (result ==  -2 ){
+					LOG_ERROR("gw info is not valid -2\n");
+					close(sockfd);
+					sockfd = -1;
+					return RET_PLAT_ACK_ERR ;
+
+				}
+				else if (result ==  -3 ){
+					close(sockfd);
+					sockfd = -1;
+					LOG_ERROR("gw info is not valid -3\n");
+					return RET_PLAT_ACK_ERR ;
+				}
+				else if (result ==  -1003 ){
+					close(sockfd);
+					sockfd = -1;
+					LOG_ERROR("device token is down ,need refresh\n");
+					return RET_TOKEN_DOWN ;
+				}
+				else{
+					LOG_ERROR("parse ack info error \n");
+					resend_counter++;
+					sleep(app_login_distri_server_retry_interval * 1000);
+					continue;
+				}
+
+			}
+		}
+
+		//now login success  .clear flags and try receive 
+		resend_counter = 0 ;
+		//begin handle all socket receive 	
+		ret = socket_data_handler(sockfd);
+		if (ret == RET_NETWORK_DOWN ) {
+			sleep(app_login_distri_server_retry_interval);
+			continue;
+		}
+	}
 	return ret;
+}
+int socket_data_handler(int sockfd ){
+	//begin send heartbeat and receive socket data	
+	app_socket_working_state =  1;
+
+	fd_set rdfds;
+	struct timeval tv;
+	int ret = 0 ;
+	char buf[1024];
+	int buf_len = 0;
+	int recv_json_len = 0 ;
+	int resend_heartbeat_counter = 0;
+	time_t time_old ;
+	time_t time_new ;
+	time(&time_old) ;
+	time_new =time_old ;
+	while(app_socket_working_state ) { //every 0.5s 检查一次
+		memset(buf,0,1024);
+		if(( time_new - time_old ) > app_login_operate_server_heartbeat_interval ) {
+			LOG_TRACE("send heartbeat info\n");
+			time_old =  time_new ;
+			time(&time_new) ;
+			while(1){ //try get heartbeat message
+				ret = sysutils_get_json_rpc_heartbeat(buf+4);
+				if (ret < 0 ){
+					if(resend_heartbeat_counter > 3 ){
+						return RET_SYS_ERROR ;
+					}
+					else {
+						sleep(3);
+						resend_heartbeat_counter++;
+						continue;
+					}
+				}
+				else {
+					resend_heartbeat_counter = 0 ;
+				}
+			}
+			buf_len =  strlen(buf+4);
+		}
+		else {
+			ret = fifo_buffer_get(&socket_tx_fifo_header,buf+4,&buf_len);
+			if(ret  <  0){
+				//LOG_TRACE("no data for send"\n);
+				memset(buf,0,5);
+			}
+			buf[buf_len+4] = '\0';
+		}
+		if (buf_len != 0 ){
+			uint32_t *len = (uint32_t *)buf ;
+			*len =  htons(buf_len);
+			ret = send(sockfd, buf,buf_len+4 ,0);
+			if (ret <  0){
+				LOG_ERROR("send data error ,network down ,please reconnect\n");
+				return RET_NETWORK_DOWN;
+			}
+		}
+		FD_ZERO(&rdfds);
+		FD_SET(sockfd, &rdfds);
+		tv.tv_sec = 0;
+		tv.tv_usec = 200;
+		ret = select(sockfd + 1, &rdfds, NULL, NULL, &tv);
+		if (ret == 0) {
+			LOG_DEBUG("no data and timeout\n");
+			sleep(app_login_distri_server_retry_interval);
+			continue;
+		}
+		if (ret < 0)
+			LOG_DEBUG("select\n");/* 这说明select函数出错 */
+		else if (ret == 0) {
+			//have been handler before ,never run to here
+			printf("no data and timeout\n");
+		}
+
+		else { /* 说明等待时间还未到1秒加500毫秒，socket的状态发生了变化 */
+			printf("ret=%d\n", ret); /* if ret>1，more handler changed  */
+
+			if (FD_ISSET(sockfd, &rdfds)) {
+				/* read data */
+				memset(buf, 0, 1024);
+				buf_len = recv(sockfd, buf, 1024, 0);
+				if (buf_len < 0) {
+					LOG_DEBUG("receive data error -> %d\n", buf_len);
+					continue;
+				}
+				recv_json_len = ntohl(  *( (uint32_t *)  buf) );
+				LOG_DEBUG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+				if (recv_json_len != (buf_len - 4)) {
+					LOG_ERROR("receive data len not match -> %d %d,just drop it \n", recv_json_len, buf_len);
+				}
+				fifo_buffer_put(&socket_rx_fifo_header , buf, buf_len);	
+			}
+		}
+
+	}
+	return RET_NO_ACK ;
 }
 int socket_data_handler_loop(void *dat) {
 	LOG_TRACE("%s\n", __FUNCTION__);
@@ -392,23 +675,6 @@ int socket_data_handler_loop(void *dat) {
 #endif
 	return ret;
 }
-/*
- *
- * 	LOGIN_DISTRI_PLAT_STEP1_UDP=0,
- LOGIN_DISTRI_PLAT_STEP2_UDP =1 ,
- LOGIN_DISTRI_PLAT_STEP1_TCP =2 ,
- LOGIN_DISTRI_PLAT_STEP2_TCP =3 ,
- LOGIN_OPERATE_PLAT   =4,
- SOCKET_DATA_HANDLER  =5,
- *
- int login_distri_plat_step1_udp(void *dat);
- int login_distri_plat_step2_udp(void *dat);
- int login_distri_plat_step1_tcp(void *dat);
- int login_distri_plat_step2_tcp(void *dat);
- int login_operation_plat(void *dat);
- int socket_data_handler_loop(void *dat);
- *
- */
 void app_funcion_flow_ctrl_init(void) {
 	memset(&app_function_flow_ctrl, 0, sizeof(AppFunctionFlowCtrl));
 
@@ -531,4 +797,5 @@ void app_funcion_flow_ctrl_start(void) {
 		}
 	}
 }
+
 

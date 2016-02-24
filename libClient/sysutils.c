@@ -198,7 +198,7 @@ int sysutils_get_json_rpc_headbeat(char *buf){
 	json_decref(mac_obj);
 	json_decref(obj);
 	free(result);
-	return 0;
+	return strlen(buf);
 }
 /*
  *
@@ -279,6 +279,7 @@ int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message
 		json_decref(counter_obj);
 		json_decref(obj);
 		free(result);
+		return strlen(buf);
 
 		return 0;
 }
@@ -347,6 +348,7 @@ int sysutils_get_json_rpc_token_update(char *buf){
 			json_decref(counter_obj);
 			json_decref(obj);
 			free(result);
+			return strlen(buf);
 
 			return 0;
 }
@@ -492,7 +494,7 @@ int sysutils_get_json_rpc_register_first(char *buf){
 
 		json_decref(obj);
 		free(result);
-		return 0;
+		return strlen(buf);
 }
 int sysutils_parse_rpc_json_type(char *buf,int cmdType){
 	 char vendor[64] = {0};
@@ -564,7 +566,7 @@ int sysutils_parse_rpc_json_type(char *buf,int cmdType){
 
 		json_decref(obj);
 		free(result);
-		return 0;
+		return strlen(buf);
 }
 
 int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challenge_code,int *interval,char * server_ip){
@@ -1024,12 +1026,11 @@ sysutils_parse_json_cmd_type_error :
 			json_decref(obj_result);
 		}
 }
-int sysutils_parse_json_is_result(char *buf,int ID){
+int sysutils_parse_json_is_result(char *buf,int *result ,int *id){
 	json_error_t json_error ;
 	json_t *json_root  = NULL;
 	json_t *obj_result = NULL;
 	json_t *obj_challenge_code = NULL;
-	int result = -1;
 	char *temp;
 
 	json_root = json_loads(buf, 0 ,&json_error);
@@ -1040,12 +1041,12 @@ int sysutils_parse_json_is_result(char *buf,int ID){
 	//Result
 	obj_result =  json_object_get(json_root,"Result" ) ;
 	if (json_is_number(obj_result)  ==  JSON_TRUE ){
-		result = json_integer_value(obj_result) ;
+		*result = json_integer_value(obj_result) ;
 	}
 	else if(json_is_string(obj_result ) ==  JSON_TRUE ){
 		temp =  (char *) json_string_value(obj_result ) ;
 		if (temp != NULL) {
-			result = atoi(temp);
+			*result = atoi(temp);
 			free(temp);
 		}
 		else {

@@ -15,6 +15,8 @@ typedef enum{
 
 }HanderFunctionEnum;
 typedef enum{
+	RET_NETWORK_DOWN = -8 ,
+	RET_SYS_ERROR = -7,
 	RET_PLAT_RECONNECT = -6,
 	RET_PLAT_ACK_ERR = -5,
 	RET_TOKEN_DOWN = -4,
@@ -73,6 +75,7 @@ int login_distri_plat_step1_tcp(void *dat);
 int login_distri_plat_step2_tcp(void *dat);
 int login_operation_plat(void *dat);
 int socket_data_handler_loop(void *dat);
+int socket_data_handler(int sockfd );
 
 
 int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message,int message_len);

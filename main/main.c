@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 
 
@@ -69,7 +70,7 @@ int main(int argc, char **argv) {
 	app_funcion_flow_ctrl_init();
 	//app_funcion_flow_ctrl_start();
 
-	login_distri_plat_step1_udp(NULL);
+//	login_distri_plat_step1_udp(NULL);
 
 
 	exit(0);
