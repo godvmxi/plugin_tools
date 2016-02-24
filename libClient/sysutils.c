@@ -1208,33 +1208,42 @@ int sysutils_try_handler_server_push_message(char *buf){
  */
 	switch(rpc_method_type) {
 		case RPC_METHOD_DISCONNECT :
-
+			sysutils_downlink_rpc_handler_disconnect(json_root);
 			break;
 		case RPC_METHOD_INSTALL :
+			sysutils_downlink_rpc_handler_install(json_root);
 
 			break;
 		case RPC_METHOD_INSTALL_QUERY :
+			sysutils_downlink_rpc_handler_install_query(json_root);
 
 			break;
 		case RPC_METHOD_INSTALL_CANCEL :
+			sysutils_downlink_rpc_handler_install_query(json_root);
 
 			break;
 		case RPC_METHOD_UNINSTALL :
+			sysutils_downlink_rpc_handler_uninstall(json_root);
 
 			break;
 		case RPC_METHOD_STOP :
+			sysutils_downlink_rpc_handler_stop(json_root);
 
 			break;
 		case RPC_METHOD_RUN :
+			sysutils_downlink_rpc_handler_run(json_root);
 
 			break;
 		case RPC_METHOD_FACTORY_PLUGIN :
+			sysutils_downlink_rpc_handler_factory_plugin(json_root);
 
 			break;
 		case RPC_METHOD_LIST_PLUGIN :
+			sysutils_downlink_rpc_handler_list_plugin(json_root);
 
 			break;
 		case RPC_METHOD_SET_PLUGIN_PARA :
+			sysutils_downlink_rpc_handler_set_plugin_para(json_root);
 
 			break;
 		default :
@@ -1311,35 +1320,47 @@ RPC_METHOD_ENUM sysutils_get_rpc_type(char *buf) {
  * SetPlug-inParameterValues
  */
 int sysutils_downlink_rpc_handler_disconnect(json_t *obj ){
+	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
 //get distri_server info 
 }
 int sysutils_downlink_rpc_handler_install(json_t *obj ){
+	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_install_query(json_t *obj ){
+	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_install_cancel(json_t *obj ){
+	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_uninstall(json_t *obj ){
+	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_stop(json_t *obj ){
+	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_run(json_t *obj ){
+	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_list_plugin(json_t *obj ){
 
+	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_set_plugin_para(json_t *obj ){
+	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
 //try lock install process
+}
+int sysutils_downlink_rpc_handler_factory_plugin(json_t *obj){
+	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
 }
