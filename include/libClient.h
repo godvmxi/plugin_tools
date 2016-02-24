@@ -54,7 +54,8 @@ typedef struct {
 }AppDomainInfo;
 typedef struct {
 	char chanllege_code[20];
-}AppSecutryInfo;
+	char token[20];
+}AppSecurityInfo;
 
 extern AppFunctionFlowCtrl app_function_flow_ctrl ;
 extern AppDomainInfo  app_domain_info;
