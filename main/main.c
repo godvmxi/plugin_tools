@@ -24,6 +24,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
+#include <capisys.h>
+#include <unistd.h>
 
 
 
@@ -38,34 +41,70 @@ int main(int argc, char **argv) {
 //	int number = get_ip_list_from_domain(argv[1],ipResult,4,20);
 
 	char buffer[1024];
+	/*  */
+	pthread_t thread_network_handler ;
+	pthread_t thread_capi_handler ;
+	pthread_t thread_downlink_handler ;
+	//basic init 
+	app_function_flow_ctrl_init();
+	app_function_capisys_init();
+	app_function_parse_fifo_buffer_init();
+	
+	int ret = 0;
+
+	ret = pthread_create(&thread_network_handler,	NULL,(void *)app_function_flow_ctrl_thread ,NULL);
+	if(ret != 0 ){
+		LOG_ERROR("create thread network handler error\n");
+		exit(1);
+	}
+	ret = pthread_create(&thread_capi_handler,		NULL,(void *)app_function_capisys_thread ,NULL);
+	if(ret != 0 ){
+		LOG_ERROR("create thread capi handler  error\n");
+		exit(1);
+	}
+	ret = pthread_create(&thread_downlink_handler,	NULL,(void *)app_function_parse_fifo_buffer_thread ,NULL);
+	if(ret != 0 ){
+		LOG_ERROR("create thread downlink hander error\n");
+		exit(1);
+	}
+	LOG_DEBUG("maini app is runing ,waiting for all \n");
+	sleep(2);
+	pthread_join(thread_network_handler,NULL);
+	pthread_join(thread_capi_handler,NULL);
+	pthread_join(thread_downlink_handler,NULL);
 	while(1){
-	memset(buffer,0,1024);
-	sysutils_get_json_rpc_boot(buffer);
-	printf("boot       ->%s\n",buffer);
-	memset(buffer,0,1024);
-	sysutils_get_json_rpc_headbeat(buffer);
-	printf("Heartbeat  ->%s\n",buffer);
-	memset(buffer,0,1024);
-	sysutils_get_json_rpc_message_push(buffer,"test_plugin","test_message",12);
-	printf("Push Message  ->%s\n",buffer);
+		sleep(1);
+	}
+	return 0 ;
 
-	memset(buffer,0,1024);
-	sysutils_get_json_rpc_token_update(buffer);
-	printf("TokenUpdate   ->%s\n",buffer);
+	while(0){
+		memset(buffer,0,1024);
+		sysutils_get_json_rpc_boot(buffer);
+		printf("boot       ->%s\n",buffer);
+		memset(buffer,0,1024);
+		sysutils_get_json_rpc_headbeat(buffer);
+		printf("Heartbeat  ->%s\n",buffer);
+		memset(buffer,0,1024);
+		sysutils_get_json_rpc_message_push(buffer,"test_plugin","test_message",12);
+		printf("Push Message  ->%s\n",buffer);
+
+		memset(buffer,0,1024);
+		sysutils_get_json_rpc_token_update(buffer);
+		printf("TokenUpdate   ->%s\n",buffer);
 
 
-	memset(buffer,0,1024);
-	sysutils_get_json_rpc_boot_first(buffer);
-	printf("BootFirst   ->%s\n",buffer);
+		memset(buffer,0,1024);
+		sysutils_get_json_rpc_boot_first(buffer);
+		printf("BootFirst   ->%s\n",buffer);
 
-	memset(buffer,0,1024);
-	sysutils_get_json_rpc_token_update(buffer);
-	printf("ResisterFirst   ->%s\n",buffer);
-	memset(buffer,0,1024);
-	sysutils_get_json_rpc_token_update(buffer);
-	printf("TokenUpdate   ->%s\n",buffer);
+		memset(buffer,0,1024);
+		sysutils_get_json_rpc_token_update(buffer);
+		printf("ResisterFirst   ->%s\n",buffer);
+		memset(buffer,0,1024);
+		sysutils_get_json_rpc_token_update(buffer);
+		printf("TokenUpdate   ->%s\n",buffer);
 
-	break;
+		break;
 	}
 	app_funcion_flow_ctrl_init();
 	//app_funcion_flow_ctrl_start();

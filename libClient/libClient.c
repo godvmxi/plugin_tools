@@ -42,7 +42,7 @@ int app_socket_working_state =  1;
 int app_theard_exit_flag = 0;
 #define APP_DEFAULT_FIFO_BUFFER_SIZE   10
 
-void get_version() {
+void get_version(void ) {
 	printf("version 0.1\n");
 }
 
@@ -704,7 +704,7 @@ int socket_data_handler_loop(void *dat) {
 #endif
 	return ret;
 }
-void app_funcion_flow_ctrl_init(void) {
+int app_function_flow_ctrl_init(void) {
 	memset(&app_function_flow_ctrl, 0, sizeof(AppFunctionFlowCtrl));
 
 	//init all handler list
@@ -793,10 +793,10 @@ void app_funcion_flow_ctrl_init(void) {
 	app_domain_info.distri_server.tcp_port = 12112;
 	app_domain_info.distri_server.udp_port = 12112;
 	pthread_mutex_unlock(&app_domain_info.mutex_lock);
-
+	return  0;
 }
 
-void app_funcion_flow_ctrl_start(void) {
+int  app_function_flow_ctrl_thread(void *dat) {
 	FunctionStepPointer function_step_pointer = NULL;
 	int handler_index = 0;
 	int ret = 0;
@@ -804,7 +804,7 @@ void app_funcion_flow_ctrl_start(void) {
 	while (1) {
 		if(app_theard_exit_flag  > 0 ){
 			LOG_TRACE("app thread exit ->%s\n",__FUNCTION__);
-			return ;
+			return 0;
 		}
 		if (handler_index < 0 || handler_index >= app_function_flow_ctrl.handler_num) {
 			LOG_ERROR("handler index is error ->%d ,and set to default\n", handler_index);
@@ -831,7 +831,11 @@ void app_funcion_flow_ctrl_start(void) {
 	}
 }
 
-int app_parse_fifo_buffer_thread(void){
+int app_function_parse_fifo_buffer_init(void){
+	LOG_DEBUG("init downlink push message handler ,maybe null\n");
+	return 0;
+}
+int app_function_parse_fifo_buffer_thread(void *dat){
 	char buf[1024];
 	int buf_len = 0 ;
 	int ret = 0;

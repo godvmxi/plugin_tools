@@ -19,7 +19,7 @@ noinst_PROGRAMS=main
 main_SOURCES= main.c
 
 # Linker options for a.out
-main_LDFLAGS = $(top_srcdir)/libClient/libClient.la -L/usr/lib -llog4c 
+main_LDFLAGS = $(top_srcdir)/libClient/libClient.la -L/usr/lib -llog4c  -lpthread
 
 # Compiler options for a.out
 main_CPPFLAGS = -I$(top_srcdir)/include  

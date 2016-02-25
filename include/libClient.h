@@ -85,9 +85,6 @@ typedef enum {
 extern AppFunctionFlowCtrl app_function_flow_ctrl ;
 extern AppDomainInfo  app_domain_info;
 
-void app_function_fifo_buffer_init(void);
-extern void app_funcion_flow_ctrl_init(void);
-extern void app_funcion_flow_ctrl_start(void);
 
 int login_distri_plat_step1_udp(void *dat);
 int login_distri_plat_step2_udp(void *dat);
@@ -97,6 +94,15 @@ int login_operation_plat(void *dat);
 int socket_data_handler_loop(void *dat);
 int socket_data_handler(int sockfd );
 
+
+
+void app_function_fifo_buffer_init(void);
+
+int app_function_parse_fifo_buffer_init(void);
+int app_function_parse_fifo_buffer_thread(void *dat);
+
+int  app_function_flow_ctrl_init(void);
+int  app_function_flow_ctrl_thread(void *dat);
 
 int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message,int message_len);
 
