@@ -159,7 +159,7 @@ int sysutils_get_json_rpc_boot(char *buf){
 
 	return 0;
 }
-int sysutils_get_json_rpc_headbeat(char *buf){
+int sysutils_get_json_rpc_heartbeat(char *buf){
 	char ip[64] = {0};
 	if (__sysutils_get_wlan_ip_addr(ip) <  0){
 		//return 0;
