@@ -28,7 +28,7 @@
 #include <capisys.h>
 #include <unistd.h>
 
-
+#include "capi-app-mgr.h"
 
 int main(int argc, char **argv) {
 //	if (argc != 2) {
@@ -50,6 +50,8 @@ int main(int argc, char **argv) {
 	app_function_capisys_init();
 	app_function_parse_fifo_buffer_init();
 	
+	CtSgwSetDbusEnv();
+
 	int ret = 0;
 
 	ret = pthread_create(&thread_network_handler,	NULL,(void *)app_function_flow_ctrl_thread ,NULL);
@@ -67,7 +69,7 @@ int main(int argc, char **argv) {
 		LOG_ERROR("create thread downlink hander error\n");
 		exit(1);
 	}
-	LOG_DEBUG("maini app is runing ,waiting for all \n");
+	//LOG_DEBUG("maini app is runing ,waiting for all \n");
 	sleep(2);
 	pthread_join(thread_network_handler,NULL);
 	pthread_join(thread_capi_handler,NULL);
