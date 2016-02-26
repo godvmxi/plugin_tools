@@ -1,41 +1,28 @@
-#ifndef _LOGGER_H_
-#define _LOGGER_H_
+#ifndef ___LOGGER_H_
+#define ___LOGGER_H_
 
 #include <string.h>
-#include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+#define LOGGER_PRI_ERR 		5
+#define LOGGER_PRI_WARN 	4
+#define LOGGER_PRI_INFO 	3
+#define LOGGER_PRI_DBG 		2
+#define LOGGER_PRI_TRC		1
 
-#include "log4c.h"
+#define LOGGER_PRI_SET      0
 
-#ifdef __cplusplus
-}
-#endif
-
-#define LOG_PRI_ERROR 		LOG4C_PRIORITY_ERROR
-#define LOG_PRI_WARN 		LOG4C_PRIORITY_WARN
-#define LOG_PRI_NOTICE 		LOG4C_PRIORITY_NOTICE
-#define LOG_PRI_DEBUG 		LOG4C_PRIORITY_DEBUG
-#define LOG_PRI_TRACE 		LOG4C_PRIORITY_TRACE
-
-extern int log_open(const char *category);
-extern void log_message(int priority ,const char* fmt, ...);
-extern void log_trace(const char *file , int line , const char *func, const char *fmt ,...);
-extern int log_close();
+extern void logger_message(const char* fmt, ...);
 
 #define LOGGER_ERR(fmt , args...)	\
-	log_message(LOG_PRI_ERROR, fmt, ##args)
+	if(1){	if( LOGGER_PRI_ERR > LOGGER_PRI_SET ) 		logger_message(fmt, ##args) ; }
 #define LOGGER_WARN(fmt, args...)		\
-	log_message(LOG_PRI_WARN, fmt , ##args)
-#define LOGGER_NOTICE(fmt , args...)	\
-	log_message(LOG_PRI_NOTICE, fmt , ##args)
+	if(1){ if( LOGGER_PRI_WARN > LOGGER_PRI_SET )  	logger_message(fmt , ##args);  }
+#define LOGGER_INFO(fmt , args...)	\
+	if(1){ if( LOGGER_PRI_INFO  > LOGGER_PRI_SET ) 	logger_message(fmt , ##args); } 
 #define LOGGER_DBG(fmt , args...)	\
-	log_message(LOG_PRI_DEBUG, fmt , ##args)
+	if(1){ if( LOGGER_PRI_DBG > LOGGER_PRI_SET ) 		logger_message(fmt , ##args); } 
 #define LOGGER_TRC(fmt,args...) 		\
-	log_trace(__FILE__ , __LINE__ , __FUNCTION__ , fmt ,## args)
+	if(1){ if( LOGGER_PRI_TRC > LOGGER_PRI_SET ) 		logger_message(fmt ,## args); } 
 
 
 #endif

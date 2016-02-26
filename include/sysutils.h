@@ -8,6 +8,7 @@
 #ifndef SYSUTILS_H_
 #define SYSUTILS_H_
 #include "jansson.h"
+#include <stdarg.h>
 typedef enum {
 	RPC_METHOD_INVALID = -1,
 	RPC_METHOD_ACK  = 0,
@@ -99,6 +100,9 @@ int sysutils_try_handler_server_push_message(char *buf);
 
 
 RPC_METHOD_ENUM sysutils_get_rpc_type(char *buf) ;
+int sysutils_get_json_plugin_ack_message(char *buf ,int key_num,... );
+int sysutils_get_json_value_from(json_t *obj,char *key ,json_type type ,void *buf) ;
+int sysutils_download_plugin_to_pllugin_dir(char *buf,char *local_file);
 
 
 

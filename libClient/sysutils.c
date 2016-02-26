@@ -10,13 +10,16 @@
 #include <jansson.h>
 #include <time.h>
 #include <string.h>
-#include <logger.h>
 #include "md5.h"
 #include "base64.h"
 #include <assert.h>
-#include "jansson.h"
+#include <jansson.h>
 #include "logger.h"
 #include <stdarg.h>
+#include "fifobuffer.h"
+
+extern FIFO_BUFFER_HEADER socket_rx_fifo_header;
+extern FIFO_BUFFER_HEADER socket_tx_fifo_header;
 //#include "capi.h"
 int sysutils_active_rpc_counter = 0;
 static int  __sysutils_get_vender(char *buf){
@@ -1333,128 +1336,63 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	char plugin_size_buf[64]  = {0};
 	char os_buf[64]  = {0};
 	char update_id_buf[64]  = {0};
+	char id_buffer[64] = {0};
 	char *temp = NULL;
+	int ret = 0 ;
 	//get Plugin_Name
-	json_t *obj_name = json_object_get(obj,"Plugin_Name");
-	if (!obj_name ){
-		LOGGER_DBG("get plugin name error \n");
-		goto sysutils_downlink_rpc_handler_install_error ;
-	}
-	else {
-		temp =  (char *) json_string_value(obj_name ) ;
-		if (!temp ){
-			LOGGER_ERR("get plugin name error\n");
-			goto sysutils_downlink_rpc_handler_install_error;
-		}
-		memcpy(name_buf,temp ,strlen(temp));
-		free(temp);
-	}
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_error;
 	//get version_buf
-	json_t *obj_version = json_object_get(obj,"Version");
-	if (!obj_version ){
-		LOGGER_DBG("get plugin version error \n");
-		goto sysutils_downlink_rpc_handler_install_error ;
-	}
-	else {
-		temp =  (char *) json_string_value(obj_version ) ;
-		if (!temp ){
-			LOGGER_ERR("get plugin version error\n");
-			goto sysutils_downlink_rpc_handler_install_error;
-		}
-		memcpy(version_buf,temp ,strlen(temp));
-		free(temp);
-	}
+	ret = sysutils_get_json_value_from(obj,"Version",JSON_STRING,version_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_error;
 	//get download_url
-	json_t *obj_download_url = json_object_get(obj,"Plugin_Name");
-	if (!obj_download_url ){
-		LOGGER_DBG("get plugin download_url error \n");
-		goto sysutils_downlink_rpc_handler_install_error ;
-	}
-	else {
-		temp =  (char *) json_string_value(obj_download_url ) ;
-		if (!temp ){
-			LOGGER_ERR("get plugin download_url error\n");
-			goto sysutils_downlink_rpc_handler_install_error;
-		}
-		memcpy(download_url_buf,temp ,strlen(temp));
-		free(temp);
-	}
+	ret = sysutils_get_json_value_from(obj,"Download_url",JSON_STRING,download_url_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_error;
 	//get plugin_size
-	json_t *obj_plugin_size = json_object_get(obj,"Plugin_Name");
-	if (!obj_plugin_size ){
-		LOGGER_DBG("get plugin plugin_size error \n");
-		goto sysutils_downlink_rpc_handler_install_error ;
-	}
-	else {
-		temp =  (char *) json_string_value(obj_plugin_size ) ;
-		if (!temp ){
-			LOGGER_ERR("get plugin plugin_size error\n");
-			goto sysutils_downlink_rpc_handler_install_error;
-		}
-		memcpy(plugin_size_buf,temp ,strlen(temp));
-		free(temp);
-	}
+	ret = sysutils_get_json_value_from(obj,"Plugin_size",JSON_STRING,plugin_size_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_error;
 	//get os
-	json_t *obj_os = json_object_get(obj,"Plugin_Name");
-	if (!obj_os ){
-		LOGGER_DBG("get plugin os error \n");
-		goto sysutils_downlink_rpc_handler_install_error ;
-	}
-	else {
-		temp =  (char *) json_string_value(obj_os ) ;
-		if (!temp ){
-			LOGGER_ERR("get plugin os error\n");
-			goto sysutils_downlink_rpc_handler_install_error;
-		}
-		memcpy(os_buf,temp ,strlen(temp));
-		free(temp);
-	}
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_error;
 	//get update_id
-	json_t *obj_update_id = json_object_get(obj,"Plugin_Name");
-	if (!obj_update_id ){
-		LOGGER_DBG("get plugin update_id error \n");
-		goto sysutils_downlink_rpc_handler_install_error ;
-	}
-	else {
-		temp =  (char *) json_string_value(obj_update_id ) ;
-		if (!temp ){
-			LOGGER_ERR("get plugin update_id error\n");
-			goto sysutils_downlink_rpc_handler_install_error;
-		}
-		memcpy(update_id_buf,temp ,strlen(temp));
-		free(temp);
-	}
-	if (!obj_name ) json_decref(obj_name) ;
-	if (!obj_version ) json_decref(obj_version) ;
-	if (!obj_download_url ) json_decref(obj_download_url) ;
-	if (!obj_plugin_size ) json_decref(obj_plugin_size) ;
-	if (!obj_os ) json_decref(obj_os) ;
-	if (!obj_update_id ) json_decref(obj_update_id)  ;
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_error;
 	//down plug ??
 	char local_plugin_file[64] = { 0 };
 	LOGGER_TRC("begin download plugin -> %s\n",name_buf);
-	int ret = sysutils_download_plugin_to_pllugin_dir(download_url_buf,local_plugin_file);
+	ret = sysutils_download_plugin_to_pllugin_dir(download_url_buf,local_plugin_file);
 	if(ret < 0 ){
 		LOGGER_ERR("download plugin error -> %s:  %s %d\n",name_buf,download_url_buf);
 		goto sysutils_downlink_rpc_handler_install_error ;
 	}
 	LOGGER_TRC("begin install plugin -> %s\n",name_buf);
 	ret = CtSgwInstallApp(local_plugin_file);
+	//send ack
+	//
+	char buf[1024] = {0} ;
+	ret = sysutils_get_json_plugin_ack_message("Result",0,ret ,"ID",0,0);
+	if(ret < 0 ){
+		LOGGER_ERR("get install ack json error \n");
+		goto sysutils_downlink_rpc_handler_install_error ;
+	}
+	//add into send buffer
+	ret = fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf));
+	if(ret < 0) {
+		LOGGER_ERR("add data into send buffer error  \n");
+		goto sysutils_downlink_rpc_handler_install_error ;
+	}
 
-	if (!obj_name ) json_decref(obj_name) ;
-	if (!obj_version ) json_decref(obj_version) ;
-	if (!obj_download_url ) json_decref(obj_download_url) ;
-	if (!obj_plugin_size ) json_decref(obj_plugin_size) ;
-	if (!obj_os ) json_decref(obj_os) ;
-	if (!obj_update_id ) json_decref(obj_update_id) ;
+
+
+
 	return 1;
 sysutils_downlink_rpc_handler_install_error :
-	if (!obj_name ) json_decref(obj_name) ;
-	if (!obj_version ) json_decref(obj_version) ;
-	if (!obj_download_url ) json_decref(obj_download_url) ;
-	if (!obj_plugin_size ) json_decref(obj_plugin_size) ;
-	if (!obj_os ) json_decref(obj_os) ;
-	if (!obj_update_id ) json_decref(obj_update_id) ;
 
 	return -1;
 
@@ -1462,8 +1400,14 @@ sysutils_downlink_rpc_handler_install_error :
 }
 int sysutils_downlink_rpc_handler_install_query(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
-
-//try lock install process
+	char name_buf[64]  = {0};
+	char version_buf[64]  = {0};
+	char plugin_id_buf[64]  = {0};
+	char *temp = NULL;
+	//get Plugin_Name
+	return -0;
+sysutils_downlink_rpc_handler_install_error :
+	return -1;
 }
 int sysutils_downlink_rpc_handler_install_cancel(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
@@ -1501,16 +1445,20 @@ int sysutils_download_plugin_to_pllugin_dir(char *buf,char *local_file){
 	return 1;
 }
 /* 
+ *
+ * buf ,json dumps to 
  * number : json child number
  * 
  * all arg should be char *
  *
- *  call like this  (key_num ,key1,value1,key2,value2 ...)
+ * type : 0 : int 1 :string
+ *  call like this  (key_num ,key1,type1,value1,key2,type2,value2 ...)
  * */
 #define JSON_MAX_ENCODE_KEYS   20
-int sysutils_send_json_plugin_ack_message(char *buf ,int key_num,... ){
+int sysutils_get_json_plugin_ack_message(char *buf ,int key_num,... ){
 	char *key = NULL;
 	char *value = NULL;
+	int value_type = 0 ;
 	json_t *obj_value =  NULL;
 	json_t *obj = NULL;
 	size_t  obj_json_list[JSON_MAX_ENCODE_KEYS] ;
@@ -1526,8 +1474,19 @@ int sysutils_send_json_plugin_ack_message(char *buf ,int key_num,... ){
 		key = NULL;
 		value = NULL;
 		key =  va_arg(argptr,char *);
-		value = va_arg(argptr,char *);
-		obj_value = json_string(value );
+		value_type = va_arg(argptr,int);
+		if (value_type == 0 ){
+			value = va_arg(argptr,int);
+			obj_value = json_integer(value );
+		}
+		else if (value_type == 1){
+			value = va_arg(argptr,char *);
+			obj_value = json_string(value );
+		}
+		else {
+			LOGGER_ERR("current not support value type -> %d \n,value_type");
+			goto sysutils_send_json_plugin_ack_message_error;
+		}
 		if(!obj_value) goto sysutils_send_json_plugin_ack_message_error;
 		json_object_set(obj,key,obj_value);
 		obj_json_list[i] = ( size_t) obj_value ;
@@ -1557,3 +1516,42 @@ sysutils_send_json_plugin_ack_message_error :
 
 }
 
+int sysutils_get_json_value_from(json_t *obj,char *key ,json_type type ,void *buf) {
+	json_t *value = json_object_get(obj,key);
+	if (!value){
+		LOGGER_ERR("%s get error -> %s ,%d\n",key,type);
+		return -1;
+	}
+	int ret = json_typeof(value) ;
+	if (ret  != type ){
+		LOGGER_ERR("%s not support type -> %s ,%d ,%d\n",key,type,ret);
+		return -1;
+	}
+	switch(type){
+		case JSON_STRING :
+		    char *temp = json_string_value(value);
+			memcpy(buf,temp,strlen(temp));
+			break;
+		case JSON_INTEGER :
+			*((int *) buf) =  json_integer_value(value);
+			break;
+		case JSON_REAL :
+			*((double *) buf) =  json_real_value(value);
+			break ;
+		case JSON_TRUE :
+			*((int *) buf) =  1;
+			break;
+		case JSON_FALSE :
+			*((int *) buf) =  0;
+			break;
+		case JSON_NULL :
+			*((int *) buf) =  0;
+			break;
+		default :
+			LOG_ERROR("not support json type,please check \n");
+		break;
+	}
+	json_decref(value);
+	return 0;
+
+}

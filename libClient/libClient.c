@@ -661,8 +661,9 @@ int socket_data_handler(int sockfd ){
 			sleep(app_login_distri_server_retry_interval);
 			continue;
 		}
-		if (ret < 0)
-			LOGGER_DBG("select\n");/* 这说明select函数出错 */
+		if (ret < 0) {
+			LOGGER_DBG("select\n");
+		}
 		else if (ret == 0) {
 			//have been handler before ,never run to here
 			printf("no data and timeout\n");
