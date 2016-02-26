@@ -298,7 +298,7 @@ top_srcdir = @top_srcdir@
 main_SOURCES = main.c
 
 # Linker options for a.out
-main_LDFLAGS = $(top_srcdir)/libClient/libClient.la -L/usr/lib -llog4c  -lpthread  `pkg-config --libs glib-2.0`
+main_LDFLAGS = $(top_srcdir)/libClient/libClient.la -L/usr/lib   -lpthread  `pkg-config --libs glib-2.0`
 
 # Compiler options for a.out
 main_CPPFLAGS = -I$(top_srcdir)/include   `pkg-config --cflags glib-2.0`

@@ -17,7 +17,7 @@ libClient_la_SOURCES = libClient.c logger.c netutils.c  \
 			capi-variable-type.c
 
 # Linker options libTestProgram
-libClient_la_LDFLAGS =  `pkg-config --libs jansson`  -L/usr/lib -llog4c
+libClient_la_LDFLAGS =  `pkg-config --libs jansson`  -L/usr/lib 
 
 # Compiler options. Here we are adding the include directory
 # to be searched for headers included in the source code.
