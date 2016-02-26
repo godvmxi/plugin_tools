@@ -1475,13 +1475,13 @@ int sysutils_get_json_plugin_ack_message(char *buf ,int key_num,... ){
 		value = NULL;
 		key =  va_arg(argptr,char *);
 		value_type = va_arg(argptr,int);
-		if (value_type == 0 ){
-			value = va_arg(argptr,int);
-			obj_value = json_integer(value );
+		if (value_type == JSON_INTEGER ){
+			int temp  = va_arg(argptr,int);
+			obj_value = json_integer(temp );
 		}
-		else if (value_type == 1){
-			value = va_arg(argptr,char *);
-			obj_value = json_string(value );
+		else if (value_type == JSON_STRING){
+			char *temp_char = va_arg(argptr,char *);
+			obj_value = json_string(temp_char );
 		}
 		else {
 			LOGGER_ERR("current not support value type -> %d \n,value_type");
@@ -1516,27 +1516,28 @@ sysutils_send_json_plugin_ack_message_error :
 
 }
 
-int sysutils_get_json_value_from(json_t *obj,char *key ,json_type type ,void *buf) {
-	json_t *value = json_object_get(obj,key);
-	if (!value){
+int sysutils_get_json_obj_value_from(json_t *obj,char *key ,json_type type ,void *buf) {
+	json_t *obj_value = json_object_get(obj,key);
+	if (!obj_value){
 		LOGGER_ERR("%s get error -> %s ,%d\n",key,type);
 		return -1;
 	}
-	int ret = json_typeof(value) ;
+	int ret = json_typeof(obj_value) ;
 	if (ret  != type ){
 		LOGGER_ERR("%s not support type -> %s ,%d ,%d\n",key,type,ret);
 		return -1;
 	}
+	char * temp =  NULL ;
 	switch(type){
 		case JSON_STRING :
-		    char *temp = json_string_value(value);
+		    temp = json_string_value(obj_value);
 			memcpy(buf,temp,strlen(temp));
 			break;
 		case JSON_INTEGER :
-			*((int *) buf) =  json_integer_value(value);
+			*((int *) buf) =  json_integer_value(obj_value);
 			break;
 		case JSON_REAL :
-			*((double *) buf) =  json_real_value(value);
+			*((double *) buf) =  json_real_value(obj_value);
 			break ;
 		case JSON_TRUE :
 			*((int *) buf) =  1;
@@ -1551,7 +1552,7 @@ int sysutils_get_json_value_from(json_t *obj,char *key ,json_type type ,void *bu
 			LOG_ERROR("not support json type,please check \n");
 		break;
 	}
-	json_decref(value);
+	json_decref(obj_value);
 	return 0;
 
 }
