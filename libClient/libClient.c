@@ -64,7 +64,7 @@ int manual_interactive_flow_control(const char *info) {
 	return ret;
 }
 int login_distri_plat_step1_udp(void *dat) {
-	LOG_TRACE("%s\n", __FUNCTION__);
+	LOGGER_TRC("%s\n", __FUNCTION__);
 	int ret = 0;
 #if DEBUG_FLOW_CONTROL == 1
 	ret = manual_interactive_flow_control(__FUNCTION__);
@@ -76,9 +76,9 @@ int login_distri_plat_step1_udp(void *dat) {
 	int ip_num  = 0;
 	while (1) {
 		ip_num = netutils_dns_resolver(dns, ip_list, NETUTIIS_MAX_IP_PER_DOMAIN, NETUTILS_MAX_IP_LEN);
-		LOG_DEBUG("dns resolver result -> %d\n", ip_num);
+		LOGGER_DBG("dns resolver result -> %d\n", ip_num);
 		if (ip_num <= 0 ){
-			LOG_ERROR("operate_server dns failed,sleep and retry\n");
+			LOGGER_ERR("operate_server dns failed,sleep and retry\n");
 			sleep(app_login_distri_server_retry_interval);
 			return RET_DNS_FAILED ;
 		}
@@ -99,7 +99,7 @@ int login_distri_plat_step1_udp(void *dat) {
 
 	while (1) {
 		if (cur_ip_index >= ip_num) {
-			LOG_DEBUG("no valid ip can be used\n");
+			LOGGER_DBG("no valid ip can be used\n");
 			return RET_NO_ACK;
 		}
 		bzero(&address, sizeof(address));
@@ -116,14 +116,14 @@ int login_distri_plat_step1_udp(void *dat) {
 		memset(buf, 0, 1024);
 		sysutils_get_json_rpc_boot_first(buf + 4);
 		if(ret < 0 ){
-			LOG_ERROR("get rpc boot first_json error \n");
+			LOGGER_ERR("get rpc boot first_json error \n");
 			return RET_SYS_ERROR ;
 		}
-		LOG_DEBUG("json->%s\n", buf + 4);
+		LOGGER_DBG("json->%s\n", buf + 4);
 		uint32_t buf_len = strlen(buf + 4);
 		uint32_t *json_len = (uint32_t *) buf;
 		*json_len = htons(buf_len);
-		LOG_DEBUG("send -> %d ->%s\n", json_len, buf + 4);
+		LOGGER_DBG("send -> %d ->%s\n", json_len, buf + 4);
 		sendto(socket_descriptor, buf, buf_len + 4, 0, (struct sockaddr *) &address, sizeof(address));
 		int recv_counter = 0;
 		FD_ZERO(&rdfds);
@@ -132,7 +132,7 @@ int login_distri_plat_step1_udp(void *dat) {
 		tv.tv_usec = 500;
 		ret = select(socket_descriptor + 1, &rdfds, NULL, NULL, &tv);
 		if (ret == 0) {
-			LOG_DEBUG("no data and timeout\n");
+			LOGGER_DBG("no data and timeout\n");
 			recv_counter++;
 			sleep(app_login_distri_server_retry_interval);
 			continue;
@@ -152,14 +152,14 @@ int login_distri_plat_step1_udp(void *dat) {
 				memset(buf, 0, 1024);
 				buf_len = recv(socket_descriptor, buf, 1024, 0);
 				if (buf_len < 0) {
-					LOG_DEBUG("receive data error -> %d\n", buf_len);
+					LOGGER_DBG("receive data error -> %d\n", buf_len);
 					send_counter++;
 					continue;
 				}
 				recv_json_len = ntohl(  *( (uint32_t *)  buf) );
-				LOG_DEBUG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
 				if (recv_json_len != (buf_len - 4)) {
-					LOG_ERROR("receive data len not match -> %d %d\n", recv_json_len, buf_len);
+					LOGGER_ERR("receive data len not match -> %d %d\n", recv_json_len, buf_len);
 					send_counter++;
 					continue;
 				}
@@ -175,17 +175,17 @@ int login_distri_plat_step1_udp(void *dat) {
 						app_login_distri_server_retry_interval = interval_temp;
 						memset(app_security_info.chanllege_code, 0, 16) ;
 						memcpy(app_security_info.chanllege_code, challenge_code, 16);
-						LOG_DEBUG("boot first registe ok ,continue \n");
+						LOGGER_DBG("boot first registe ok ,continue \n");
 						//server_ip is the wlan ip ,do not care it .
 
 						return RET_OK;
 					} else {
-						LOG_ERROR("Boot first reigister failed \n");
+						LOGGER_ERR("Boot first reigister failed \n");
 						sleep(app_login_distri_server_retry_interval * 1000);
 					}
 				}
 				else{
-					LOG_ERROR("parse ack info error \n");
+					LOGGER_ERR("parse ack info error \n");
 					send_counter++;
 					sleep(app_login_distri_server_retry_interval * 1000);
 					continue;
@@ -199,7 +199,7 @@ return ret;
 }
 
 int login_distri_plat_step2_udp(void *dat) {
-	LOG_TRACE("%s\n", __FUNCTION__);
+	LOGGER_TRC("%s\n", __FUNCTION__);
 	int ret = 0;
 #if DEBUG_FLOW_CONTROL == 1
 	ret = manual_interactive_flow_control(__FUNCTION__);sysutils_get_json_rpc_message_push
@@ -216,7 +216,7 @@ int login_distri_plat_step2_udp(void *dat) {
 	struct timeval tv;
 	char *ip  =  app_domain_info.distri_server.ip_list[app_domain_info.distri_server.cur_ip] ;
 	uint32_t port = app_domain_info.distri_server.udp_port ;
-	LOG_DEBUG("using ip address ->%s \n",ip);
+	LOGGER_DBG("using ip address ->%s \n",ip);
 	while (1) { //try send 3 time with interval 
 		bzero(&address, sizeof(address));
 		address.sin_family = AF_INET;
@@ -228,7 +228,7 @@ int login_distri_plat_step2_udp(void *dat) {
 			socket_descriptor =  -1;
 		}
 		if (send_counter >= 3 ){
-			LOG_ERROR("retry send message is over \n");
+			LOGGER_ERR("retry send message is over \n");
 			return RET_NO_ACK ;
 		}
 		socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
@@ -236,14 +236,14 @@ int login_distri_plat_step2_udp(void *dat) {
 		memset(buf, 0, 1024);
 		sysutils_get_json_rpc_register_first(buf + 4);
 		if(ret < 0 ){
-			LOG_ERROR("get rpc register_first json error \n");
+			LOGGER_ERR("get rpc register_first json error \n");
 			return RET_SYS_ERROR ;
 		}
-		LOG_DEBUG("json->%s\n", buf + 4);
+		LOGGER_DBG("json->%s\n", buf + 4);
 		uint32_t buf_len = strlen(buf + 4);
 		uint32_t *json_len = (uint32_t *) buf;
 		*json_len = htons(buf_len);
-		LOG_DEBUG("send -> %d ->%s\n", json_len, buf + 4);
+		LOGGER_DBG("send -> %d ->%s\n", json_len, buf + 4);
 		sendto(socket_descriptor, buf, buf_len + 4, 0, (struct sockaddr *) &address, sizeof(address));
 		int recv_counter = 0;
 		FD_ZERO(&rdfds);
@@ -252,13 +252,13 @@ int login_distri_plat_step2_udp(void *dat) {
 		tv.tv_usec = 500;
 		ret = select(socket_descriptor + 1, &rdfds, NULL, NULL, &tv);
 		if (ret == 0) {
-			LOG_DEBUG("no data and timeout\n");
+			LOGGER_DBG("no data and timeout\n");
 			recv_counter++;
 			if (recv_counter > 10) {
 				close(socket_descriptor);
 				socket_descriptor =  -1;
-				LOG_DEBUG("wait for 15s and time out ,no data\n");
-				LOG_DEBUG("try next ip\n");
+				LOGGER_DBG("wait for 15s and time out ,no data\n");
+				LOGGER_DBG("try next ip\n");
 				return RET_NO_ACK ;
 			}
 		}
@@ -277,14 +277,14 @@ int login_distri_plat_step2_udp(void *dat) {
 				memset(buf, 0, 1024);
 				buf_len = recv(socket_descriptor, buf, 1024, 0);
 				if (buf_len < 0) {
-					LOG_DEBUG("receive data error -> %d\n", buf_len);
+					LOGGER_DBG("receive data error -> %d\n", buf_len);
 					send_counter++;
 					continue;
 				}
 				recv_json_len = ntohl(  *( (uint32_t *)  buf) );
-				LOG_DEBUG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
 				if (recv_json_len != (buf_len - 4)) {
-					LOG_ERROR("receive data len not match -> %d %d\n", recv_json_len, buf_len);
+					LOGGER_ERR("receive data len not match -> %d %d\n", recv_json_len, buf_len);
 					send_counter++;
 					continue;
 				}
@@ -349,17 +349,17 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 						memcpy(app_security_info.exp_date, exp_date, strlen(exp_date)) ;
 						memcpy(app_security_info.ca_download_url, ca_download_url, strlen(ca_download_url)) ;
 						app_login_distri_server_retry_interval =  interval_temp ;
-						LOG_DEBUG("boot first registe ok ,continue \n");
+						LOGGER_DBG("boot first registe ok ,continue \n");
 						//server_ip is the wlan ip ,do not care it .
 
 						return RET_OK;
 					} else {
-						LOG_ERROR("Boot first register  error,sleep and retry :%d %d \n",send_counter,app_login_distri_server_retry_interval);
+						LOGGER_ERR("Boot first register  error,sleep and retry :%d %d \n",send_counter,app_login_distri_server_retry_interval);
 						sleep(app_login_distri_server_retry_interval * 1000);
 					}
 				}
 				else{
-					LOG_ERROR("parse ack info error,sleep and retry :%d %d \n",send_counter,app_login_distri_server_retry_interval);
+					LOGGER_ERR("parse ack info error,sleep and retry :%d %d \n",send_counter,app_login_distri_server_retry_interval);
 					send_counter++;
 					sleep(app_login_distri_server_retry_interval * 1000);
 					continue;
@@ -372,7 +372,7 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 	return ret;
 }
 int login_distri_plat_step1_tcp(void *dat) {
-	LOG_TRACE("%s\n", __FUNCTION__);
+	LOGGER_TRC("%s\n", __FUNCTION__);
 	int ret = 0;
 #if DEBUG_FLOW_CONTROL == 1
 	ret = manual_interactive_flow_control(__FUNCTION__);
@@ -382,7 +382,7 @@ int login_distri_plat_step1_tcp(void *dat) {
 }
 
 int login_distri_plat_step2_tcp(void *dat) {
-	LOG_TRACE("%s\n", __FUNCTION__);
+	LOGGER_TRC("%s\n", __FUNCTION__);
 	int ret = 0;
 #if DEBUG_FLOW_CONTROL == 1
 	ret = manual_interactive_flow_control(__FUNCTION__);
@@ -393,7 +393,7 @@ int login_distri_plat_step2_tcp(void *dat) {
 }
 
 int login_operation_plat(void *dat) {
-	LOG_TRACE("%s\n", __FUNCTION__);
+	LOGGER_TRC("%s\n", __FUNCTION__);
 	int ret = 0;
 #if DEBUG_FLOW_CONTROL == 1
 	ret = manual_interactive_flow_control(__FUNCTION__);
@@ -413,9 +413,9 @@ int login_operation_plat(void *dat) {
 		//do dns resolver
 		int ip_num = netutils_dns_resolver(app_domain_info.operate_server.domain, 
 				app_domain_info.operate_server.ip_list[0], NETUTIIS_MAX_IP_PER_DOMAIN, NETUTILS_MAX_IP_LEN);
-		LOG_DEBUG("operate dns resolver result -> %d\n", ip_num);
+		LOGGER_DBG("operate dns resolver result -> %d\n", ip_num);
 		if (ip_num <= 0 ){
-			LOG_ERROR("operate_server dns failed,sleep and retry\n");
+			LOGGER_ERR("operate_server dns failed,sleep and retry\n");
 			sleep(app_login_distri_server_retry_interval);
 			return RET_DNS_FAILED ;
 		}
@@ -423,7 +423,7 @@ int login_operation_plat(void *dat) {
 	}
 	while(1)  { //check next dns
 		if (current_ip_index > app_domain_info.operate_server.ip_list_number ) {
-			LOG_ERROR("no ip address can reached \n");
+			LOGGER_ERR("no ip address can reached \n");
 			return RET_NO_ACK ;
 
 		}
@@ -433,7 +433,7 @@ int login_operation_plat(void *dat) {
 		current_ip_index++;
 		while (1) {
 			if (resend_counter >= 3 ){
-				LOG_ERROR("login to operate failed \n");
+				LOGGER_ERR("login to operate failed \n");
 				return RET_NO_ACK ;
 			}
 			if((sockfd=socket(AF_INET,SOCK_STREAM, 0))==-1)
@@ -445,26 +445,26 @@ int login_operation_plat(void *dat) {
 			server.sin_family = AF_INET;
 			server.sin_port = htons(operate_server_port);
 			server.sin_addr.s_addr = inet_addr(operate_server_ip);
-			LOG_DEBUG("try connect %s %d\n",operate_server_ip,operate_server_port);
+			LOGGER_DBG("try connect %s %d\n",operate_server_ip,operate_server_port);
 			if(connect(sockfd, (struct sockaddr *)&server, sizeof(server))==-1)
 			{
-				LOG_ERROR("connect  error\n");
+				LOGGER_ERR("connect  error\n");
 				resend_counter++;
 				sleep(app_login_distri_server_retry_interval);
 				continue ;
 			}
 			ret = sysutils_get_json_rpc_boot(buf+4);		
 			if(ret < 0 ){
-				LOG_ERROR("get rpc boot json error \n");
+				LOGGER_ERR("get rpc boot json error \n");
 				return RET_SYS_ERROR ;
 			}
-			LOG_DEBUG("json->%s\n", buf + 4);
+			LOGGER_DBG("json->%s\n", buf + 4);
 			uint32_t buf_len = strlen(buf + 4);
 			uint32_t *json_len = (uint32_t *) buf;
 			*json_len = htons(buf_len);
-			LOG_DEBUG("send -> %d ->%s\n", json_len, buf + 4);
+			LOGGER_DBG("send -> %d ->%s\n", json_len, buf + 4);
 			ret = send(sockfd,buf,buf_len+4 ,0 );
-			LOG_DEBUG("tcp send result -> %d\n",ret);
+			LOGGER_DBG("tcp send result -> %d\n",ret);
 			//try receive ack
 			FD_ZERO(&rdfds);
 			FD_SET(sockfd, &rdfds);
@@ -472,17 +472,17 @@ int login_operation_plat(void *dat) {
 			tv.tv_usec = 0;
 			ret = select(sockfd + 1, &rdfds, NULL, NULL, &tv);
 			if (ret == 0) {
-				LOG_DEBUG("no data and timeout\n");
+				LOGGER_DBG("no data and timeout\n");
 				close(sockfd);
 				resend_counter++ ;
-				LOG_DEBUG("wait for 15s and time out ,no data\n");
+				LOGGER_DBG("wait for 15s and time out ,no data\n");
 				sleep(app_login_distri_server_retry_interval);
 				continue ;
 			}
 		}
 		if (ret < 0)
 		{
-			LOG_ERROR("select error ->%d \n",ret);
+			LOGGER_ERR("select error ->%d \n",ret);
 		}
 		else if (ret == 0) {
 			//have been handler before ,never run to here
@@ -497,16 +497,16 @@ int login_operation_plat(void *dat) {
 				memset(buf, 0, 1024);
 				buf_len = recv(sockfd, buf, 1024, 0);
 				if (buf_len < 0) {
-					LOG_DEBUG("receive data error -> %d\n", buf_len);
+					LOGGER_DBG("receive data error -> %d\n", buf_len);
 					resend_counter++;
 					sleep(app_login_distri_server_retry_interval);
 					close(sockfd);
 					sockfd = -1;
 				}
 				uint32_t recv_json_len = ntohl(  *( (uint32_t *)  buf) );
-				LOG_DEBUG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
 				if (recv_json_len != (buf_len - 4)) {
-					LOG_ERROR("receive data len not match,server error -> %d %d\n", recv_json_len, buf_len);
+					LOGGER_ERR("receive data len not match,server error -> %d %d\n", recv_json_len, buf_len);
 					resend_counter++;
 					sleep(app_login_distri_server_retry_interval);
 					continue;
@@ -519,24 +519,24 @@ int login_operation_plat(void *dat) {
 				printf("result ack ->%d %d %d %s\n",result,id ,ret,buf);
 				if (ret == 0) {
 					if (result == 0) {
-						LOG_DEBUG("boot first registe ok ,continue \n");
+						LOGGER_DBG("boot first registe ok ,continue \n");
 						//server_ip is the wlan ip ,do not care it .
 
 						return RET_OK;
 					} else {
-						LOG_ERROR("Boot first reigister failed \n");
+						LOGGER_ERR("Boot first reigister failed \n");
 						sleep(app_login_distri_server_retry_interval * 1000);
 					}
 				}
 				else if (result ==  -1 ){
-					LOG_ERROR("try another ip -1\n");
+					LOGGER_ERR("try another ip -1\n");
 					close(sockfd);
 					sockfd = -1;
 					return RET_DNS_FAILED ;
 
 				}
 				else if (result ==  -2 ){
-					LOG_ERROR("gw info is not valid -2\n");
+					LOGGER_ERR("gw info is not valid -2\n");
 					close(sockfd);
 					sockfd = -1;
 					return RET_PLAT_ACK_ERR ;
@@ -545,17 +545,17 @@ int login_operation_plat(void *dat) {
 				else if (result ==  -3 ){
 					close(sockfd);
 					sockfd = -1;
-					LOG_ERROR("gw info is not valid -3\n");
+					LOGGER_ERR("gw info is not valid -3\n");
 					return RET_PLAT_ACK_ERR ;
 				}
 				else if (result ==  -1003 ){
 					close(sockfd);
 					sockfd = -1;
-					LOG_ERROR("device token is down ,need refresh\n");
+					LOGGER_ERR("device token is down ,need refresh\n");
 					return RET_TOKEN_DOWN ;
 				}
 				else{
-					LOG_ERROR("parse ack info error \n");
+					LOGGER_ERR("parse ack info error \n");
 					resend_counter++;
 					sleep(app_login_distri_server_retry_interval * 1000);
 					continue;
@@ -605,13 +605,13 @@ int socket_data_handler(int sockfd ){
 		//try to check ack message ,if 3*heartbeat interval no ack message ,will deifine the network down ,try reconnect network
 		time(&time_new);
 		if ( (time_new -  time_rx_monitor )  > (3*app_login_operate_server_heartbeat_interval) ){
-			LOG_ERROR("TCP network no ack for long time ,please reconnect it \n");
+			LOGGER_ERR("TCP network no ack for long time ,please reconnect it \n");
 			app_socket_working_state = -1;
 			return RET_DISTRI_SERVER_RECONNECT; //need to reconnect distri_server
 		}
 		//try send message
 		if(( time_new - time_old ) > app_login_operate_server_heartbeat_interval ) {
-			LOG_TRACE("send heartbeat info\n");
+			LOGGER_TRC("send heartbeat info\n");
 			time_old =  time_new ;
 			time(&time_new) ;
 			while(1){ //try get heartbeat message
@@ -636,7 +636,7 @@ int socket_data_handler(int sockfd ){
 		else {
 			ret = fifo_buffer_get(&socket_tx_fifo_header,buf+4,&buf_len);
 			if(ret  <  0){
-				//LOG_TRACE("no data for send"\n);
+				//LOGGER_TRC("no data for send"\n);
 				memset(buf,0,5);
 			}
 			buf[buf_len+4] = '\0';
@@ -646,7 +646,7 @@ int socket_data_handler(int sockfd ){
 			*len =  htons(buf_len);
 			ret = send(sockfd, buf,buf_len+4 ,0);
 			if (ret <  0){
-				LOG_ERROR("send data error ,network down ,please reconnect\n");
+				LOGGER_ERR("send data error ,network down ,please reconnect\n");
 				app_socket_working_state = -1;
 				return RET_NETWORK_DOWN;
 			}
@@ -657,12 +657,12 @@ int socket_data_handler(int sockfd ){
 		tv.tv_usec = 200;
 		ret = select(sockfd + 1, &rdfds, NULL, NULL, &tv);
 		if (ret == 0) {
-			LOG_DEBUG("no data and timeout\n");
+			LOGGER_DBG("no data and timeout\n");
 			sleep(app_login_distri_server_retry_interval);
 			continue;
 		}
 		if (ret < 0)
-			LOG_DEBUG("select\n");/* 这说明select函数出错 */
+			LOGGER_DBG("select\n");/* 这说明select函数出错 */
 		else if (ret == 0) {
 			//have been handler before ,never run to here
 			printf("no data and timeout\n");
@@ -676,13 +676,13 @@ int socket_data_handler(int sockfd ){
 				memset(buf, 0, 1024);
 				buf_len = recv(sockfd, buf, 1024, 0);
 				if (buf_len < 0) {
-					LOG_DEBUG("receive data error -> %d\n", buf_len);
+					LOGGER_DBG("receive data error -> %d\n", buf_len);
 					continue;
 				}
 				recv_json_len = ntohl(  *( (uint32_t *)  buf) );
-				LOG_DEBUG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
 				if (recv_json_len != (buf_len - 4)) {
-					LOG_ERROR("receive data len not match -> %d %d,just drop it \n", recv_json_len, buf_len);
+					LOGGER_ERR("receive data len not match -> %d %d,just drop it \n", recv_json_len, buf_len);
 				}
 				fifo_buffer_put(&socket_rx_fifo_header , buf, buf_len);	
 				//update time_rx_monitor 
@@ -694,7 +694,7 @@ int socket_data_handler(int sockfd ){
 	return RET_NO_ACK ;
 }
 int socket_data_handler_loop(void *dat) {
-	LOG_TRACE("%s\n", __FUNCTION__);
+	LOGGER_TRC("%s\n", __FUNCTION__);
 	int ret = 0;
 	return RET_OK;
 	//do nothing .set intp login_operation_plat
@@ -803,11 +803,11 @@ int  app_function_flow_ctrl_thread(void *dat) {
 
 	while (1) {
 		if(app_theard_exit_flag  > 0 ){
-			LOG_TRACE("app thread exit ->%s\n",__FUNCTION__);
+			LOGGER_TRC("app thread exit ->%s\n",__FUNCTION__);
 			return 0;
 		}
 		if (handler_index < 0 || handler_index >= app_function_flow_ctrl.handler_num) {
-			LOG_ERROR("handler index is error ->%d ,and set to default\n", handler_index);
+			LOGGER_ERR("handler index is error ->%d ,and set to default\n", handler_index);
 			handler_index = 0;
 			break;
 		}
@@ -816,14 +816,14 @@ int  app_function_flow_ctrl_thread(void *dat) {
 		for (int i = 0;; i++) {
 			FunctionRetHander ret_handler = app_function_flow_ctrl.flow_list[handler_index].ret_handler[i];
 			if (ret_handler.handler_index < 0) {
-				LOG_ERROR("can find next handler -> %d %d\n", handler_index, ret);
+				LOGGER_ERR("can find next handler -> %d %d\n", handler_index, ret);
 
 				handler_index = LOGIN_DISTRI_PLAT_STEP1_UDP;
-				LOG_ERROR("set next hander to default -> %d\n", LOGIN_DISTRI_PLAT_STEP1_UDP);
+				LOGGER_ERR("set next hander to default -> %d\n", LOGIN_DISTRI_PLAT_STEP1_UDP);
 				break;
 			}
 			if (ret_handler.err_code == ret) {
-				LOG_DEBUG("find next handler src :ret:next -> %d %d %d\n", handler_index, ret, ret_handler.handler_index);
+				LOGGER_DBG("find next handler src :ret:next -> %d %d %d\n", handler_index, ret, ret_handler.handler_index);
 				handler_index = ret_handler.handler_index;
 				break;
 			}
@@ -832,7 +832,7 @@ int  app_function_flow_ctrl_thread(void *dat) {
 }
 
 int app_function_parse_fifo_buffer_init(void){
-	LOG_DEBUG("init downlink push message handler ,maybe null\n");
+	LOGGER_DBG("init downlink push message handler ,maybe null\n");
 	return 0;
 }
 int app_function_parse_fifo_buffer_thread(void *dat){
@@ -841,7 +841,7 @@ int app_function_parse_fifo_buffer_thread(void *dat){
 	int ret = 0;
 	while(1 ){
 		if(app_theard_exit_flag  > 0 ){
-			LOG_TRACE("app thread exit ->%s\n",__FUNCTION__);
+			LOGGER_TRC("app thread exit ->%s\n",__FUNCTION__);
 			return 0 ;
 		}
 		ret = fifo_buffer_get(&socket_rx_fifo_header ,buf,&buf_len);
@@ -852,26 +852,26 @@ int app_function_parse_fifo_buffer_thread(void *dat){
 		}
 		ret = sysutils_try_handler_ack_result_message(buf);
 		if(ret  > 0 ){
-			LOG_TRACE("ack messge \n");
+			LOGGER_TRC("ack messge \n");
 			continue ;	
 		}
 		else if (ret == 0 ){
 			ret = sysutils_try_handler_server_push_message(buf);
 			if(ret  > 0 ){
-				LOG_TRACE(" push message \n");
+				LOGGER_TRC(" push message \n");
 				continue ;	
 			}
 			else if(ret  ==  0){
-				LOG_TRACE("never reach here\n");
+				LOGGER_TRC("never reach here\n");
 				continue ;
 			}
 			else {
-				LOG_ERROR("unknown message \n");
+				LOGGER_ERR("unknown message \n");
 				continue;
 			}
 		}
 		else {
-			LOG_ERROR("parse error ,skip\n");
+			LOGGER_ERR("parse error ,skip\n");
 		}
 	}
 	return 0;

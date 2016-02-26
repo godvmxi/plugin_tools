@@ -5,11 +5,11 @@
 //get info list
 int app_function_capisys_init(void){
 
-	//LOG_DEBUG("%s \n",__FUNCTION__);
+	//LOGGER_DBG("%s \n",__FUNCTION__);
 	return 0;
 }
 int app_function_capisys_thread(void *dat){
-//	LOG_DEBUG("%s  thread start \n",__FUNCTION__);
+//	LOGGER_DBG("%s  thread start \n",__FUNCTION__);
 	while(1){
 
 	  //  LOG_ERROR("CAPI SYS RUNING\n");

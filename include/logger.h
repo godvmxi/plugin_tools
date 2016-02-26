@@ -26,15 +26,15 @@ extern void log_message(int priority ,const char* fmt, ...);
 extern void log_trace(const char *file , int line , const char *func, const char *fmt ,...);
 extern int log_close();
 
-#define LOG_ERROR(fmt , args...)	\
+#define LOGGER_ERR(fmt , args...)	\
 	log_message(LOG_PRI_ERROR, fmt, ##args)
-#define LOG_WARN(fmt, args...)		\
+#define LOGGER_WARN(fmt, args...)		\
 	log_message(LOG_PRI_WARN, fmt , ##args)
-#define LOG_NOTICE(fmt , args...)	\
+#define LOGGER_NOTICE(fmt , args...)	\
 	log_message(LOG_PRI_NOTICE, fmt , ##args)
-#define LOG_DEBUG(fmt , args...)	\
+#define LOGGER_DBG(fmt , args...)	\
 	log_message(LOG_PRI_DEBUG, fmt , ##args)
-#define LOG_TRACE(fmt,args...) 		\
+#define LOGGER_TRC(fmt,args...) 		\
 	log_trace(__FILE__ , __LINE__ , __FUNCTION__ , fmt ,## args)
 
 

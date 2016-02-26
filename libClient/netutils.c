@@ -20,7 +20,7 @@ int  netutils_dns_resolver(char *domain,char *ip_list,int max_ret_ip,int max_len
 	memset(ip_list , 0, max_ret_ip * max_len_ip);
 	answer = gethostbyname(domain);
 	if (answer == NULL) {
-		LOG_ERROR("gethostbyname error \n"); //由gethostbyname自带的错误处理函数
+		LOGGER_ERR("gethostbyname error \n"); //由gethostbyname自带的错误处理函数
 		exit(1);
 	}
 	max_ret_ip--;

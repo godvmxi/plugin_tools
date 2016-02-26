@@ -15,6 +15,7 @@
 #include "base64.h"
 #include <assert.h>
 #include "jansson.h"
+#include "logger.h"
 //#include "capi.h"
 int sysutils_active_rpc_counter = 0;
 static int  __sysutils_get_vender(char *buf){
@@ -218,15 +219,15 @@ int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message
 			if (__sysutils_get_sys_time(time) < 0){
 				//return 0;
 			}
-		//LOG_DEBUG("current system time ->%s\n",time);
+		//LOGGER_DBG("current system time ->%s\n",time);
 		if (message_len > 512){
 			message_len = 512;
-			LOG_DEBUG("message will be cut short to 512\n");
+			LOGGER_DBG("message will be cut short to 512\n");
 		}
 		char message_base64[2048] = {0};
 		char *p = message;
 	 base64_encode(message,message_base64,message_len);
-		//LOG_DEBUG("base64: %s  -> %s\n",p,message_base64);
+		//LOGGER_DBG("base64: %s  -> %s\n",p,message_base64);
 		message = p;
 
 
@@ -293,7 +294,7 @@ int sysutils_get_json_rpc_token_update(char *buf){
 				if (__sysutils_get_sys_time(time) < 0){
 					//return 0;
 				}
-			//LOG_DEBUG("current system time ->%s\n",time);
+			//LOGGER_DBG("current system time ->%s\n",time);
 
 			char token[128] = {0};
 			if(__sysutils_get_sys_token(token) < 0 ){
@@ -587,7 +588,7 @@ int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challeng
 
 	json_root = json_loads(buf, 0 ,&json_error);
 	if (json_root == NULL){
-		LOG_ERROR("parse json error -> %s\n",buf);
+		LOGGER_ERR("parse json error -> %s\n",buf);
 		goto sysutils_parse_distri_server_ack_step_1_error ;
 	}
 	//Result
@@ -602,13 +603,13 @@ int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challeng
 						free(temp);
 					 }
 					 else {
-						 	 LOG_ERROR("reuslt get result code error\n");
+						 	 LOGGER_ERR("reuslt get result code error\n");
 						 		goto sysutils_parse_distri_server_ack_step_1_error ;
 					 }
 
 	}
 	else {
-		LOG_ERROR("reuslt value error\n");
+		LOGGER_ERR("reuslt value error\n");
 		goto sysutils_parse_distri_server_ack_step_1_error ;
 	}
 	//ChallengeCode
@@ -620,12 +621,12 @@ int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challeng
 				free(temp);
 			 }
 			 else {
-				 	 LOG_ERROR("reuslt get challenge code error\n");
+				 	 LOGGER_ERR("reuslt get challenge code error\n");
 				 		goto sysutils_parse_distri_server_ack_step_1_error ;
 			 }
 		}
 		else {
-			LOG_ERROR("reuslt challenge code error\n");
+			LOGGER_ERR("reuslt challenge code error\n");
 			goto sysutils_parse_distri_server_ack_step_1_error ;
 		}
 
@@ -641,12 +642,12 @@ int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challeng
 					free(temp);
 				 }
 				 else {
-						 LOG_ERROR("reuslt get obj_intervale error\n");
+						 LOGGER_ERR("reuslt get obj_intervale error\n");
 							goto sysutils_parse_distri_server_ack_step_1_error ;
 				 }
 			}
 			else {
-				LOG_ERROR("reuslt obj_interval error\n");
+				LOGGER_ERR("reuslt obj_interval error\n");
 				goto sysutils_parse_distri_server_ack_step_1_error ;
 			}
 		//ip addr
@@ -658,12 +659,12 @@ int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challeng
 							free(temp);
 						 }
 						 else {
-								 LOG_ERROR("reuslt get obj_server_ip  error\n");
+								 LOGGER_ERR("reuslt get obj_server_ip  error\n");
 									goto sysutils_parse_distri_server_ack_step_1_error ;
 						 }
 					}
 					else {
-						LOG_ERROR("reuslt obj_server_ip error\n");
+						LOGGER_ERR("reuslt obj_server_ip error\n");
 						goto sysutils_parse_distri_server_ack_step_1_error ;
 			 			}
 
@@ -730,7 +731,7 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 
 		json_root = json_loads(buf, 0 ,&json_error);
 		if (json_root == NULL){
-			LOG_ERROR("parse json error -> %s\n",buf);
+			LOGGER_ERR("parse json error -> %s\n",buf);
 			goto sysutils_parse_distri_server_ack_step_2_error ;
 		}
 		//Result
@@ -745,13 +746,13 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 							free(temp);
 						 }
 						 else {
-							 	 LOG_ERROR("reuslt get result code error\n");
+							 	 LOGGER_ERR("reuslt get result code error\n");
 							 		goto sysutils_parse_distri_server_ack_step_2_error ;
 						 }
 
 		}
 		else {
-			LOG_ERROR("reuslt value error\n");
+			LOGGER_ERR("reuslt value error\n");
 			goto sysutils_parse_distri_server_ack_step_2_error ;
 		}
 		//ServerAddr
@@ -763,12 +764,12 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 					free(temp);
 				 }
 				 else {
-					 	 LOG_ERROR("reuslt get server_addr code error\n");
+					 	 LOGGER_ERR("reuslt get server_addr code error\n");
 					 		goto sysutils_parse_distri_server_ack_step_2_error ;
 				 }
 			}
 			else {
-				LOG_ERROR("reuslt server_addr code error\n");
+				LOGGER_ERR("reuslt server_addr code error\n");
 				goto sysutils_parse_distri_server_ack_step_2_error ;
 			}
 			 //ServerPort
@@ -780,12 +781,12 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 			 					free(temp);
 			 				 }
 			 				 else {
-			 					 	 LOG_ERROR("reuslt get server_port code error\n");
+			 					 	 LOGGER_ERR("reuslt get server_port code error\n");
 			 					 		goto sysutils_parse_distri_server_ack_step_2_error ;
 			 				 }
 			 			}
 			 			else {
-			 				LOG_ERROR("reuslt server_port code error\n");
+			 				LOGGER_ERR("reuslt server_port code error\n");
 			 				goto sysutils_parse_distri_server_ack_step_2_error ;
 			 			}
 
@@ -802,12 +803,12 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 						free(temp);
 					 }
 					 else {
-							 LOG_ERROR("reuslt get obj_intervale error\n");
+							 LOGGER_ERR("reuslt get obj_intervale error\n");
 								goto sysutils_parse_distri_server_ack_step_2_error ;
 					 }
 				}
 				else {
-					LOG_ERROR("reuslt obj_interval error\n");
+					LOGGER_ERR("reuslt obj_interval error\n");
 					goto sysutils_parse_distri_server_ack_step_2_error ;
 				}
 			//ServerIP
@@ -819,12 +820,12 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 								free(temp);
 							 }
 							 else {
-									 LOG_ERROR("reuslt get obj_server_ip  error\n");
+									 LOGGER_ERR("reuslt get obj_server_ip  error\n");
 										goto sysutils_parse_distri_server_ack_step_2_error ;
 							 }
 						}
 						else {
-							LOG_ERROR("reuslt obj_server_ip error\n");
+							LOGGER_ERR("reuslt obj_server_ip error\n");
 							goto sysutils_parse_distri_server_ack_step_2_error ;
 				 			}
 		//Token
@@ -836,12 +837,12 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 		free(temp);
 		}
 		else {
-		LOG_ERROR("reuslt get obj_token  error\n");
+		LOGGER_ERR("reuslt get obj_token  error\n");
 		goto sysutils_parse_distri_server_ack_step_2_error ;
 		}
 		}
 		else {
-		LOG_ERROR("reuslt obj_token error\n");
+		LOGGER_ERR("reuslt obj_token error\n");
 		goto sysutils_parse_distri_server_ack_step_2_error ;
 		}
 		//ExpDate
@@ -853,12 +854,12 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 				free(temp);
 			 }
 			 else {
-					 LOG_ERROR("reuslt get obj_exp_date  error\n");
+					 LOGGER_ERR("reuslt get obj_exp_date  error\n");
 						goto sysutils_parse_distri_server_ack_step_2_error ;
 			 }
 		}
 		else {
-			LOG_ERROR("reuslt obj_exp_date error\n");
+			LOGGER_ERR("reuslt obj_exp_date error\n");
 			goto sysutils_parse_distri_server_ack_step_2_error ;
 			}
 		//CADownloadURL
@@ -870,12 +871,12 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 						free(temp);
 					 }
 					 else {
-							 LOG_ERROR("reuslt get obj_ca_download_url  error\n");
+							 LOGGER_ERR("reuslt get obj_ca_download_url  error\n");
 								goto sysutils_parse_distri_server_ack_step_2_error ;
 					 }
 				}
 				else {
-					LOG_ERROR("reuslt obj_ca_download_url error\n");
+					LOGGER_ERR("reuslt obj_ca_download_url error\n");
 					goto sysutils_parse_distri_server_ack_step_2_error ;
 					}
 
@@ -943,7 +944,7 @@ int sysutils_parse_operate_login_ack(char *buf,int *result){
 
 	json_root = json_loads(buf, 0 ,&json_error);
 	if (json_root == NULL){
-		LOG_ERROR("parse json error -> %s\n",buf);
+		LOGGER_ERR("parse json error -> %s\n",buf);
 		goto sysutils_parse_operate_login_ack_error ;
 	}
 	//Result
@@ -958,13 +959,13 @@ int sysutils_parse_operate_login_ack(char *buf,int *result){
 						free(temp);
 					 }
 					 else {
-						 	 LOG_ERROR("reuslt get result code error\n");
+						 	 LOGGER_ERR("reuslt get result code error\n");
 						 		goto sysutils_parse_operate_login_ack_error ;
 					 }
 
 	}
 	else {
-		LOG_ERROR("reuslt value error\n");
+		LOGGER_ERR("reuslt value error\n");
 		goto sysutils_parse_operate_login_ack_error ;
 	}
 
@@ -994,7 +995,7 @@ int sysutils_parse_json_cmd_type(char *buf, RPC_METHOD_ENUM  *type , int ID){
 
 	json_root = json_loads(buf, 0 ,&json_error);
 	if (json_root == NULL){
-		LOG_ERROR("parse json error -> %s\n",buf);
+		LOGGER_ERR("parse json error -> %s\n",buf);
 		return -1;
 	}
 		//Result
@@ -1010,13 +1011,13 @@ int sysutils_parse_json_cmd_type(char *buf, RPC_METHOD_ENUM  *type , int ID){
 				free(temp);
 			}
 			else {
-				LOG_ERROR("reuslt get result code error\n");
+				LOGGER_ERR("reuslt get result code error\n");
 				goto sysutils_parse_json_cmd_type_error ;
 			}
 
 		}
 		else {
-			LOG_ERROR("reuslt value error\n");
+			LOGGER_ERR("reuslt value error\n");
 			goto sysutils_parse_json_cmd_type_error ;
 		}
 sysutils_parse_json_cmd_type_error :
@@ -1036,7 +1037,7 @@ int sysutils_parse_json_is_result(char *buf,int *result ,int *id){
 
 	json_root = json_loads(buf, 0 ,&json_error);
 	if (json_root == NULL){
-		LOG_ERROR("parse json error -> %s\n",buf);
+		LOGGER_ERR("parse json error -> %s\n",buf);
 		return -1;
 	}
 	//Result
@@ -1051,13 +1052,13 @@ int sysutils_parse_json_is_result(char *buf,int *result ,int *id){
 			free(temp);
 		}
 		else {
-			LOG_ERROR("reuslt get result code error\n");
+			LOGGER_ERR("reuslt get result code error\n");
 			goto sysutils_parse_json_is_result_error ;
 		}
 
 	}
 	else {
-		LOG_ERROR("reuslt value error\n");
+		LOGGER_ERR("reuslt value error\n");
 		goto sysutils_parse_json_is_result_error ;
 	}
 	return 0 ;
@@ -1086,7 +1087,7 @@ int sysutils_try_handler_ack_result_message(char *buf){
 	
 	json_root = json_loads(buf, 0 ,&json_error);
 	if (json_root == NULL){
-		LOG_ERROR("parse json error -> %s\n",buf);
+		LOGGER_ERR("parse json error -> %s\n",buf);
 		return -1;
 	}
 	//Result
@@ -1106,13 +1107,13 @@ int sysutils_try_handler_ack_result_message(char *buf){
 			free(temp);
 		}
 		else {
-			LOG_ERROR("reuslt get result code error\n");
+			LOGGER_ERR("reuslt get result code error\n");
 			goto sysutils_try_handler_ack_result_message_error ;
 		}
 
 	}
 	else {
-		LOG_ERROR("reuslt value error\n");
+		LOGGER_ERR("reuslt value error\n");
 		goto sysutils_try_handler_ack_result_message_error ;
 	}
 
@@ -1120,13 +1121,13 @@ int sysutils_try_handler_ack_result_message(char *buf){
 		case  0: //ok ,try parse other info
 			break ;
 		case -1: //????
-			LOG_DEBUG("ack result -1, how to handler it ?? \n");
+			LOGGER_DBG("ack result -1, how to handler it ?? \n");
 			break;
 		case -2 :
-			LOG_DEBUG("ack result -2 ,how to handler it ??  \n");
+			LOGGER_DBG("ack result -2 ,how to handler it ??  \n");
 			break ;
 		case -3:
-			LOG_DEBUG("device should re-register to distri_server\n");
+			LOGGER_DBG("device should re-register to distri_server\n");
 			break;
 	}
 
@@ -1166,7 +1167,7 @@ int sysutils_try_handler_server_push_message(char *buf){
 	
 	json_root = json_loads(buf, 0 ,&json_error);
 	if (json_root == NULL){
-		LOG_ERROR("parse json error -> %s\n",buf);
+		LOGGER_ERR("parse json error -> %s\n",buf);
 		return -1;
 	}
 	//Result
@@ -1183,13 +1184,13 @@ int sysutils_try_handler_server_push_message(char *buf){
 			free(temp);
 		}
 		else {
-			LOG_ERROR("get rpc method  error\n");
+			LOGGER_ERR("get rpc method  error\n");
 			goto sysutils_try_handler_server_push_message_error;
 		}
 
 	}
 	else {
-		LOG_ERROR("rpc value is error\n");
+		LOGGER_ERR("rpc value is error\n");
 		goto sysutils_try_handler_server_push_message_error;
 	}
 //	
@@ -1247,7 +1248,7 @@ int sysutils_try_handler_server_push_message(char *buf){
 
 			break;
 		default :
-			LOG_ERROR("unknown rpc method -> %d %s \n",rpc_method_type,rpc_method);
+			LOGGER_ERR("unknown rpc method -> %d %s \n",rpc_method_type,rpc_method);
 	}
 	if(json_root  != NULL)
 		json_decref(json_root);
@@ -1320,47 +1321,161 @@ RPC_METHOD_ENUM sysutils_get_rpc_type(char *buf) {
  * SetPlug-inParameterValues
  */
 int sysutils_downlink_rpc_handler_disconnect(json_t *obj ){
-	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
-//get distri_server info 
+	//get distri_server info 
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 }
 int sysutils_downlink_rpc_handler_install(json_t *obj ){
-	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
+	char name_buf[64]  = {0};
+	char version_buf[64]  = {0};
+	char download_url_buf[64]  = {0};
+	char plugin_size_buf[64]  = {0};
+	char os_buf[64]  = {0};
+	char update_id_buf[64]  = {0};
+	char *temp = NULL;
+	//get Plugin_Name
+	json_t *obj_name = json_object_get(obj,"Plugin_Name");
+	if (!obj_name ){
+		LOGGER_DBG("get plugin name error \n");
+		goto sysutils_downlink_rpc_handler_install_error ;
+	}
+	else {
+		temp =  (char *) json_string_value(obj_name ) ;
+		if (!temp ){
+			LOGGER_ERR("get plugin name error\n");
+			goto sysutils_downlink_rpc_handler_install_error;
+		}
+		memcpy(name_buf,temp ,strlen(temp));
+		free(temp);
+	}
+	//get version_buf
+	json_t *obj_version = json_object_get(obj,"Version");
+	if (!obj_version ){
+		LOGGER_DBG("get plugin version error \n");
+		goto sysutils_downlink_rpc_handler_install_error ;
+	}
+	else {
+		temp =  (char *) json_string_value(obj_version ) ;
+		if (!temp ){
+			LOGGER_ERR("get plugin version error\n");
+			goto sysutils_downlink_rpc_handler_install_error;
+		}
+		memcpy(version_buf,temp ,strlen(temp));
+		free(temp);
+	}
+	//get download_url
+	json_t *obj_download_url = json_object_get(obj,"Plugin_Name");
+	if (!obj_download_url ){
+		LOGGER_DBG("get plugin download_url error \n");
+		goto sysutils_downlink_rpc_handler_install_error ;
+	}
+	else {
+		temp =  (char *) json_string_value(obj_download_url ) ;
+		if (!temp ){
+			LOGGER_ERR("get plugin download_url error\n");
+			goto sysutils_downlink_rpc_handler_install_error;
+		}
+		memcpy(download_url_buf,temp ,strlen(temp));
+		free(temp);
+	}
+	//get plugin_size
+	json_t *obj_plugin_size = json_object_get(obj,"Plugin_Name");
+	if (!obj_plugin_size ){
+		LOGGER_DBG("get plugin plugin_size error \n");
+		goto sysutils_downlink_rpc_handler_install_error ;
+	}
+	else {
+		temp =  (char *) json_string_value(obj_plugin_size ) ;
+		if (!temp ){
+			LOGGER_ERR("get plugin plugin_size error\n");
+			goto sysutils_downlink_rpc_handler_install_error;
+		}
+		memcpy(plugin_size_buf,temp ,strlen(temp));
+		free(temp);
+	}
+	//get os
+	json_t *obj_os = json_object_get(obj,"Plugin_Name");
+	if (!obj_os ){
+		LOGGER_DBG("get plugin os error \n");
+		goto sysutils_downlink_rpc_handler_install_error ;
+	}
+	else {
+		temp =  (char *) json_string_value(obj_os ) ;
+		if (!temp ){
+			LOGGER_ERR("get plugin os error\n");
+			goto sysutils_downlink_rpc_handler_install_error;
+		}
+		memcpy(os_buf,temp ,strlen(temp));
+		free(temp);
+	}
+	//get update_id
+	json_t *obj_update_id = json_object_get(obj,"Plugin_Name");
+	if (!obj_update_id ){
+		LOGGER_DBG("get plugin update_id error \n");
+		goto sysutils_downlink_rpc_handler_install_error ;
+	}
+	else {
+		temp =  (char *) json_string_value(obj_update_id ) ;
+		if (!temp ){
+			LOGGER_ERR("get plugin update_id error\n");
+			goto sysutils_downlink_rpc_handler_install_error;
+		}
+		memcpy(update_id_buf,temp ,strlen(temp));
+		free(temp);
+	}
+	if (!obj_name ) json_decref(obj_name) ;
+	if (!obj_version ) json_decref(obj_version) ;
+	if (!obj_download_url ) json_decref(obj_download_url) ;
+	if (!obj_plugin_size ) json_decref(obj_plugin_size) ;
+	if (!obj_os ) json_decref(obj_os) ;
+	if (!obj_update_id ) json_decref(obj_update_id)  ;
+		return 1;
+sysutils_downlink_rpc_handler_install_error :
+	if (!obj_name ) json_decref(obj_name) ;
+	if (!obj_version ) json_decref(obj_version) ;
+	if (!obj_download_url ) json_decref(obj_download_url) ;
+	if (!obj_plugin_size ) json_decref(obj_plugin_size) ;
+	if (!obj_os ) json_decref(obj_os) ;
+	if (!obj_update_id ) json_decref(obj_update_id) ;
+
+	return -1;
+
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_install_query(json_t *obj ){
-	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_install_cancel(json_t *obj ){
-	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_uninstall(json_t *obj ){
-	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_stop(json_t *obj ){
-	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_run(json_t *obj ){
-	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_list_plugin(json_t *obj ){
 
-	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_set_plugin_para(json_t *obj ){
-	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_factory_plugin(json_t *obj){
-	LOG_TRACE("rpc handler -> %s\n",__FUNCTION__);
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 }
