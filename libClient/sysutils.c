@@ -1429,6 +1429,7 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	if (!obj_plugin_size ) json_decref(obj_plugin_size) ;
 	if (!obj_os ) json_decref(obj_os) ;
 	if (!obj_update_id ) json_decref(obj_update_id)  ;
+
 		return 1;
 sysutils_downlink_rpc_handler_install_error :
 	if (!obj_name ) json_decref(obj_name) ;
