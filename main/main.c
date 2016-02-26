@@ -45,6 +45,7 @@ int main(int argc, char **argv) {
 	pthread_t thread_network_handler ;
 	pthread_t thread_capi_handler ;
 	pthread_t thread_downlink_handler ;
+//	pthread_t thread_autouplink_handler ;  //receive uplink signal from dbus or other ???
 	//basic init 
 	app_function_flow_ctrl_init();
 	app_function_capisys_init();
@@ -56,17 +57,17 @@ int main(int argc, char **argv) {
 
 	ret = pthread_create(&thread_network_handler,	NULL,(void *)app_function_flow_ctrl_thread ,NULL);
 	if(ret != 0 ){
-		LOG_ERROR("create thread network handler error\n");
+		LOGGER_ERR("create thread network handler error\n");
 		exit(1);
 	}
 	ret = pthread_create(&thread_capi_handler,		NULL,(void *)app_function_capisys_thread ,NULL);
 	if(ret != 0 ){
-		LOG_ERROR("create thread capi handler  error\n");
+		LOGGER_ERR("create thread capi handler  error\n");
 		exit(1);
 	}
 	ret = pthread_create(&thread_downlink_handler,	NULL,(void *)app_function_parse_fifo_buffer_thread ,NULL);
 	if(ret != 0 ){
-		LOG_ERROR("create thread downlink hander error\n");
+		LOGGER_ERR("create thread downlink hander error\n");
 		exit(1);
 	}
 	//LOG_DEBUG("maini app is runing ,waiting for all \n");

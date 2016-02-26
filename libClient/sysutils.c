@@ -16,6 +16,7 @@
 #include <assert.h>
 #include "jansson.h"
 #include "logger.h"
+#include <stdarg.h>
 //#include "capi.h"
 int sysutils_active_rpc_counter = 0;
 static int  __sysutils_get_vender(char *buf){
@@ -1429,8 +1430,24 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	if (!obj_plugin_size ) json_decref(obj_plugin_size) ;
 	if (!obj_os ) json_decref(obj_os) ;
 	if (!obj_update_id ) json_decref(obj_update_id)  ;
+	//down plug ??
+	char local_plugin_file[64] = { 0 };
+	LOGGER_TRC("begin download plugin -> %s\n",name_buf);
+	int ret = sysutils_download_plugin_to_pllugin_dir(download_url_buf,local_plugin_file);
+	if(ret < 0 ){
+		LOGGER_ERR("download plugin error -> %s:  %s %d\n",name_buf,download_url_buf);
+		goto sysutils_downlink_rpc_handler_install_error ;
+	}
+	LOGGER_TRC("begin install plugin -> %s\n",name_buf);
+	ret = CtSgwInstallApp(local_plugin_file);
 
-		return 1;
+	if (!obj_name ) json_decref(obj_name) ;
+	if (!obj_version ) json_decref(obj_version) ;
+	if (!obj_download_url ) json_decref(obj_download_url) ;
+	if (!obj_plugin_size ) json_decref(obj_plugin_size) ;
+	if (!obj_os ) json_decref(obj_os) ;
+	if (!obj_update_id ) json_decref(obj_update_id) ;
+	return 1;
 sysutils_downlink_rpc_handler_install_error :
 	if (!obj_name ) json_decref(obj_name) ;
 	if (!obj_version ) json_decref(obj_version) ;
@@ -1480,3 +1497,63 @@ int sysutils_downlink_rpc_handler_set_plugin_para(json_t *obj ){
 int sysutils_downlink_rpc_handler_factory_plugin(json_t *obj){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 }
+int sysutils_download_plugin_to_pllugin_dir(char *buf,char *local_file){
+	return 1;
+}
+/* 
+ * number : json child number
+ * 
+ * all arg should be char *
+ *
+ *  call like this  (key_num ,key1,value1,key2,value2 ...)
+ * */
+#define JSON_MAX_ENCODE_KEYS   20
+int sysutils_send_json_plugin_ack_message(char *buf ,int key_num,... ){
+	char *key = NULL;
+	char *value = NULL;
+	json_t *obj_value =  NULL;
+	json_t *obj = NULL;
+	size_t  obj_json_list[JSON_MAX_ENCODE_KEYS] ;
+	memset(obj_json_list,0,JSON_MAX_ENCODE_KEYS);
+
+	obj = json_object();
+	if(!obj) goto sysutils_send_json_plugin_ack_message_error;
+
+
+	va_list argptr ;
+	va_start(argptr,key_num );
+	for(int i = 0 ;i< key_num ;i++ ) {
+		key = NULL;
+		value = NULL;
+		key =  va_arg(argptr,char *);
+		value = va_arg(argptr,char *);
+		obj_value = json_string(value );
+		if(!obj_value) goto sysutils_send_json_plugin_ack_message_error;
+		json_object_set(obj,key,obj_value);
+		obj_json_list[i] = ( size_t) obj_value ;
+	}
+	va_end(argptr);
+
+	//dump
+	char *result =  json_dumps(obj,JSON_COMPACT);
+	memcpy(buf,result,strlen(result));
+	//free all
+	for(int i = 0 ;i< key_num ;i++){
+		if (obj_json_list[i] !=  0 )
+			json_decref((json_t *)obj_json_list[i]);
+	}
+	json_decref(obj);
+	free(result);
+	return 0;
+sysutils_send_json_plugin_ack_message_error :
+	LOGGER_ERR("send ack faild\n");
+	for(int i = 0 ;i< key_num ;i++){
+		if (obj_json_list[i] !=  0 )
+			json_decref((json_t *)obj_json_list[i]);
+	}
+	if(!obj) json_decref(obj);
+	free(result);
+
+
+}
+
