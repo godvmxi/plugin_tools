@@ -1346,6 +1346,10 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
 	if(ret < 0 )
 		goto sysutils_downlink_rpc_handler_install_error;
+	//get id
+	ret = sysutils_get_json_value_from(obj,"ID",JSON_INTEGER, &id);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_error;
 	//get version_buf
 	ret = sysutils_get_json_value_from(obj,"Version",JSON_STRING,version_buf);
 	if(ret < 0 )
@@ -1363,7 +1367,7 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	if(ret < 0 )
 		goto sysutils_downlink_rpc_handler_install_error;
 	//get update_id
-	ret = sysutils_get_json_value_from(obj,"upgrade_ID",JSON_INTEGER,upgrade_id);
+	ret = sysutils_get_json_value_from(obj,"upgrade_ID",JSON_INTEGER,&upgrade_id);
 	if(ret < 0 )
 		goto sysutils_downlink_rpc_handler_install_error;
 	//down plug ??
@@ -1374,6 +1378,7 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 		LOGGER_ERR("download plugin error -> %s:  %s %d\n",name_buf,download_url_buf);
 		goto sysutils_downlink_rpc_handler_install_error ;
 	}
+	//+++++++++++
 	LOGGER_TRC("begin install plugin -> %s\n",name_buf);
 	ret = CtSgwInstallApp(local_plugin_file);
 	//send ack
@@ -1402,46 +1407,364 @@ int sysutils_downlink_rpc_handler_install_query(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 	char name_buf[64]  = {0};
 	char version_buf[64]  = {0};
-	char plugin_id_buf[64]  = {0};
-	char *temp = NULL;
+	int upgrade_id  =  0;
+	int id  =  0;
+	int ret = 0 ;
 	//get Plugin_Name
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_query_error;
+	//get id
+	ret = sysutils_get_json_value_from(obj,"ID",JSON_INTEGER, &id);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_query_error;
+	//get version_buf
+	ret = sysutils_get_json_value_from(obj,"Version",JSON_STRING,version_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_query_error;
+
+	//+++++++++++
+	LOGGER_TRC("begin install query ->but no interface  %s\n",name_buf);
+	ret = 0 ;
+	//ret = CtSgwInstallApp(local_plugin_file);
+	//send ack
+	//
+	char buf[1024] = {0} ;
+	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	if(ret < 0 ){
+		LOGGER_ERR("get install ack json error \n");
+		goto sysutils_downlink_rpc_handler_install_query_error ;
+	}
+	//add into send buffer
+	ret = fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf));
+	if(ret < 0) {
+		LOGGER_ERR("add data into send buffer error  \n");
+		goto sysutils_downlink_rpc_handler_install_query_error ;
+	}
+
 	return -0;
-sysutils_downlink_rpc_handler_install_error :
+sysutils_downlink_rpc_handler_install_query_error :
+	LOGGER_ERR("install query error \n");
 	return -1;
 }
 int sysutils_downlink_rpc_handler_install_cancel(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
+	char name_buf[64]  = {0};
+	char version_buf[64]  = {0};
+	int id  =  0;
+	int ret = 0 ;
+	//get Plugin_Name
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_cancel_error;
+	//get id
+	ret = sysutils_get_json_value_from(obj,"ID",JSON_INTEGER, &id);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_cancel_error;
+	//get version_buf
+	ret = sysutils_get_json_value_from(obj,"Version",JSON_STRING,version_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_install_cancel_error;
+
+	//+++++++++++
+	LOGGER_TRC("begin install cancel ->but no interface  %s\n",name_buf);
+	ret = 0 ;
+	//ret = CtSgwInstallApp(local_plugin_file);
+	//send ack
+	//
+	char buf[1024] = {0} ;
+	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	if(ret < 0 ){
+		LOGGER_ERR("get install ack json error \n");
+		goto sysutils_downlink_rpc_handler_install_cancel_error ;
+	}
+	//add into send buffer
+	ret = fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf));
+	if(ret < 0) {
+		LOGGER_ERR("add data into send buffer error  \n");
+		goto sysutils_downlink_rpc_handler_install_cancel_error ;
+	}
+
+	return -0;
+sysutils_downlink_rpc_handler_install_querry_error :
+	LOGGER_ERR("install query error \n");
+	return -1;
+	return -0;
+sysutils_downlink_rpc_handler_install_cancel_error :
+	LOGGER_ERR("install cancel error \n");
+	return -1;
 
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_uninstall(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
+	char name_buf[64]  = {0};
+	char version_buf[64]  = {0};
+	int id  =  0;
+	int ret = 0 ;
+	//get Plugin_Name
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_uninstall_error;
+	//get id
+	ret = sysutils_get_json_value_from(obj,"ID",JSON_INTEGER, &id);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_uninstall_error;
+	//get version_buf
+	ret = sysutils_get_json_value_from(obj,"Version",JSON_STRING,version_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_uninstall_error;
 
-//try lock install process
+	//+++++++++++
+	LOGGER_TRC("begin install query ->but no interface  %s\n",name_buf);
+	ret = 0 ;
+	ret = CtSgwUnnstallApp(name_buf);
+	//send ack
+	//
+	char buf[1024] = {0} ;
+	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	if(ret < 0 ){
+		LOGGER_ERR("get install ack json error \n");
+		goto sysutils_downlink_rpc_handler_uninstall_error ;
+	}
+	//add into send buffer
+	ret = fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf));
+	if(ret < 0) {
+		LOGGER_ERR("add data into send buffer error  \n");
+		goto sysutils_downlink_rpc_handler_uninstall_error ;
+	}
+
+	return -0;
+sysutils_downlink_rpc_handler_uninstall_error :
+	LOGGER_ERR("install query error \n");
+	return -1;
 }
 int sysutils_downlink_rpc_handler_stop(json_t *obj ){
-	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 
-//try lock install process
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
+	char name_buf[64]  = {0};
+	char version_buf[64]  = {0};
+	int upgrade_id  =  0;
+	int id  =  0;
+	int ret = 0 ;
+	//get Plugin_Name
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_stop_error;
+	//get id
+	ret = sysutils_get_json_value_from(obj,"ID",JSON_STRING, &id);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_stop_error;
+	//get version_buf
+	ret = sysutils_get_json_value_from(obj,"Version",JSON_STRING,version_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_stop_error;
+
+	//+++++++++++
+	LOGGER_TRC("begin install query ->but no interface  %s\n",name_buf);
+	ret = 0 ;
+	ret = CtSgwStopApp(name_buf);
+	//send ack
+	//
+	char buf[1024] = {0} ;
+	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	if(ret < 0 ){
+		LOGGER_ERR("get install ack json error \n");
+		goto sysutils_downlink_rpc_handler_stop_error ;
+	}
+	//add into send buffer
+	ret = fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf));
+	if(ret < 0) {
+		LOGGER_ERR("add data into send buffer error  \n");
+		goto sysutils_downlink_rpc_handler_stop_error ;
+	}
+
+	return -0;
+sysutils_downlink_rpc_handler_stop_error :
+	LOGGER_ERR("install query error \n");
+	return -1;
 }
 int sysutils_downlink_rpc_handler_run(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
+	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
+	char name_buf[64]  = {0};
+	char version_buf[64]  = {0};
+	int upgrade_id  =  0;
+	int id  =  0;
+	int ret = 0 ;
+	//get Plugin_Name
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_run_error;
+	//get id
+	ret = sysutils_get_json_value_from(obj,"ID",JSON_STRING, &id);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_run_error;
+	//get version_buf
+	ret = sysutils_get_json_value_from(obj,"Version",JSON_STRING,version_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_run_error;
 
-//try lock install process
+	//+++++++++++
+	LOGGER_TRC("begin install query ->but no interface  %s\n",name_buf);
+	ret = 0 ;
+	ret = CtSgwStartApp(name_buf);
+	//send ack
+	//
+	char buf[1024] = {0} ;
+	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	if(ret < 0 ){
+		LOGGER_ERR("get install ack json error \n");
+		goto sysutils_downlink_rpc_handler_run_error ;
+	}
+	//add into send buffer
+	ret = fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf));
+	if(ret < 0) {
+		LOGGER_ERR("add data into send buffer error  \n");
+		goto sysutils_downlink_rpc_handler_run_error ;
+	}
+
+	return -0;
+sysutils_downlink_rpc_handler_run_error :
+	LOGGER_ERR("install query error \n");
+	return -1;
+
 }
 int sysutils_downlink_rpc_handler_list_plugin(json_t *obj ){
-
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
-//try lock install process
+	char name_buf[64]  = {0};
+	char version_buf[64]  = {0};
+	int upgrade_id  =  0;
+	int id  =  0;
+	int ret = 0 ;
+	//get Plugin_Name
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_list_plugin_error;
+	//get id
+	ret = sysutils_get_json_value_from(obj,"ID",JSON_STRING, &id);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_list_plugin_error;
+	//get version_buf
+	ret = sysutils_get_json_value_from(obj,"Version",JSON_STRING,version_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_list_plugin_error;
+
+	//+++++++++++
+	LOGGER_TRC("begin list ->but no interface  %s\n",name_buf);
+	ret = 0 ;
+	//ret = CtSgwInstallApp(local_plugin_file);
+	//send ack
+	//
+	char buf[1024] = {0} ;
+	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	if(ret < 0 ){
+		LOGGER_ERR("get list ack json error \n");
+		goto sysutils_downlink_rpc_handler_list_plugin_error ;
+	}
+	//add into send buffer
+	ret = fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf));
+	if(ret < 0) {
+		LOGGER_ERR("add data into send buffer error  \n");
+		goto sysutils_downlink_rpc_handler_list_plugin_error ;
+	}
+
+	return -0;
+sysutils_downlink_rpc_handler_list_plugin_error :
+	LOGGER_ERR("list error \n");
+	return -1;
+
 }
 int sysutils_downlink_rpc_handler_set_plugin_para(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
+	char name_buf[64]  = {0};
+	char version_buf[64]  = {0};
+	int upgrade_id  =  0;
+	int id  =  0;
+	int ret = 0 ;
+	//get Plugin_Name
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_set_plugin_error;
+	//get id
+	ret = sysutils_get_json_value_from(obj,"ID",JSON_STRING, &id);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_set_plugin_error;
+	//get version_buf
+	ret = sysutils_get_json_value_from(obj,"Version",JSON_STRING,version_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_set_plugin_error;
+
+	//+++++++++++
+	LOGGER_TRC("begin install query ->but no interface  %s\n",name_buf);
+	ret = 0 ;
+	//ret = CtSgwInstallApp(local_plugin_file);
+	//send ack
+	//
+	char buf[1024] = {0} ;
+	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	if(ret < 0 ){
+		LOGGER_ERR("get install ack json error \n");
+		goto sysutils_downlink_rpc_handler_set_plugin_error ;
+	}
+	//add into send buffer
+	ret = fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf));
+	if(ret < 0) {
+		LOGGER_ERR("add data into send buffer error  \n");
+		goto sysutils_downlink_rpc_handler_set_plugin_error ;
+	}
+
+	return -0;
+sysutils_downlink_rpc_handler_set_plugin_error :
+	LOGGER_ERR("install query error \n");
+	return -1;
 //try lock install process
 }
 int sysutils_downlink_rpc_handler_factory_plugin(json_t *obj){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
+	char name_buf[64]  = {0};
+	char version_buf[64]  = {0};
+	int upgrade_id  =  0;
+	int id  =  0;
+	int ret = 0 ;
+	//get Plugin_Name
+	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_factory_error;
+	//get id
+	ret = sysutils_get_json_value_from(obj,"ID",JSON_STRING, &id);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_factory_error;
+	//get version_buf
+	ret = sysutils_get_json_value_from(obj,"Version",JSON_STRING,version_buf);
+	if(ret < 0 )
+		goto sysutils_downlink_rpc_handler_factory_error;
+
+	//+++++++++++
+	LOGGER_TRC("begin install query ->but no interface  %s\n",name_buf);
+	ret = 0 ;
+	//ret = CtSgwInstallApp(local_plugin_file);
+	//send ack
+	//
+	char buf[1024] = {0} ;
+	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	if(ret < 0 ){
+		LOGGER_ERR("get install ack json error \n");
+		goto sysutils_downlink_rpc_handler_factory_error ;
+	}
+	//add into send buffer
+	ret = fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf));
+	if(ret < 0) {
+		LOGGER_ERR("add data into send buffer error  \n");
+		goto sysutils_downlink_rpc_handler_factory_error ;
+	}
+
+	return -0;
+sysutils_downlink_rpc_handler_factory_error :
+	LOGGER_ERR("factory plugin  error \n");
+	return -1;
 }
-int sysutils_download_plugin_to_pllugin_dir(char *buf,char *local_file){
+int sysutils_download_plugin_to_plugin_dir(char *buf,char *local_file){
 	return 1;
 }
 /* 
