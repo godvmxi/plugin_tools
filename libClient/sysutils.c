@@ -4,19 +4,22 @@
  *  Created on: 2016-2-21
  *      Author: dan
  */
-#include"sysutils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <jansson.h>
 #include <time.h>
 #include <string.h>
-#include "md5.h"
-#include "base64.h"
 #include <assert.h>
 #include <jansson.h>
-#include "logger.h"
 #include <stdarg.h>
+
 #include "fifobuffer.h"
+#include "logger.h"
+#include "sysutils.h"
+#include "md5.h"
+#include "base64.h"
+
+#include "capi.h"
 
 extern FIFO_BUFFER_HEADER socket_rx_fifo_header;
 extern FIFO_BUFFER_HEADER socket_tx_fifo_header;
@@ -1335,8 +1338,8 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	char download_url_buf[64]  = {0};
 	char plugin_size_buf[64]  = {0};
 	char os_buf[64]  = {0};
-	char update_id_buf[64]  = {0};
-	char id_buffer[64] = {0};
+	int upgrade_id  =  0;
+	int id  =  0;
 	char *temp = NULL;
 	int ret = 0 ;
 	//get Plugin_Name
@@ -1356,11 +1359,11 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	if(ret < 0 )
 		goto sysutils_downlink_rpc_handler_install_error;
 	//get os
-	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	ret = sysutils_get_json_value_from(obj,"OS",JSON_STRING,os_buf);
 	if(ret < 0 )
 		goto sysutils_downlink_rpc_handler_install_error;
 	//get update_id
-	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
+	ret = sysutils_get_json_value_from(obj,"upgrade_ID",JSON_INTEGER,upgrade_id);
 	if(ret < 0 )
 		goto sysutils_downlink_rpc_handler_install_error;
 	//down plug ??
@@ -1376,7 +1379,7 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	//send ack
 	//
 	char buf[1024] = {0} ;
-	ret = sysutils_get_json_plugin_ack_message("Result",0,ret ,"ID",0,0);
+	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
 	if(ret < 0 ){
 		LOGGER_ERR("get install ack json error \n");
 		goto sysutils_downlink_rpc_handler_install_error ;
@@ -1387,9 +1390,6 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 		LOGGER_ERR("add data into send buffer error  \n");
 		goto sysutils_downlink_rpc_handler_install_error ;
 	}
-
-
-
 
 	return 1;
 sysutils_downlink_rpc_handler_install_error :
