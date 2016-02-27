@@ -9,12 +9,12 @@ lib_LTLIBRARIES = libClient.la
 
 # Sources for libClient
 libClient_la_SOURCES = libClient.c logger.c netutils.c  \
-			buffer.c sysutils.c md5.c base64.c fifobuffer.c capisys.c \
-			capi-app-mgr.c\
-			capi-dbus-service.c \
-			capi-handset-api.c \
-			capi-sys-service.c  \
-			capi-variable-type.c
+			buffer.c sysutils.c md5.c base64.c fifobuffer.c capisys.c 
+#			capi-app-mgr.c\
+#			capi-dbus-service.c \
+#			capi-handset-api.c \
+#			capi-sys-service.c  \
+#			capi-variable-type.c
 
 # Linker options libTestProgram
 libClient_la_LDFLAGS =  `pkg-config --libs jansson`  -L/usr/lib 

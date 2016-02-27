@@ -196,9 +196,9 @@ int sysutils_get_json_rpc_heartbeat(char *buf){
 	json_object_set(obj,"MAC",mac_obj);
 
 	//fill counter
-		json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-		json_object_set(obj,"ID",counter_obj);
-		//dump
+	json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
+	json_object_set(obj,"ID",counter_obj);
+	//dump
 
 	char *result =  json_dumps(obj,JSON_COMPACT);
 	memcpy(buf,result,strlen(result));
@@ -1373,14 +1373,14 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	//down plug ??
 	char local_plugin_file[64] = { 0 };
 	LOGGER_TRC("begin download plugin -> %s\n",name_buf);
-	ret = sysutils_download_plugin_to_pllugin_dir(download_url_buf,local_plugin_file);
+	ret = sysutils_download_plugin_to_plugin_dir(download_url_buf,local_plugin_file);
 	if(ret < 0 ){
 		LOGGER_ERR("download plugin error -> %s:  %s %d\n",name_buf,download_url_buf);
 		goto sysutils_downlink_rpc_handler_install_error ;
 	}
 	//+++++++++++
 	LOGGER_TRC("begin install plugin -> %s\n",name_buf);
-	ret = CtSgwInstallApp(local_plugin_file);
+//	ret = CtSgwInstallApp(local_plugin_file);
 	//send ack
 	//
 	char buf[1024] = {0} ;
@@ -1518,7 +1518,7 @@ int sysutils_downlink_rpc_handler_uninstall(json_t *obj ){
 	//+++++++++++
 	LOGGER_TRC("begin install query ->but no interface  %s\n",name_buf);
 	ret = 0 ;
-	ret = CtSgwUnnstallApp(name_buf);
+//	ret = CtSgwUnnstallApp(name_buf);
 	//send ack
 	//
 	char buf[1024] = {0} ;
@@ -1563,7 +1563,7 @@ int sysutils_downlink_rpc_handler_stop(json_t *obj ){
 	//+++++++++++
 	LOGGER_TRC("begin install query ->but no interface  %s\n",name_buf);
 	ret = 0 ;
-	ret = CtSgwStopApp(name_buf);
+//	ret = CtSgwStopApp(name_buf);
 	//send ack
 	//
 	char buf[1024] = {0} ;
@@ -1608,7 +1608,7 @@ int sysutils_downlink_rpc_handler_run(json_t *obj ){
 	//+++++++++++
 	LOGGER_TRC("begin install query ->but no interface  %s\n",name_buf);
 	ret = 0 ;
-	ret = CtSgwStartApp(name_buf);
+//	ret = CtSgwStartApp(name_buf);
 	//send ack
 	//
 	char buf[1024] = {0} ;
@@ -1838,8 +1838,7 @@ sysutils_send_json_plugin_ack_message_error :
 
 
 }
-
-int sysutils_get_json_obj_value_from(json_t *obj,char *key ,json_type type ,void *buf) {
+int sysutils_get_json_value_from(json_t *obj, char *key ,json_type  type   ,void *buf){
 	json_t *obj_value = json_object_get(obj,key);
 	if (!obj_value){
 		LOGGER_ERR("%s get error -> %s ,%d\n",key,type);
@@ -1872,7 +1871,7 @@ int sysutils_get_json_obj_value_from(json_t *obj,char *key ,json_type type ,void
 			*((int *) buf) =  0;
 			break;
 		default :
-			LOG_ERROR("not support json type,please check \n");
+			LOGGER_ERR("not support json type,please check \n");
 		break;
 	}
 	json_decref(obj_value);

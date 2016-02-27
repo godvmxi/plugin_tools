@@ -2,6 +2,7 @@
 #define ___LOGGER_H_
 
 #include <string.h>
+#include <stdarg.h>
 
 #define LOGGER_PRI_ERR 		5
 #define LOGGER_PRI_WARN 	4
@@ -12,9 +13,9 @@
 #define LOGGER_PRI_SET      0
 
 extern void logger_message(const char* fmt, ...);
-extern void LOGGGER_ERR(const char*fmt ,...);
-extern void LOGGGER_WARN(const char*fmt ,...);
-extern void LOGGGER_INFO(const char*fmt ,...);
-extern void LOGGGER_DBG(const char*fmt ,...);
-extern void LOGGGER_TRC(const char*fmt ,...);
+extern void LOGGER_ERR(const char*fmt ,...);
+extern void LOGGER_WARN(const char*fmt ,...);
+extern void LOGGER_INFO(const char*fmt ,...);
+extern void LOGGER_DBG(const char*fmt ,...);
+extern void LOGGER_TRC(const char*fmt ,...);
 #endif

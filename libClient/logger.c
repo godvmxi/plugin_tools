@@ -15,7 +15,7 @@ void logger_message( const char *fmt , ...)
 	printf("%s",buf);
 }
 
-void LOGGGER_ERR(const char*fmt ,...){
+void LOGGER_ERR(const char*fmt ,...){
 	va_list ap;
 	char buf[256];
 	//assert(log_category != NULL);
@@ -27,7 +27,7 @@ void LOGGGER_ERR(const char*fmt ,...){
 	printf("%s",buf);
 
 }
-void LOGGGER_WARN(const char*fmt ,...){
+void LOGGER_WARN(const char*fmt ,...){
 	va_list ap;
 	char buf[256];
 	//assert(log_category != NULL);
@@ -39,7 +39,7 @@ void LOGGGER_WARN(const char*fmt ,...){
 	printf("%s",buf);
 
 }
-void LOGGGER_INFO(const char*fmt ,...){
+void LOGGER_INFO(const char*fmt ,...){
 	va_list ap;
 	char buf[256];
 	//assert(log_category != NULL);
@@ -51,7 +51,7 @@ void LOGGGER_INFO(const char*fmt ,...){
 	printf("%s",buf);
 
 }
-void LOGGGER_DBG(const char*fmt ,...) {
+void LOGGER_DBG(const char*fmt ,...) {
 	va_list ap;
 	char buf[256];
 	//assert(log_category != NULL);
@@ -63,7 +63,7 @@ void LOGGGER_DBG(const char*fmt ,...) {
 	printf("%s",buf);
 
 }
-void LOGGGER_TRC(const char*fmt ,...) {
+void LOGGER_TRC(const char*fmt ,...) {
 	va_list ap;
 	char buf[256];
 	//assert(log_category != NULL);

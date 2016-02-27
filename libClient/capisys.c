@@ -1,11 +1,12 @@
 #include "capisys.h"
 #include "logger.h"
 #include <unistd.h>
-#include <capi.h>
+//#include <capi.h>
 //get info list
 int app_function_capisys_init(void){
 
 	//LOGGER_DBG("%s \n",__FUNCTION__);
+	//CtSgwSetDbusEnv();
 	return 0;
 }
 int app_function_capisys_thread(void *dat){

@@ -51,30 +51,31 @@ int main(int argc, char **argv) {
 	app_function_capisys_init();
 	app_function_parse_fifo_buffer_init();
 	
-	CtSgwSetDbusEnv();
 
 	int ret = 0;
 
 	ret = pthread_create(&thread_network_handler,	NULL,(void *)app_function_flow_ctrl_thread ,NULL);
 	if(ret != 0 ){
-		LOGGER_ERR("create thread network handler error\n");
+		printf("create thread network handler error\n");
 		exit(1);
 	}
+#if 0
 	ret = pthread_create(&thread_capi_handler,		NULL,(void *)app_function_capisys_thread ,NULL);
 	if(ret != 0 ){
-		LOGGER_ERR("create thread capi handler  error\n");
+		printf("create thread capi handler  error\n");
 		exit(1);
 	}
 	ret = pthread_create(&thread_downlink_handler,	NULL,(void *)app_function_parse_fifo_buffer_thread ,NULL);
 	if(ret != 0 ){
-		LOGGER_ERR("create thread downlink hander error\n");
+		printf("create thread downlink hander error\n");
 		exit(1);
 	}
+#endif 
 	//LOG_DEBUG("maini app is runing ,waiting for all \n");
 	sleep(2);
 	pthread_join(thread_network_handler,NULL);
-	pthread_join(thread_capi_handler,NULL);
-	pthread_join(thread_downlink_handler,NULL);
+//	pthread_join(thread_capi_handler,NULL);
+//	pthread_join(thread_downlink_handler,NULL);
 	while(1){
 		sleep(1);
 	}
