@@ -217,6 +217,7 @@ return ret;
 }
 
 int login_distri_plat_step2_udp(void *dat) {
+	//TODO :why result no token ??
 	LOGGER_TRC("%s\n", __FUNCTION__);
 	int ret = 0;
 #if DEBUG_FLOW_CONTROL == 1
@@ -584,8 +585,14 @@ int login_distri_plat_step2_tcp(void *dat) {
 
 	return ret;
 }
-
-int login_operation_plat(void *dat) {
+int login_operation_plat(void *dat) { 
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG 
+	return login_no_std_operate_step1_tcp(dat);
+#else 
+	return login_std_operation_plat(dat);
+#endif
+}
+int login_std_operation_plat(void *dat) {
 	LOGGER_TRC("%s\n", __FUNCTION__);
 	int ret = 0;
 #if DEBUG_FLOW_CONTROL == 1
@@ -672,103 +679,103 @@ int login_operation_plat(void *dat) {
 				sleep(app_login_distri_server_retry_interval);
 				continue ;
 			}
-		}
-		if (ret < 0)
-		{
-			LOGGER_ERR("select error ->%d \n",ret);
-		}
-		else if (ret == 0) {
-			//have been handler before ,never run to here
-			printf("no data and timeout\n");
-		}
-
-		else { /* 说明等待时间还未到1秒加500毫秒，socket的状态发生了变化 */
-			ssize_t buf_len ;
-			printf("ret=%d\n", ret); /* if ret>1，more handler changed  */
-			if (FD_ISSET(sockfd, &rdfds)) {
-				/* read data */
-				memset(buf, 0, 1024);
-				buf_len = recv(sockfd, buf, 1024, 0);
-				if (buf_len < 0) {
-					LOGGER_DBG("receive data error -> %d\n", buf_len);
-					resend_counter++;
-					sleep(app_login_distri_server_retry_interval);
-					close(sockfd);
-					sockfd = -1;
-				}
-				uint32_t recv_json_len = ntohl(  *( (uint32_t *)  buf) );
-				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
-				if (recv_json_len != (buf_len - 4)) {
-					LOGGER_ERR("receive data len not match,server error -> %d %d\n", recv_json_len, buf_len);
-					resend_counter++;
-					sleep(app_login_distri_server_retry_interval);
-					continue;
-				}
-
-				resend_counter = 0;
-				int result = -1;
-				int id = 0;
-				ret = sysutils_parse_json_is_result(buf,&result,&id);
-				printf("result ack ->%d %d %d %s\n",result,id ,ret,buf);
-				if (ret == 0) {
-					if (result == 0) {
-						LOGGER_DBG("boot first registe ok ,continue \n");
-						//server_ip is the wlan ip ,do not care it .
-
-						return RET_OK;
-					} else {
-						LOGGER_ERR("Boot first reigister failed \n");
-						sleep(app_login_distri_server_retry_interval * 1000);
+			if (ret < 0)
+			{
+				LOGGER_ERR("select error ->%d \n",ret);
+			}
+			else if (ret == 0) {
+				//have been handler before ,never run to here
+				printf("no data and timeout\n");
+			}
+			else { //incoming data
+				ssize_t buf_len ;
+				printf("ret=%d\n", ret); /* if ret>1，more handler changed  */
+				if (FD_ISSET(sockfd, &rdfds)) {
+					/* read data */
+					memset(buf, 0, 1024);
+					buf_len = recv(sockfd, buf, 1024, 0);
+					if (buf_len < 0) {
+						LOGGER_DBG("receive data error -> %d\n", buf_len);
+						resend_counter++;
+						sleep(app_login_distri_server_retry_interval);
+						close(sockfd);
+						sockfd = -1;
 					}
-				}
-				else if (result ==  -1 ){
-					LOGGER_ERR("try another ip -1\n");
-					close(sockfd);
-					sockfd = -1;
-					return RET_DNS_FAILED ;
+					uint32_t recv_json_len = ntohl(  *( (uint32_t *)  buf) );
+					LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+					if (recv_json_len != (buf_len - 4)) {
+						LOGGER_ERR("receive data len not match,server error -> %d %d\n", recv_json_len, buf_len);
+						resend_counter++;
+						sleep(app_login_distri_server_retry_interval);
+						continue;
+					}
+
+					resend_counter = 0;
+					int result = -1;
+					int id = 0;
+					ret = sysutils_parse_json_is_result(buf,&result,&id);
+					printf("result ack ->%d %d %d %s\n",result,id ,ret,buf);
+					if (ret == 0) {
+						if (result == 0) {
+							LOGGER_DBG("boot first registe ok ,continue \n");
+							//server_ip is the wlan ip ,do not care it .
+
+							return RET_OK;
+						} else {
+							LOGGER_ERR("Boot first reigister failed \n");
+							sleep(app_login_distri_server_retry_interval * 1000);
+						}
+					}
+					else if (result ==  -1 ){
+						LOGGER_ERR("try another ip -1\n");
+						close(sockfd);
+						sockfd = -1;
+						return RET_DNS_FAILED ;
+
+					}
+					else if (result ==  -2 ){
+						LOGGER_ERR("gw info is not valid -2\n");
+						close(sockfd);
+						sockfd = -1;
+						return RET_PLAT_ACK_ERR ;
+
+					}
+					else if (result ==  -3 ){
+						close(sockfd);
+						sockfd = -1;
+						LOGGER_ERR("gw info is not valid -3\n");
+						return RET_PLAT_ACK_ERR ;
+					}
+					else if (result ==  -1003 ){
+						close(sockfd);
+						sockfd = -1;
+						LOGGER_ERR("device token is down ,need refresh\n");
+						return RET_TOKEN_DOWN ;
+					}
+					else{
+						LOGGER_ERR("parse ack info error \n");
+						resend_counter++;
+						sleep(app_login_distri_server_retry_interval * 1000);
+						continue;
+					}
 
 				}
-				else if (result ==  -2 ){
-					LOGGER_ERR("gw info is not valid -2\n");
-					close(sockfd);
-					sockfd = -1;
-					return RET_PLAT_ACK_ERR ;
-
-				}
-				else if (result ==  -3 ){
-					close(sockfd);
-					sockfd = -1;
-					LOGGER_ERR("gw info is not valid -3\n");
-					return RET_PLAT_ACK_ERR ;
-				}
-				else if (result ==  -1003 ){
-					close(sockfd);
-					sockfd = -1;
-					LOGGER_ERR("device token is down ,need refresh\n");
-					return RET_TOKEN_DOWN ;
-				}
-				else{
-					LOGGER_ERR("parse ack info error \n");
-					resend_counter++;
-					sleep(app_login_distri_server_retry_interval * 1000);
+				//now login success  .clear flags and try receive 
+				resend_counter = 0 ;
+				//begin handle all socket receive 	
+				ret = socket_data_handler(sockfd);
+				if (ret == RET_NETWORK_DOWN ) {
+					sleep(app_login_distri_server_retry_interval);
 					continue;
 				}
+				if (app_socket_loop_exit_event == ExitEventReConnectDistriServer )
+					return RET_DISTRI_SERVER_RECONNECT ;
+				else {
+
+				}
+
 
 			}
-		}
-
-		//now login success  .clear flags and try receive 
-		resend_counter = 0 ;
-		//begin handle all socket receive 	
-		ret = socket_data_handler(sockfd);
-		if (ret == RET_NETWORK_DOWN ) {
-			sleep(app_login_distri_server_retry_interval);
-			continue;
-		}
-		if (app_socket_loop_exit_event == ExitEventReConnectDistriServer )
-			return RET_DISTRI_SERVER_RECONNECT ;
-		else {
-
 		}
 	}
 	return ret;
@@ -992,6 +999,162 @@ int app_function_flow_ctrl_init(void) {
 	memset(&app_domain_info.heartbeat_server,0,sizeof(DnsAddressInfo) );
 	return  0;
 }
+
+int login_no_std_operate_step1_tcp(void *dat) {
+	LOGGER_TRC("%s\n", __FUNCTION__);
+	int ret = 0;
+#if DEBUG_FLOW_CONTROL == 1
+	ret = manual_interactive_flow_control(__FUNCTION__);
+	return ret;
+#endif
+	int sockfd = -1;
+	char buf[1024];
+	struct hostent *he; 
+	struct sockaddr_in server;
+	int resend_counter = 0 ;
+	fd_set rdfds;
+	struct timeval tv;
+	int current_ip_index = 0;
+
+	if (app_domain_info.operate_server.ip_flag == 0 ){
+		//do dns resolver
+		int ip_num = netutils_dns_resolver(app_domain_info.operate_server.domain, 
+				app_domain_info.operate_server.ip_list[0], NETUTIIS_MAX_IP_PER_DOMAIN, NETUTILS_MAX_IP_LEN);
+		LOGGER_DBG("operate dns resolver result -> %d\n", ip_num);
+		if (ip_num <= 0 ){
+			LOGGER_ERR("operate_server dns failed,sleep and retry\n");
+			sleep(app_login_distri_server_retry_interval);
+			return RET_DNS_FAILED ;
+		}
+
+	}
+	while(1)  { //check next dns
+		if (current_ip_index > app_domain_info.operate_server.ip_list_number ) {
+			LOGGER_ERR("no ip address can reached \n");
+			return RET_NO_ACK ;
+
+		}
+
+		char *operate_server_ip = app_domain_info.operate_server.ip_list[current_ip_index] ;
+		uint32_t operate_server_port = app_domain_info.operate_server.tcp_port ;
+		current_ip_index++;
+		while (1) {
+			if (resend_counter >= 3 ){
+				LOGGER_ERR("login to operate failed \n");
+				return RET_NO_ACK ;
+			}
+			if((sockfd=socket(AF_INET,SOCK_STREAM, 0))==-1)
+			{
+				printf("socket() error\n");
+				exit(1);
+			}
+			bzero(&server,sizeof(server));
+			server.sin_family = AF_INET;
+			server.sin_port = htons(operate_server_port);
+			server.sin_addr.s_addr = inet_addr(operate_server_ip);
+			LOGGER_DBG("try connect %s %d\n",operate_server_ip,operate_server_port);
+			if(connect(sockfd, (struct sockaddr *)&server, sizeof(server))==-1)
+			{
+				LOGGER_ERR("connect  error\n");
+				resend_counter++;
+				sleep(app_login_distri_server_retry_interval);
+				continue ;
+			}
+			ret = sysutils_get_json_rpc_boot(buf+4);		
+			if(ret < 0 ){
+				LOGGER_ERR("get rpc boot json error \n");
+				return RET_SYS_ERROR ;
+			}
+			LOGGER_DBG("json->%s\n", buf + 4);
+			uint32_t buf_len = strlen(buf + 4);
+			uint32_t *json_len = (uint32_t *) buf;
+			*json_len = htons(buf_len);
+			LOGGER_DBG("send -> %d ->%s\n", json_len, buf + 4);
+			ret = send(sockfd,buf,buf_len+4 ,0 );
+			LOGGER_DBG("tcp send result -> %d\n",ret);
+			//try receive ack
+			FD_ZERO(&rdfds);
+			FD_SET(sockfd, &rdfds);
+			tv.tv_sec = 15;
+			tv.tv_usec = 0;
+			ret = select(sockfd + 1, &rdfds, NULL, NULL, &tv);
+			if (ret == 0) {
+				LOGGER_DBG("no data and timeout\n");
+				close(sockfd);
+				resend_counter++ ;
+				LOGGER_DBG("wait for 15s and time out ,no data\n");
+				sleep(app_login_distri_server_retry_interval);
+				continue ;
+			}
+			if (ret < 0)
+			{
+				LOGGER_ERR("select error ->%d \n",ret);
+			}
+			else if (ret == 0) {
+				//have been handler before ,never run to here
+				printf("no data and timeout\n");
+			}
+			else { //incoming data
+				ssize_t buf_len ;
+				printf("ret=%d\n", ret); /* if ret>1，more handler changed  */
+				if (FD_ISSET(sockfd, &rdfds)) {
+					/* read data */
+					memset(buf, 0, 1024);
+					buf_len = recv(sockfd, buf, 1024, 0);
+					if (buf_len < 0) {
+						LOGGER_DBG("receive data error -> %d\n", buf_len);
+						resend_counter++;
+						sleep(app_login_distri_server_retry_interval);
+						close(sockfd);
+						sockfd = -1;
+					}
+					LOGGER_DBG("receive data -> %d -> %s\n",buf_len, buf );
+
+					resend_counter = 0;
+					int result = -1;
+					int id = 0;
+					ret = sysutils_parse_json_is_result(buf,&result,&id);
+					printf("result ack ->%d %d %d %s\n",result,id ,ret,buf);
+					if (ret == 0) {
+						if (result >= 0) {
+							LOGGER_DBG("boot first registe ok ,continue \n");
+							//server_ip is the wlan ip ,do not care it .
+							//goto register setup
+						} else {
+							LOGGER_ERR("Boot first reigister failed \n");
+							sleep(app_login_distri_server_retry_interval * 1000);
+							resend_counter++;
+						}
+					}
+					else if (result ==  -1 ){
+						LOGGER_ERR("try another ip -1\n");
+						close(sockfd);
+						sockfd = -1;
+						resend_counter++;
+						continue;
+					}
+				}
+				//now login success  .clear flags and try receive 
+				resend_counter = 0 ;
+				//begin handle all socket receive 	
+				ret = socket_data_handler(sockfd);
+				if (ret == RET_NETWORK_DOWN ) {
+					sleep(app_login_distri_server_retry_interval);
+					continue;
+				}
+				if (app_socket_loop_exit_event == ExitEventReConnectDistriServer )
+					return RET_DISTRI_SERVER_RECONNECT ;
+				else {
+
+				}
+
+
+			}
+		}
+	}
+	return ret;
+}
+
 
 int  app_function_flow_ctrl_thread(void *dat) {
 	FunctionStepPointer function_step_pointer = NULL;

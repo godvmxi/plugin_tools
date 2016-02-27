@@ -333,32 +333,33 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 	 char vendor[64] = {0};
 		if (__sysutils_get_vender(vendor) <  0){
 			//return 0;
+			return -1;
 		}
 		char firmware_ver[64] = {0};
 		if (__sysutils_get_firmware_ver(firmware_ver) <  0){
 					//return 0;
+			return -1;
 		}
 		char hardware_ver[64] = {0};
 		if (__sysutils_get_hardware_ver(hardware_ver) < 0){
 			//return 0;
+			return -1;
 		}
 		char mac[64] = {0};
 		if (__sysutils_get_wlan_mac(mac) < 0){
 			//return 0;
+			return -1;
 		}
 		char ip[64] = {0};
 		if (__sysutils_get_wlan_ip_addr(ip) < 0){
 			//return 0;
+			return -1;
 		}
 		char platform_id[64] = {0};
 		if (__sysutils_get_platform_id(platform_id) < 0){
 			//return 0;
+			return -1;
 		}
-
-
-		//srand( (unsigned)time( NULL ) );
-		//thread safe
-		//json_object_seed(rand());
 		json_t *obj = json_object();
 		//file rpc
 #ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
@@ -404,32 +405,42 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 
 		char *result =  json_dumps(obj,JSON_COMPACT);
 		memcpy(buf,result,strlen(result));
-#if 0
-		json_decref(rpc_obj);
-		json_decref(vendor_obj);
-		json_decref(firmware_ver_obj);
-		json_decref(hardware_ver_obj);
-		json_decref(mac_obj);
-		json_decref(ip_obj);
-		json_decref(platform_id_obj);
-#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
-		json_decref(dev_rnd_obj);
-		json_decref(card_obj);
-		json_decref(loid_obj);
-	//	json_decref(os_obj);
 
-#endif 
-#endif 
-		json_decref(obj);
+		//free 
+		if(rpc_obj) json_decref(rpc_obj ) ;
+		if(vendor_obj) json_decref(vendor_obj ) ;
+		if(firmware_ver_obj) json_decref(firmware_ver_obj ) ;
+		if(hardware_ver_obj) json_decref(hardware_ver_obj ) ;
+		if(mac_obj) json_decref(mac_obj ) ;
+		if(ip_obj) json_decref(ip_obj ) ;
+		if(platform_id_obj) json_decref(platform_id_obj ) ;
+		if(counter_obj) json_decref(counter_obj ) ;
 #ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
 		if(dev_rnd_obj) json_decref(dev_rnd_obj);
 		if(card_obj) json_decref(card_obj);
 		if(loid_obj) json_decref(loid_obj);
-
+		if(os_obj) json_decref(os_obj);
 #endif 
 		json_decref(obj);
 		free(result);
-		return strlen(buf);
+		return  0;
+sysutils_get_json_rpc_boot_first_error :
+		//free 
+		if(rpc_obj) json_decref(rpc_obj ) ;
+		if(vendor_obj) json_decref(vendor_obj ) ;
+		if(firmware_ver_obj) json_decref(firmware_ver_obj ) ;
+		if(hardware_ver_obj) json_decref(hardware_ver_obj ) ;
+		if(mac_obj) json_decref(mac_obj ) ;
+		if(ip_obj) json_decref(ip_obj ) ;
+		if(platform_id_obj) json_decref(platform_id_obj ) ;
+		if(counter_obj) json_decref(counter_obj ) ;
+#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+		if(dev_rnd_obj) json_decref(dev_rnd_obj);
+		if(card_obj) json_decref(card_obj);
+		if(loid_obj) json_decref(loid_obj);
+		if(os_obj) json_decref(os_obj);
+#endif 
+		return -1;
 }
 int sysutils_get_json_rpc_register_first(char *buf){
 	char mac[20]  =  {0};
@@ -450,8 +461,8 @@ int sysutils_get_json_rpc_register_first(char *buf){
 	}
 
 		printf("?????\n");
-	memset(app_security_info.challenge_code,0,64);
-	strcat(app_security_info.challenge_code,"C69AD54D2253C7AF5D11960F9618B79A"  );
+//	memset(app_security_info.challenge_code,0,64);
+//	strcat(app_security_info.challenge_code,"C69AD54D2253C7AF5D11960F9618B79A"  );
 //
 #ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG 
 	//get user_id
@@ -540,6 +551,14 @@ int sysutils_get_json_rpc_register_first(char *buf){
 	json_decref(obj);
 	free(result);
 	return strlen(buf);
+}
+int sysutils_no_std_get_json_rpc_boot(char *buf){
+
+	return sysutils_get_json_rpc_boot_first(buf);
+}
+int sysutils_no_std_get_json_rpc_register(char *buf){
+
+	return sysutils_get_json_rpc_boot_first(buf);
 }
 int sysutils_parse_rpc_json_type(char *buf,int cmdType){
 	 char vendor[64] = {0};
