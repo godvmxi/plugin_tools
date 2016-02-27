@@ -252,6 +252,7 @@ int login_distri_plat_step2_udp(void *dat) {
 
 		memset(buf, 0, 1024);
 		sysutils_get_json_rpc_register_first(buf + 4);
+		printf("get register json ->%s\n ",buf);
 		if(ret < 0 ){
 			LOGGER_ERR("get rpc register_first json error \n");
 			return RET_SYS_ERROR ;

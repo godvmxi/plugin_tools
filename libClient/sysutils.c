@@ -128,7 +128,8 @@ static int  __sysutils_get_sys_time(char *buf){
 }
 
 static int  __sysutils_get_buf_md5(char *buf,char *md5){
-	char tmp[20] = {0};
+	LOGGER_TRC("md5 ->%d\n",strlen(buf));
+	char tmp[64] = {0};
 	md5_calc(tmp,buf,strlen(buf));
 	hash_bin2hex(tmp,md5,16);
 	//printf("md5: %s ->%s\n",buf,md5);
@@ -510,8 +511,12 @@ int sysutils_get_json_rpc_register_first(char *buf){
 #else 
 	//get check ssn
 	char check_ssn[40] = {0 } ; //challenge_code + ssn
+	if(__sysutils_get_sys_ssn(ssn) < 0){
+		return -1;
+	}
 	char temp[40] = {0};
 	sprintf(temp,"%s%s",app_security_info.challenge_code,ssn);
+	LOGGER_TRC("ssn -> %s : %s\n",ssn,temp);
 	if(__sysutils_get_buf_md5(temp,check_ssn ) < 0 ){
 		return -1;
 	}
@@ -521,12 +526,11 @@ int sysutils_get_json_rpc_register_first(char *buf){
 	//get check sn
 	char check_sn[40] = {0}; //challenge_code + 
 	memset(temp ,0,40);
-	sprintf(temp,"%s%s",app_security_info.challenge_code,ssn);
-	char check_ssn[40] = {0};
-	if(__sysutils_get_buf_md5(temp,check_ssn) < 0 ){
+	sprintf(temp,"%s%s",app_security_info.challenge_code,check_sn);
+	if(__sysutils_get_buf_md5(temp,check_sn) < 0 ){
 		return -1;
 	}
-	LOGGER_TRC("check sn-> %s\n");
+	LOGGER_TRC("check sn-> %s\n",check_sn);
 
 
 
