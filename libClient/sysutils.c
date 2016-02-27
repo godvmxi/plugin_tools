@@ -1295,6 +1295,45 @@ sysutils_parse_json_is_result_error :
 		json_decref(obj_result);
 	}
 }
+int sysutils_parse_operate_server_boot_ack(char *buf,int *result,char *challenge_code) {
+	int ret = 0 ;
+	json_error_t json_error ;
+	json_t *json_root  = NULL;
+	char *temp= NULL;
+
+	assert(buf != NULL) ;
+	assert(result !=  NULL);
+	assert(challenge_code != NULL);
+	printf("parse -> %s\n",buf);
+	json_root = json_loads(buf, 0 ,&json_error);
+	if (json_root == NULL){
+		LOGGER_ERR("parse json error -> %s\n",buf);
+		goto sysutils_parse_opeate_server_boot_ack_error ;
+	}
+	//Result
+	ret = sysutils_get_json_value_from(json_root,"Result",JSON_INTEGER,result);
+	if(ret < 0){
+		LOGGER_ERR("get reuslt id error \n");
+		goto sysutils_parse_opeate_server_boot_ack_error;
+	}
+	ret = sysutils_get_json_value_from(json_root,"ChallengeCode",JSON_STRING,challenge_code);
+	if(ret < 0){
+		LOGGER_ERR("get ChallendgeCode id error \n");
+		goto sysutils_parse_opeate_server_boot_ack_error;
+	}
+	LOGGER_TRC("challenge_code-> %s\n",challenge_code);
+	json_decref(json_root);
+
+	return 0;
+sysutils_parse_opeate_server_boot_ack_error :
+	if (json_root != NULL) {
+		json_decref(json_root);
+	}
+	return -1 ;
+
+
+
+}
 /*
  * 
  *

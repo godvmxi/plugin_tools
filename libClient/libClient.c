@@ -1016,6 +1016,10 @@ int login_no_std_operate_step1_tcp(void *dat) {
 	struct timeval tv;
 	int current_ip_index = 0;
 
+	int result  = 0 ;
+	int flag = 0;
+	char challenge_code[64] = {0 } ;
+
 	if (app_domain_info.operate_server.ip_flag == 0 ){
 		//do dns resolver
 		int ip_num = netutils_dns_resolver(app_domain_info.operate_server.domain, 
@@ -1111,18 +1115,21 @@ int login_no_std_operate_step1_tcp(void *dat) {
 						sockfd = -1;
 					}
 					else if (buf_len == 0 ) {
-						sleep(15);
 						continue;
 					}
+					
 
 					resend_counter = 0;
-					int result = -1;
 					int id = 0;
-					ret = sysutils_parse_json_is_result(buf,&result,&id);
-					printf("result ack ->%d %d %d %s\n",result,id ,ret,buf);
+					memset(challenge_code,0,64);
+					ret = sysutils_parse_operate_server_boot_ack(buf+4,&result,challenge_code );
 					if (ret == 0) {
 						if (result >= 0) {
 							LOGGER_DBG("boot first registe ok ,continue \n");
+							resend_counter = 0;
+							memcpy(app_security_info.challenge_code,challenge_code,64 );
+							LOGGER_TRC("boot ack ->%s \n",buf+4);
+							LOGGER_TRC("challenge_code: %s  flag :%d ->%s \n",challenge_code,flag);
 							//server_ip is the wlan ip ,do not care it .
 							//goto register setup
 						} else {
