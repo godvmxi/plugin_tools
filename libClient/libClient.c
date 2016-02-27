@@ -190,8 +190,9 @@ int login_distri_plat_step1_udp(void *dat) {
 				if (ret == 0) {
 					if (result == 0) {
 						app_login_distri_server_retry_interval = interval_temp;
-						memset(app_security_info.challenge_code, 0, 16) ;
-						memcpy(app_security_info.challenge_code, challenge_code, 16);
+						memset(app_security_info.challenge_code, 0, 64) ;
+						printf("challege_code len -> %d\n",strlen(challenge_code));
+						memcpy(app_security_info.challenge_code, challenge_code,strlen(challenge_code));
 						LOGGER_DBG("boot first registe ok ,continue \n");
 						//server_ip is the wlan ip ,do not care it .
 
@@ -251,6 +252,7 @@ int login_distri_plat_step2_udp(void *dat) {
 		socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
 
 		memset(buf, 0, 1024);
+		printf("?????\n");
 		sysutils_get_json_rpc_register_first(buf + 4);
 		printf("get register json ->%s\n ",buf);
 		if(ret < 0 ){
@@ -506,14 +508,14 @@ int login_distri_plat_step1_tcp(void *dat) {
 				send_counter = 0;
 				int result = -1;
 				int interval_temp = 0;
-				char challenge_code[20] = { 0 };
+				char challenge_code[64] = { 0 };
 				char server_ip[20] = { 0 };
 				ret = sysutils_parse_distri_server_ack_step_1(buf, &result, challenge_code, &interval_temp, server_ip);
 				if (ret == 0) {
 					if (result == 0) {
 						app_login_distri_server_retry_interval = interval_temp;
-						memset(app_security_info.challenge_code, 0, 16) ;
-						memcpy(app_security_info.challenge_code, challenge_code, 16);
+						memset(app_security_info.challenge_code, 0, 64) ;
+						memcpy(app_security_info.challenge_code, challenge_code, strlen(challenge_code));
 						LOGGER_DBG("boot first registe ok ,continue \n");
 						//server_ip is the wlan ip ,do not care it .
 

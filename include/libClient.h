@@ -58,7 +58,7 @@ typedef struct {
 
 }AppDomainInfo;
 typedef struct {
-	char challenge_code[20];
+	char challenge_code[64];
 	char token[64];
 	char exp_date[64] ;//may be useless
 	char ca_download_url[64]; //contain ca 
