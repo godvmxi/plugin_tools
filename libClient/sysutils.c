@@ -75,7 +75,7 @@ static int  __sysutils_get_platform_id(char *buf){
 		//use capi get system info
 }
 static int  __sysutils_get_card(char *buf){
-		sprintf(buf,"");
+		buf[0] = '\0';
 		return 0;
 		//use capi get system info
 }
@@ -395,7 +395,7 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 		//json_object_seed(rand());
 		json_t *obj = json_object();
 		//file rpc
-#ifdef DISTRI_SERVER_TEMP_TEST
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
 		json_t *rpc_obj =  json_string("Boot");
 #else 
 		json_t *rpc_obj =  json_string("BootFirst");
@@ -424,7 +424,7 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 		json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
 		json_object_set(obj,"ID",counter_obj);
 		//dump
-#ifdef  DISTRI_SERVER_TEMP_TEST
+#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
 		json_t *dev_rnd_obj = json_string("44464135443C07090878276F5D4D187F");
 		json_object_set(obj,"DevRND",dev_rnd_obj);
 		json_t *card_obj = json_string("");
@@ -446,7 +446,7 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 		json_decref(mac_obj);
 		json_decref(ip_obj);
 		json_decref(platform_id_obj);
-#ifdef  DISTRI_SERVER_TEMP_TEST
+#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
 		json_decref(dev_rnd_obj);
 		json_decref(card_obj);
 		json_decref(loid_obj);
@@ -455,7 +455,7 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 #endif 
 #endif 
 		json_decref(obj);
-#ifdef  DISTRI_SERVER_TEMP_TEST
+#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
 		if(dev_rnd_obj) json_decref(dev_rnd_obj);
 		if(card_obj) json_decref(card_obj);
 		if(loid_obj) json_decref(loid_obj);
@@ -611,102 +611,51 @@ int sysutils_parse_rpc_json_type(char *buf,int cmdType){
 }
 
 int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challenge_code,int *interval,char * server_ip){
+	int ret = 0 ;
 	json_error_t json_error ;
 	json_t *json_root  = NULL;
-	json_t *obj_result = NULL;
-	json_t *obj_challenge_code = NULL;
-	json_t *obj_interval = NULL;
-	json_t *obj_server_ip =  NULL;
 	char *temp= NULL;
 
-	assert(buf == NULL) ;
-	assert(result ==  NULL);
-	assert(challenge_code == NULL);
-	assert(interval == NULL );
-	assert(server_ip == NULL);
-
+	assert(buf != NULL) ;
+	assert(result !=  NULL);
+	assert(challenge_code != NULL);
+	assert(interval != NULL );
+	assert(server_ip != NULL);
+	printf("parse -> %s\n",buf);
 	json_root = json_loads(buf, 0 ,&json_error);
 	if (json_root == NULL){
 		LOGGER_ERR("parse json error -> %s\n",buf);
 		goto sysutils_parse_distri_server_ack_step_1_error ;
 	}
 	//Result
-	obj_result =  json_object_get(json_root,"Result" ) ;
-	if (json_is_number(obj_result)  ==  JSON_TRUE ){
-		*result = json_integer_value(obj_result) ;
+	ret = sysutils_get_json_value_from(json_root,"Result",JSON_INTEGER,result);
+	if(ret < 0){
+		LOGGER_ERR("get reuslt id error \n");
+		goto sysutils_parse_distri_server_ack_step_1_error;
 	}
-	else if(json_is_string(obj_result ) ==  JSON_TRUE ){
-		temp =  (char *) json_string_value(obj_result ) ;
-		if (temp != NULL) {
-						*result = atoi(temp);
-						free(temp);
-					 }
-					 else {
-						 	 LOGGER_ERR("reuslt get result code error\n");
-						 		goto sysutils_parse_distri_server_ack_step_1_error ;
-					 }
-
+	ret = sysutils_get_json_value_from(json_root,"ChallengeCode",JSON_STRING,challenge_code);
+	if(ret < 0){
+		LOGGER_ERR("get ChallendgeCode id error \n");
+		goto sysutils_parse_distri_server_ack_step_1_error;
 	}
-	else {
-		LOGGER_ERR("reuslt value error\n");
-		goto sysutils_parse_distri_server_ack_step_1_error ;
+	LOGGER_TRC("challenge_code-> %s\n",challenge_code);
+#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+	char buffer[20] = {0} ;
+	ret = sysutils_get_json_value_from(json_root,"flag",JSON_STRING,buffer);
+	if(ret < 0){
+		LOGGER_ERR("get flag id error \n");
+		goto sysutils_parse_distri_server_ack_step_1_error;
 	}
-	//ChallengeCode
-	obj_challenge_code =  json_object_get(json_root,"ChallengeCode" ) ;
-		 if(json_is_string(obj_challenge_code ) ==  JSON_TRUE ){
-			 temp =  (char *) json_string_value(obj_challenge_code) ;
-			 if (temp != NULL) {
-				memcpy(challenge_code,  temp,strlen(temp) ) ;
-				free(temp);
-			 }
-			 else {
-				 	 LOGGER_ERR("reuslt get challenge code error\n");
-				 		goto sysutils_parse_distri_server_ack_step_1_error ;
-			 }
-		}
-		else {
-			LOGGER_ERR("reuslt challenge code error\n");
-			goto sysutils_parse_distri_server_ack_step_1_error ;
-		}
+	LOGGER_TRC("flag -> %s\n",buffer);
+#else 
+	ret = sysutils_get_json_value_from(json_root,"Interval",JSON_INTEGER,interval);
+	if(ret < 0){
+		LOGGER_ERR("get interval error \n");
+		goto sysutils_parse_distri_server_ack_step_1_error;
+	}
+	LOGGER_TRC("interval -> %s\n",*interval);
 
-	 //interval code
-		obj_interval =  json_object_get(json_root,"Interval" ) ;
-		if (json_is_number(obj_interval)  ==  JSON_TRUE ){
-				 		*interval = json_integer_value(obj_interval) ;
-				 	}
-		else		if(json_is_string(obj_interval ) ==  JSON_TRUE ){
-				 temp =  (char *) json_string_value(obj_interval) ;
-				 if (temp != NULL) {
-					 *interval = atoi(temp);
-					free(temp);
-				 }
-				 else {
-						 LOGGER_ERR("reuslt get obj_intervale error\n");
-							goto sysutils_parse_distri_server_ack_step_1_error ;
-				 }
-			}
-			else {
-				LOGGER_ERR("reuslt obj_interval error\n");
-				goto sysutils_parse_distri_server_ack_step_1_error ;
-			}
-		//ip addr
-		 obj_server_ip =  json_object_get(json_root,"ServerIP" ) ;
-		 		 if(json_is_string(obj_server_ip ) ==  JSON_TRUE ){
-						 temp =  (char *) json_string_value(obj_server_ip) ;
-						 if (temp != NULL) {
-							memcpy(server_ip,  temp,strlen(temp) ) ;
-							free(temp);
-						 }
-						 else {
-								 LOGGER_ERR("reuslt get obj_server_ip  error\n");
-									goto sysutils_parse_distri_server_ack_step_1_error ;
-						 }
-					}
-					else {
-						LOGGER_ERR("reuslt obj_server_ip error\n");
-						goto sysutils_parse_distri_server_ack_step_1_error ;
-			 			}
-
+#endif 
 
 	json_decref(json_root);
 	return 0;
@@ -714,18 +663,6 @@ sysutils_parse_distri_server_ack_step_1_error :
 	if (json_root != NULL) {
 		json_decref(json_root);
 	}
-	if (obj_result != NULL) {
-			json_decref(obj_result);
-		}
-	if (obj_challenge_code != NULL) {
-			json_decref(obj_challenge_code);
-		}
-	if (obj_interval != NULL) {
-			json_decref(obj_interval);
-		}
-	if (obj_server_ip != NULL) {
-				json_decref(obj_server_ip);
-			}
 	return -1 ;
 
 

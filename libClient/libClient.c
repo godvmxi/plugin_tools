@@ -169,16 +169,24 @@ int login_distri_plat_step1_udp(void *dat) {
 				if (recv_json_len != (buf_len - 4)) {
 					LOGGER_ERR("receive data len not match -> %d %d\n", recv_json_len, buf_len);
 					send_counter++;
+#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+					LOGGER_DBG("just ignore server error ,continue \n");
+#else 
 					sleep(3);
 					continue;
+#endif 
 				}
 
 				send_counter = 0;
 				int result = -1;
 				int interval_temp = 0;
-				char challenge_code[20] = { 0 };
+				char challenge_code[64] = { 0 };
 				char server_ip[20] = { 0 };
+#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
 				ret = sysutils_parse_distri_server_ack_step_1(buf, &result, challenge_code, &interval_temp, server_ip);
+#else 
+				ret = sysutils_parse_distri_server_ack_step_1(buf+4, &result, challenge_code, &interval_temp, server_ip);
+#endif
 				if (ret == 0) {
 					if (result == 0) {
 						app_login_distri_server_retry_interval = interval_temp;
