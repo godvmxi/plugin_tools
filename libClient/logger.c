@@ -1,11 +1,11 @@
 #include "logger.h"
 #include <stdio.h>
-
+#define LOGGER_MAX_BUFFER  2048
 
 void logger_message( const char *fmt , ...)
 {
 	va_list ap;
-	char buf[256];
+	char buf[2048];
 	//assert(log_category != NULL);
 
 	va_start(ap, fmt);
@@ -17,7 +17,7 @@ void logger_message( const char *fmt , ...)
 
 void LOGGER_ERR(const char*fmt ,...){
 	va_list ap;
-	char buf[256];
+	char buf[2048];
 	//assert(log_category != NULL);
 
 	va_start(ap, fmt);
@@ -29,7 +29,7 @@ void LOGGER_ERR(const char*fmt ,...){
 }
 void LOGGER_WARN(const char*fmt ,...){
 	va_list ap;
-	char buf[256];
+	char buf[2048];
 	//assert(log_category != NULL);
 
 	va_start(ap, fmt);
@@ -41,7 +41,7 @@ void LOGGER_WARN(const char*fmt ,...){
 }
 void LOGGER_INFO(const char*fmt ,...){
 	va_list ap;
-	char buf[256];
+	char buf[2048];
 	//assert(log_category != NULL);
 
 	va_start(ap, fmt);
@@ -53,7 +53,7 @@ void LOGGER_INFO(const char*fmt ,...){
 }
 void LOGGER_DBG(const char*fmt ,...) {
 	va_list ap;
-	char buf[256];
+	char buf[2048];
 	//assert(log_category != NULL);
 
 	va_start(ap, fmt);
@@ -65,7 +65,7 @@ void LOGGER_DBG(const char*fmt ,...) {
 }
 void LOGGER_TRC(const char*fmt ,...) {
 	va_list ap;
-	char buf[256];
+	char buf[2048];
 	//assert(log_category != NULL);
 
 	va_start(ap, fmt);

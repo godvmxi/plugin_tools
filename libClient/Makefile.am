@@ -21,5 +21,5 @@ libClient_la_LDFLAGS =  `pkg-config --libs jansson`  -L/usr/lib
 
 # Compiler options. Here we are adding the include directory
 # to be searched for headers included in the source code.
-libClient_la_CPPFLAGS = -I$(top_srcdir)/include   -I$(top_srcdir)/libClient -std=c99 `pkg-config --cflags glib-2.0`
+libClient_la_CPPFLAGS = -I$(top_srcdir)/include   -I$(top_srcdir)/libClient -std=c99  -g -O0 `pkg-config --cflags glib-2.0`
 

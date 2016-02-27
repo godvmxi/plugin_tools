@@ -165,10 +165,11 @@ int login_distri_plat_step1_udp(void *dat) {
 					continue;
 				}
 				recv_json_len = ntohl(  *( (uint32_t *)  buf) );
-				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf );
 				if (recv_json_len != (buf_len - 4)) {
 					LOGGER_ERR("receive data len not match -> %d %d\n", recv_json_len, buf_len);
 					send_counter++;
+					sleep(3);
 					continue;
 				}
 

@@ -372,7 +372,7 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 		if (__sysutils_get_firmware_ver(firmware_ver) <  0){
 					//return 0;
 		}
-		char hardware_ver[20] = {0};
+		char hardware_ver[64] = {0};
 		if (__sysutils_get_hardware_ver(hardware_ver) < 0){
 			//return 0;
 		}
@@ -438,6 +438,7 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 
 		char *result =  json_dumps(obj,JSON_COMPACT);
 		memcpy(buf,result,strlen(result));
+#if 0
 		json_decref(rpc_obj);
 		json_decref(vendor_obj);
 		json_decref(firmware_ver_obj);
@@ -449,9 +450,11 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 		json_decref(dev_rnd_obj);
 		json_decref(card_obj);
 		json_decref(loid_obj);
-		json_decref(os_obj);
+	//	json_decref(os_obj);
 
 #endif 
+#endif 
+		json_decref(obj);
 #ifdef  DISTRI_SERVER_TEMP_TEST
 		if(dev_rnd_obj) json_decref(dev_rnd_obj);
 		if(card_obj) json_decref(card_obj);
