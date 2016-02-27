@@ -48,6 +48,10 @@ static int  __sysutils_get_firmware_ver(char *buf){
 		return 0;
 		//use capi get system info
 }
+static int  __sysutils_get_sys_model(char *buf){
+		sprintf(buf,"xxx1.0");
+		return 0;
+}
 static int  __sysutils_get_hardware_ver(char *buf){
 		sprintf(buf,"sd3.64.418");
 		return 0;
@@ -65,7 +69,7 @@ static int  __sysutils_get_app_ver(char *buf){
 }
 
 static int  __sysutils_get_wlan_ip_addr(char *buf){
-		sprintf(buf,"223.5.5.5");
+		sprintf(buf,"10.9.1.180");
 		return 0;
 		//use capi get system info
 }
@@ -161,7 +165,7 @@ int sysutils_get_json_rpc_heartbeat(char *buf){
 	json_t *obj = json_object();
 	//file rpc
 	json_t *rpc_obj =  json_string("Heartbeat");
-	json_object_set(obj,"RpcMethod",rpc_obj);
+	json_object_set(obj,"RPCMethod",rpc_obj);
 	//file loid
 	json_t *ip_obj =  json_string(ip);
 	json_object_set(obj,"IPAddr",ip_obj);
@@ -231,7 +235,7 @@ int sysutils_get_json_rpc_message_push(char *buf,char *plugin_name,char *message
 		json_t *obj = json_object();
 		//file rpc
 		json_t *rpc_obj =  json_string("MessagePush");
-		json_object_set(obj,"RpcMethod",rpc_obj);
+		json_object_set(obj,"RPCMethod",rpc_obj);
 		//file plugin name
 		json_t *plugin_name_obj =  json_string(plugin_name);
 		json_object_set(obj,"Plugin_Name",plugin_name_obj);
@@ -298,7 +302,7 @@ int sysutils_get_json_rpc_token_update(char *buf){
 			json_t *obj = json_object();
 			//file rpc
 			json_t *rpc_obj =  json_string("TokenUpdate");
-			json_object_set(obj,"RpcMethod",rpc_obj);
+			json_object_set(obj,"RPCMethod",rpc_obj);
 
 			//file token
 			json_t *token_obj =  json_string(token);
@@ -367,7 +371,7 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 #else 
 		json_t *rpc_obj =  json_string("BootFirst");
 #endif
-		json_object_set(obj,"RpcMethod",rpc_obj);
+		json_object_set(obj,"RPCMethod",rpc_obj);
 		//file vendor
 		json_t *vendor_obj =  json_string(vendor);
 		json_object_set(obj,"Vendor",vendor_obj);
@@ -509,13 +513,14 @@ int sysutils_get_json_rpc_register_first(char *buf){
 #else 
 	json_t *rpc_obj =  json_string("RegisterFirst");
 #endif
-	json_object_set(obj,"RpcMethod",rpc_obj);
+	json_object_set(obj,"RPCMethod",rpc_obj);
 	//file check sn
 	json_t *check_sn_obj =  json_string(check_sn);
 	json_object_set(obj,"CheckSN",check_sn_obj);
 #ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
 	//file user id 
-	json_t *user_id_obj =  json_string(user_id); json_object_set(obj,"UserID",user_id_obj);
+	json_t *user_id_obj =  json_string(user_id);
+	json_object_set(obj,"UserID",user_id_obj);
 #else 
 	//file check ssn
 	json_t *check_ssn_obj =  json_string(check_ssn);
@@ -554,21 +559,137 @@ int sysutils_get_json_rpc_register_first(char *buf){
 }
 int sysutils_no_std_get_json_rpc_boot(char *buf){
 
-	return sysutils_get_json_rpc_boot_first(buf);
+	char vendor[64] = {0};
+	if (__sysutils_get_vender(vendor) <  0){
+		//return 0;
+		return -1;
+	}
+	char firmware_ver[64] = {0};
+	if (__sysutils_get_firmware_ver(firmware_ver) <  0){
+		//return 0;
+		return -1;
+	}
+	char hardware_ver[64] = {0};
+	if (__sysutils_get_hardware_ver(hardware_ver) < 0){
+		//return 0;
+		return -1;
+	}
+	char mac[64] = {0};
+	if (__sysutils_get_wlan_mac(mac) < 0){
+		//return 0;
+		return -1;
+	}
+	char ip[64] = {0};
+	if (__sysutils_get_wlan_ip_addr(ip) < 0){
+		//return 0;
+		return -1;
+	}
+	char platform_id[64] = {0};
+	if (__sysutils_get_platform_id(platform_id) < 0){
+		//return 0;
+		return -1;
+	}
+	char model[64] ={ 0};
+	if(__sysutils_get_sys_model(model) < 0){
+		return -1;
+	}
+	json_t *obj = json_object();
+	//file rpc
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+	json_t *rpc_obj =  json_string("Boot");
+#else 
+	json_t *rpc_obj =  json_string("BootFirst");
+#endif
+	json_object_set(obj,"RPCMethod",rpc_obj);
+	//file vendor
+	json_t *vendor_obj =  json_string(vendor);
+	json_object_set(obj,"Vendor",vendor_obj);
+	//file vendor
+	json_t *firmware_ver_obj =  json_string(firmware_ver);
+	json_object_set(obj,"FirmwareVer",firmware_ver_obj);
+	//file hardware ver
+	json_t *hardware_ver_obj =  json_string(hardware_ver);
+	json_object_set(obj,"HardwareVer",hardware_ver_obj);
+	//file mac
+	json_t *mac_obj =  json_string(mac);
+	json_object_set(obj,"MAC",mac_obj);
+	//file ip
+	json_t *ip_obj =  json_string(ip);
+	json_object_set(obj,"IPAddr",ip_obj);
+	//file platform
+	json_t *platform_id_obj =  json_string(platform_id);
+//	json_object_set(obj,"PlatformID",platform_id_obj);
+
+	//fill counter
+	json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
+//	json_object_set(obj,"ID",counter_obj);
+	//dump
+	json_t *dev_rnd_obj = json_string("44464135443C07090878276F5D4D187F");
+//	json_object_set(obj,"DevRND",dev_rnd_obj);
+	json_t *card_obj = json_string("");
+	json_object_set(obj,"Card",card_obj);
+	json_t *loid_obj = json_string("SMARTHUBG07");
+	json_object_set(obj,"LOID",loid_obj);
+	json_t *os_obj = json_string("ZhiNengWangGuan OS 1");
+//	json_object_set(obj,"OsVer",os_obj);
+	json_t *model_obj = json_string(model);
+	json_object_set(obj,"Model",model_obj);
+
+
+	char *result =  json_dumps(obj,JSON_COMPACT);
+	memcpy(buf,result,strlen(result));
+
+	//free 
+	if(rpc_obj) json_decref(rpc_obj ) ;
+	if(vendor_obj) json_decref(vendor_obj ) ;
+	if(firmware_ver_obj) json_decref(firmware_ver_obj ) ;
+	if(hardware_ver_obj) json_decref(hardware_ver_obj ) ;
+	if(mac_obj) json_decref(mac_obj ) ;
+	if(ip_obj) json_decref(ip_obj ) ;
+	if(platform_id_obj) json_decref(platform_id_obj ) ;
+	if(counter_obj) json_decref(counter_obj ) ;
+	if(model_obj) json_decref(model_obj ) ;
+#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+	if(dev_rnd_obj) json_decref(dev_rnd_obj);
+	if(card_obj) json_decref(card_obj);
+	if(loid_obj) json_decref(loid_obj);
+	if(os_obj) json_decref(os_obj);
+#endif 
+	json_decref(obj);
+	free(result);
+	return  0;
+sysutils_get_json_rpc_boot_first_error :
+	//free 
+	if(rpc_obj) json_decref(rpc_obj ) ;
+	if(vendor_obj) json_decref(vendor_obj ) ;
+	if(firmware_ver_obj) json_decref(firmware_ver_obj ) ;
+	if(hardware_ver_obj) json_decref(hardware_ver_obj ) ;
+	if(mac_obj) json_decref(mac_obj ) ;
+	if(ip_obj) json_decref(ip_obj ) ;
+	if(platform_id_obj) json_decref(platform_id_obj ) ;
+	if(model_obj) json_decref(model_obj ) ;
+	if(counter_obj) json_decref(counter_obj ) ;
+#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+	if(dev_rnd_obj) json_decref(dev_rnd_obj);
+	if(card_obj) json_decref(card_obj);
+	if(loid_obj) json_decref(loid_obj);
+	if(os_obj) json_decref(os_obj);
+#endif 
+	return -1;
 }
 int sysutils_no_std_get_json_rpc_register(char *buf){
 
-	return sysutils_get_json_rpc_boot_first(buf);
+	return sysutils_get_json_rpc_register_first(buf);
 }
 int sysutils_parse_rpc_json_type(char *buf,int cmdType){
-	 char vendor[64] = {0};
-		if (__sysutils_get_vender(vendor) <  0){
-			//return 0;
-		}
-		char firmware_ver[64] = {0};
-		if (__sysutils_get_firmware_ver(firmware_ver) <  0){
-					//return 0;
-		}
+	char vendor[64] = {0};
+	if (__sysutils_get_vender(vendor) <  0){
+		//return 0;
+	}
+	char firmware_ver[64] = {0};
+	if (__sysutils_get_firmware_ver(firmware_ver) <  0){
+		//return 0;
+	}
 		char hardware_ver[20] = {0};
 		if (__sysutils_get_hardware_ver(hardware_ver) < 0){
 			//return 0;
@@ -593,7 +714,7 @@ int sysutils_parse_rpc_json_type(char *buf,int cmdType){
 		json_t *obj = json_object();
 		//file rpc
 		json_t *rpc_obj =  json_string("BootFirst");
-		json_object_set(obj,"RpcMethod",rpc_obj);
+		json_object_set(obj,"RPCMethod",rpc_obj);
 		//file vendor
 		json_t *vendor_obj =  json_string(vendor);
 		json_object_set(obj,"Vendor",vendor_obj);

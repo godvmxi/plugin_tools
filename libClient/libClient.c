@@ -1060,7 +1060,7 @@ int login_no_std_operate_step1_tcp(void *dat) {
 				sleep(app_login_distri_server_retry_interval);
 				continue ;
 			}
-			ret = sysutils_get_json_rpc_boot(buf+4);		
+			ret = sysutils_no_std_get_json_rpc_boot(buf+4);		
 			if(ret < 0 ){
 				LOGGER_ERR("get rpc boot json error \n");
 				return RET_SYS_ERROR ;
@@ -1068,16 +1068,18 @@ int login_no_std_operate_step1_tcp(void *dat) {
 			LOGGER_DBG("json->%s\n", buf + 4);
 			uint32_t buf_len = strlen(buf + 4);
 			uint32_t *json_len = (uint32_t *) buf;
-			*json_len = htons(buf_len);
+			*json_len = htonl(buf_len);
 			LOGGER_DBG("send -> %d ->%s\n", json_len, buf + 4);
 			ret = send(sockfd,buf,buf_len+4 ,0 );
 			LOGGER_DBG("tcp send result -> %d\n",ret);
 			//try receive ack
+			
 			FD_ZERO(&rdfds);
 			FD_SET(sockfd, &rdfds);
 			tv.tv_sec = 15;
 			tv.tv_usec = 0;
 			ret = select(sockfd + 1, &rdfds, NULL, NULL, &tv);
+			LOGGER_TRC("select ret -> %d\n",ret);
 			if (ret == 0) {
 				LOGGER_DBG("no data and timeout\n");
 				close(sockfd);
@@ -1096,11 +1098,11 @@ int login_no_std_operate_step1_tcp(void *dat) {
 			}
 			else { //incoming data
 				ssize_t buf_len ;
-				printf("ret=%d\n", ret); /* if ret>1，more handler changed  */
 				if (FD_ISSET(sockfd, &rdfds)) {
 					/* read data */
 					memset(buf, 0, 1024);
 					buf_len = recv(sockfd, buf, 1024, 0);
+					LOGGER_DBG("receive data -> %d -> %s\n",buf_len, buf );
 					if (buf_len < 0) {
 						LOGGER_DBG("receive data error -> %d\n", buf_len);
 						resend_counter++;
@@ -1108,7 +1110,10 @@ int login_no_std_operate_step1_tcp(void *dat) {
 						close(sockfd);
 						sockfd = -1;
 					}
-					LOGGER_DBG("receive data -> %d -> %s\n",buf_len, buf );
+					else if (buf_len == 0 ) {
+						sleep(15);
+						continue;
+					}
 
 					resend_counter = 0;
 					int result = -1;
