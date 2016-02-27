@@ -54,7 +54,8 @@ typedef struct {
 	pthread_mutex_t mutex_lock ;
 	DnsAddressInfo  distri_server ;
 	DnsAddressInfo  operate_server ;
-	DnsAddressInfo  plugin_server ;
+	DnsAddressInfo  message_server ;
+	DnsAddressInfo  heartbeat_server ;
 
 }AppDomainInfo;
 typedef struct {

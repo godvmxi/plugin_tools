@@ -264,7 +264,11 @@ int login_distri_plat_step2_udp(void *dat) {
 		uint32_t *json_len = (uint32_t *) buf;
 		*json_len = htons(buf_len);
 		LOGGER_DBG("send -> %d ->%s\n", json_len, buf + 4);
-		sendto(socket_descriptor, buf, buf_len + 4, 0, (struct sockaddr *) &address, sizeof(address));
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+		sendto(socket_descriptor, buf+4, buf_len , 0, (struct sockaddr *) &address, sizeof(address));
+#else 
+		sendto(socket_descriptor, buf, buf_len+4 , 0, (struct sockaddr *) &address, sizeof(address));
+#endif
 		int recv_counter = 0;
 		FD_ZERO(&rdfds);
 		FD_SET(socket_descriptor, &rdfds);
@@ -302,12 +306,21 @@ int login_distri_plat_step2_udp(void *dat) {
 					continue;
 				}
 				recv_json_len = ntohl(  *( (uint32_t *)  buf) );
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf );
+#else
 				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+#endif
+#ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+				LOGGER_ERR("dist error  no need check len\n");
+#else 
 				if (recv_json_len != (buf_len - 4)) {
 					LOGGER_ERR("receive data len not match -> %d %d\n", recv_json_len, buf_len);
 					send_counter++;
+					sleep(1);
 					continue;
 				}
+#endif
 
 				send_counter = 0;
 				int result = -1;
@@ -341,16 +354,38 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 				 */
 
 
-
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+				/*  
+int sysutils_parse_distri_server_ack_step_2_old(char *buf,
+		int *result ,
+		int *interval
+		){
+		*
+		*/
+				ret =  sysutils_parse_distri_server_ack_step_2_old(buf,&result,&interval_temp);
+				if (ret < 0){
+					LOGGER_ERR("parse json error ,may server down ,retry \n");
+					sleep(app_login_distri_server_retry_interval);
+					continue;
+				}
+				else {
+					LOGGER_TRC("parse json ok,begin login operate server\n");
+					sleep(30);
+					return RET_OK;
+				}
+#else 
 				ret = sysutils_parse_distri_server_ack_step_2(buf, 
-							&result, 
-							server_addr, 
-							&server_port,
-							&interval_temp ,
-							server_ip , //ignore this ?
-							token ,
-							exp_date ,
-							ca_download_url  );
+						&result, 
+						server_addr, 
+						&server_port,
+						&interval_temp ,
+						server_ip , //ignore this ?
+						token ,
+						exp_date ,
+						ca_download_url  );
+
+#endif 
+
 				if (ret == 0) {
 					if (result == 0) {
 						memset(&app_domain_info.operate_server , 0 ,sizeof(DnsAddressInfo) );
@@ -387,10 +422,10 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 
 			}
 
+			}
 		}
+		return ret;
 	}
-	return ret;
-}
 int login_distri_plat_step1_tcp(void *dat) {
 	LOGGER_TRC("%s\n", __FUNCTION__);
 	int ret = 0;
@@ -953,6 +988,8 @@ int app_function_flow_ctrl_init(void) {
 	app_domain_info.operate_server.tcp_port = 60004;
 	app_domain_info.operate_server.udp_port = 60004;
 	pthread_mutex_unlock(&app_domain_info.mutex_lock);
+
+	memset(&app_domain_info.message_server,0,sizeof(DnsAddressInfo) );
 	return  0;
 }
 

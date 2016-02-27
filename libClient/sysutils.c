@@ -718,6 +718,107 @@ sysutils_parse_distri_server_ack_step_1_error :
 
 }
 
+int sysutils_parse_distri_server_ack_step_2_old(char *buf,
+		int *result ,
+		int *interval
+		){
+	json_error_t json_error ;
+	json_t *json_root  = NULL;
+	json_root = json_loads(buf, 0 ,&json_error);
+	int ret = 0 ;
+	if (json_root == NULL){
+		LOGGER_ERR("parse json error -> %s\n",buf);
+		goto sysutils_parse_distri_server_ack_step_2_old_error ;
+	}
+	//Result
+	ret = sysutils_get_json_value_from(json_root,"Result",JSON_INTEGER,result ) ;
+	if (ret <  0){
+		LOGGER_ERR("get result error\n");
+		goto sysutils_parse_distri_server_ack_step_2_old_error ;
+	}
+	LOGGER_TRC("result -> %d \n",*result);
+	//Interval
+	ret = sysutils_get_json_value_from(json_root,"Interval",JSON_INTEGER,interval ) ;
+	if (ret <  0){
+		LOGGER_ERR("get interval error\n");
+		goto sysutils_parse_distri_server_ack_step_2_old_error;
+	}
+	LOGGER_TRC("interval-> %d \n",*interval);
+	//get heartbeat server
+	char heartbeat_server_addr[64] = {0};
+	int  heartbeat_server_port ;
+	ret =  sysutils_get_json_value_from(json_root,"HeartbeatIPAddr",JSON_STRING,heartbeat_server_addr) ;
+	if (ret < 0){
+		LOGGER_ERR("get Heartbeat server error \n");
+		goto sysutils_parse_distri_server_ack_step_2_old_error;
+	}
+		
+	LOGGER_TRC("heartbeat server -> %s \n",heartbeat_server_addr);
+	//get message server
+	char message_server_addr[64] = {0};
+	int  message_server_port ;
+	ret =  sysutils_get_json_value_from(json_root,"MessageServer",JSON_STRING,message_server_addr) ;
+	if (ret < 0){
+		LOGGER_ERR("get message server error \n");
+		goto sysutils_parse_distri_server_ack_step_2_old_error;
+	}
+	LOGGER_TRC("message server -> %s\n",message_server_addr);	
+//try part heartbeat server
+	char *spliter =  strstr( heartbeat_server_addr,":"	 );
+	if (!spliter){
+		LOGGER_ERR("heartbeat server parse error ->%d \n",ret);
+		goto sysutils_parse_distri_server_ack_step_2_old_error;
+	}
+	*(spliter++) = '\0';
+	heartbeat_server_port =  atoi(spliter);
+	LOGGER_TRC("heart beat -> %s %s  %d\n",heartbeat_server_addr,spliter,heartbeat_server_port);
+//try parse message server
+	spliter =  strstr( message_server_addr,":"	 );
+	if (!spliter){
+		LOGGER_ERR("heartbeat server parse error ->%d \n",ret);
+		goto sysutils_parse_distri_server_ack_step_2_old_error;
+	}
+	*(spliter++) = '\0';
+	message_server_port =  atoi(spliter);
+	LOGGER_TRC("message -> %s %s  %d\n",message_server_addr,spliter,message_server_port);
+
+	// try save heartbeat  server info
+	memcpy(app_domain_info.heartbeat_server.ip_list[0],heartbeat_server_addr,strlen(heartbeat_server_addr) );
+	app_domain_info.heartbeat_server.udp_port =  heartbeat_server_port ;
+	app_domain_info.heartbeat_server.tcp_port = heartbeat_server_port ;
+	if (netutils_is_valid_ip_addr(heartbeat_server_addr) < 0 ) {
+		//domain name 
+		app_domain_info.heartbeat_server.ip_flag =  0 ;
+	}
+	else {
+		//ipaddr
+		app_domain_info.heartbeat_server.ip_flag =  1;
+	}
+	// try save  message server info
+	memcpy(app_domain_info.message_server.ip_list[0],message_server_addr,strlen(message_server_addr) );
+	app_domain_info.message_server.udp_port =  message_server_port ;
+	app_domain_info.message_server.tcp_port = message_server_port ;
+	if (netutils_is_valid_ip_addr(message_server_addr) < 0 ) {
+		//domain name 
+		app_domain_info.message_server.ip_flag =  0 ;
+	}
+	else {
+		//ipaddr
+		app_domain_info.message_server.ip_flag =  1;
+	}
+
+	if(json_root){
+		json_decref(json_root);
+	}
+	return 0;	
+sysutils_parse_distri_server_ack_step_2_old_error:	
+	if(json_root){
+		json_decref(json_root);
+	}
+	return -1;
+
+}
+		
 int sysutils_parse_distri_server_ack_step_2(char *buf,
 		int *result,
 		char *server_addr,
