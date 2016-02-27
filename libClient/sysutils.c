@@ -24,22 +24,26 @@ extern FIFO_BUFFER_HEADER socket_tx_fifo_header;
 //#include "capi.h"
 int sysutils_active_rpc_counter = 0;
 static int  __sysutils_get_vender(char *buf){
-		sprintf(buf,"vendor 1.1");
+#ifdef   CAPI_INTERFACE_NULL_TEST
+		sprintf(buf,"XXXX");
+#else 
+		
+#endif 
 		return 0;
 		//use capi get system info
 }
 static int  __sysutils_get_firmware_ver(char *buf){
-		sprintf(buf,"sw 1.1");
+		sprintf(buf,"v1.230");
 		return 0;
 		//use capi get system info
 }
 static int  __sysutils_get_hardware_ver(char *buf){
-		sprintf(buf,"hw 1.1");
+		sprintf(buf,"sd3.64.418");
 		return 0;
 		//use capi get system info
 }
 static int  __sysutils_get_os_ver(char *buf){
-		sprintf(buf,"os 1.1");
+		sprintf(buf,"ZhiNengWangGuan OS 1");
 		return 0;
 		//use capi get system info
 }
@@ -66,12 +70,12 @@ static int  __sysutils_get_wlan_mac(char *buf){
 }
 
 static int  __sysutils_get_platform_id(char *buf){
-		sprintf(buf,"platform id test");
+		sprintf(buf,"OSGI");
 		return 0;
 		//use capi get system info
 }
 static int  __sysutils_get_card(char *buf){
-		sprintf(buf,"1.1");
+		sprintf(buf,"");
 		return 0;
 		//use capi get system info
 }
@@ -81,7 +85,7 @@ static int  __sysutils_get_sys_token(char *buf){
 	//get storage token data
 }
 static int  __sysutils_get_sys_loid(char *buf){
-	sprintf(buf,"loid data");
+	sprintf(buf,"SMARTHUBG07");
 			return 0;
 	//get storage token data
 }
@@ -401,11 +405,11 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 		json_t *vendor_obj =  json_string(vendor);
 		json_object_set(obj,"Vendor",vendor_obj);
 		//file vendor
-				json_t *firmware_ver_obj =  json_string(firmware_ver);
-				json_object_set(obj,"FirmwareVer",firmware_ver_obj);
-				//file hardware ver
-						json_t *hardware_ver_obj =  json_string(hardware_ver);
-						json_object_set(obj,"HardwareVer",hardware_ver_obj);
+		json_t *firmware_ver_obj =  json_string(firmware_ver);
+		json_object_set(obj,"FirmwareVer",firmware_ver_obj);
+		//file hardware ver
+		json_t *hardware_ver_obj =  json_string(hardware_ver);
+		json_object_set(obj,"HardwareVer",hardware_ver_obj);
 		//file mac
 		json_t *mac_obj =  json_string(mac);
 		json_object_set(obj,"MAC",mac_obj);
@@ -417,9 +421,20 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 		json_object_set(obj,"PlatformID",platform_id_obj);
 
 		//fill counter
-			json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-			json_object_set(obj,"ID",counter_obj);
-			//dump
+		json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
+		json_object_set(obj,"ID",counter_obj);
+		//dump
+#ifdef  DISTRI_SERVER_TEMP_TEST
+		json_t *dev_rnd_obj = json_string("44464135443C07090878276F5D4D187F");
+		json_object_set(obj,"DevRND",dev_rnd_obj);
+		json_t *card_obj = json_string("");
+		json_object_set(obj,"Card",card_obj);
+		json_t *loid_obj = json_string("SMARTHUBG07");
+		json_object_set(obj,"LOID",loid_obj);
+		json_t *os_obj = json_string("ZhiNengWangGuan OS 1");
+		json_object_set(obj,"OsVer",os_obj);
+
+#endif 
 
 		char *result =  json_dumps(obj,JSON_COMPACT);
 		memcpy(buf,result,strlen(result));
@@ -430,7 +445,19 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 		json_decref(mac_obj);
 		json_decref(ip_obj);
 		json_decref(platform_id_obj);
+#ifdef  DISTRI_SERVER_TEMP_TEST
+		json_decref(dev_rnd_obj);
+		json_decref(card_obj);
+		json_decref(loid_obj);
+		json_decref(os_obj);
 
+#endif 
+#ifdef  DISTRI_SERVER_TEMP_TEST
+		if(dev_rnd_obj) json_decref(dev_rnd_obj);
+		if(card_obj) json_decref(card_obj);
+		if(loid_obj) json_decref(loid_obj);
+
+#endif 
 		json_decref(obj);
 		free(result);
 		return strlen(buf);
