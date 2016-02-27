@@ -2,7 +2,7 @@
 
 
 # http://www.gnu.org/software/autoconf
-
+*.cache
 *.o
 *.lo
 *.so 

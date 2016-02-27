@@ -190,8 +190,8 @@ int login_distri_plat_step1_udp(void *dat) {
 				if (ret == 0) {
 					if (result == 0) {
 						app_login_distri_server_retry_interval = interval_temp;
-						memset(app_security_info.chanllege_code, 0, 16) ;
-						memcpy(app_security_info.chanllege_code, challenge_code, 16);
+						memset(app_security_info.challenge_code, 0, 16) ;
+						memcpy(app_security_info.challenge_code, challenge_code, 16);
 						LOGGER_DBG("boot first registe ok ,continue \n");
 						//server_ip is the wlan ip ,do not care it .
 
@@ -511,8 +511,8 @@ int login_distri_plat_step1_tcp(void *dat) {
 				if (ret == 0) {
 					if (result == 0) {
 						app_login_distri_server_retry_interval = interval_temp;
-						memset(app_security_info.chanllege_code, 0, 16) ;
-						memcpy(app_security_info.chanllege_code, challenge_code, 16);
+						memset(app_security_info.challenge_code, 0, 16) ;
+						memcpy(app_security_info.challenge_code, challenge_code, 16);
 						LOGGER_DBG("boot first registe ok ,continue \n");
 						//server_ip is the wlan ip ,do not care it .
 

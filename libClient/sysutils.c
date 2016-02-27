@@ -18,14 +18,25 @@
 #include "sysutils.h"
 #include "md5.h"
 #include "base64.h"
+#include "libClient.h"
 
 #include "capi.h"
 extern FIFO_BUFFER_HEADER socket_tx_fifo_header;
+extern AppSecurityInfo app_security_info;
 //#include "capi.h"
 int sysutils_active_rpc_counter = 0;
 static int  __sysutils_get_vender(char *buf){
 #ifdef   CAPI_INTERFACE_NULL_TEST
 		sprintf(buf,"XXXX");
+#else 
+		
+#endif 
+		return 0;
+		//use capi get system info
+}
+static int  __sysutils_get_user_id(char *buf){
+#ifdef   CAPI_INTERFACE_NULL_TEST
+		sprintf(buf,"F45BB1D7FB5E");
 #else 
 		
 #endif 
@@ -90,13 +101,15 @@ static int  __sysutils_get_sys_loid(char *buf){
 	//get storage token data
 }
 static int  __sysutils_get_sys_sn(char *buf){
+//	ctSgw_sysGetSSN();
 	sprintf(buf,"sn data");
 			return 0;
 	//get storage token data
 }
 static int  __sysutils_get_sys_ssn(char *buf){
-	sprintf(buf,"sn data");
-			return 0;
+	buf[0] = 0;
+	//	sprintf(buf,"sn data");
+	return 0;
 	//get storage token data
 }
 static int  __sysutils_get_sys_time(char *buf){
@@ -115,7 +128,9 @@ static int  __sysutils_get_sys_time(char *buf){
 }
 
 static int  __sysutils_get_buf_md5(char *buf,char *md5){
-	md5_calc(md5,buf,strlen(buf));
+	char tmp[20] = {0};
+	md5_calc(tmp,buf,strlen(buf));
+	hash_bin2hex(tmp,md5,16);
 	//printf("md5: %s ->%s\n",buf,md5);
 			return 0;
 	//get storage token data
@@ -466,76 +481,101 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 		return strlen(buf);
 }
 int sysutils_get_json_rpc_register_first(char *buf){
-	 char vendor[64] = {0};
-		if (__sysutils_get_vender(vendor) <  0){
-			//return 0;
-		}
-		char firmware_ver[64] = {0};
-		if (__sysutils_get_firmware_ver(firmware_ver) <  0){
-					//return 0;
-		}
-		char hardware_ver[20] = {0};
-		if (__sysutils_get_hardware_ver(hardware_ver) < 0){
-			//return 0;
-		}
-		char mac[64] = {0};
-		if (__sysutils_get_wlan_mac(mac) < 0){
-			//return 0;
-		}
-		char ip[64] = {0};
-		if (__sysutils_get_wlan_ip_addr(ip) < 0){
-			//return 0;
-		}
-		char platform_id[64] = {0};
-		if (__sysutils_get_platform_id(platform_id) < 0){
-			//return 0;
-		}
+	char mac[20]  =  {0};
+	if (__sysutils_get_wlan_mac(mac) < 0 ){
+		return -1;
+	}
+	char sn[40] = {0};
+	if (__sysutils_get_sys_sn(sn) <  0 ){
+		return -1;
+	}
+	char ssn[40] = {0};
+	if (__sysutils_get_sys_sn(ssn) <  0 ){
+		return -1;
+	}
+	char loid[40] = {0};
+	if (__sysutils_get_sys_loid(loid) < 0){
+		return -1;
+	}
+
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG 
+	//get user_id
+	char user_id[40] = {0} ; //challenge_code+loid 
+	char temp[40] = {0};
+	sprintf(temp,"%s%s",app_security_info.challenge_code,loid );
+	if(__sysutils_get_buf_md5(temp,user_id ) < 0 ){
+		return -1;
+	}
+	LOGGER_TRC("user id  ->%s \n",user_id);
+#else 
+	//get check ssn
+	char check_ssn[40] = {0 } ; //challenge_code + ssn
+	char temp[40] = {0};
+	sprintf(temp,"%s%s",app_security_info.challenge_code,ssn);
+	if(__sysutils_get_buf_md5(temp,check_ssn ) < 0 ){
+		return -1;
+	}
+	LOGGER_TRC("check_ssn  ->%s \n",check_ssn);
+
+#endif 
+	//get check sn
+	char check_sn[40] = {0}; //challenge_code + 
+	memset(temp ,0,40);
+	sprintf(temp,"%s%s",app_security_info.challenge_code,ssn);
+	char check_ssn[40] = {0};
+	if(__sysutils_get_buf_md5(temp,check_ssn) < 0 ){
+		return -1;
+	}
+	LOGGER_TRC("check sn-> %s\n");
 
 
-		//srand( (unsigned)time( NULL ) );
-		//thread safe
-		//json_object_seed(rand());
-		json_t *obj = json_object();
-		//file rpc
-		json_t *rpc_obj =  json_string("BootFirst");
-		json_object_set(obj,"RpcMethod",rpc_obj);
-		//file vendor
-		json_t *vendor_obj =  json_string(vendor);
-		json_object_set(obj,"Vendor",vendor_obj);
-		//file vendor
-				json_t *firmware_ver_obj =  json_string(firmware_ver);
-				json_object_set(obj,"FirmwareVer",firmware_ver_obj);
-				//file hardware ver
-						json_t *hardware_ver_obj =  json_string(hardware_ver);
-						json_object_set(obj,"HardwareVer",hardware_ver_obj);
-		//file mac
-		json_t *mac_obj =  json_string(mac);
-		json_object_set(obj,"MAC",mac_obj);
-		//file ip
-		json_t *ip_obj =  json_string(ip);
-		json_object_set(obj,"IPAddr",ip_obj);
-		//file platform
-		json_t *platform_id_obj =  json_string(platform_id);
-		json_object_set(obj,"PlatformID",platform_id_obj);
 
-		//fill counter
-			json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-			json_object_set(obj,"ID",counter_obj);
-			//dump
+	json_t *obj = json_object();
+	//file rpc
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+	json_t *rpc_obj =  json_string("Register");
+#else 
+	json_t *rpc_obj =  json_string("RegisterFirst");
+#endif
+	json_object_set(obj,"RpcMethod",rpc_obj);
+	//file check sn
+	json_t *check_sn_obj =  json_string(check_sn);
+	json_object_set(obj,"CheckSN",check_sn_obj);
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+	//file user id 
+	json_t *user_id_obj =  json_string(user_id); json_object_set(obj,"UserID",user_id_obj);
+#else 
+	//file check ssn
+	json_t *check_ssn_obj =  json_string(check_ssn);
+	json_object_set(obj,"CheckSSN",check_ssn_obj);
+#endif
 
-		char *result =  json_dumps(obj,JSON_COMPACT);
-		memcpy(buf,result,strlen(result));
-		json_decref(rpc_obj);
-		json_decref(vendor_obj);
-		json_decref(firmware_ver_obj);
-		json_decref(hardware_ver_obj);
-		json_decref(mac_obj);
-		json_decref(ip_obj);
-		json_decref(platform_id_obj);
+	//fill mac
+	json_t *mac_obj = json_string(  mac );
+	json_object_set(obj,"MAC",mac_obj);
 
-		json_decref(obj);
-		free(result);
-		return strlen(buf);
+	//fill counter
+	json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
+	json_object_set(obj,"ID",counter_obj);
+	//dump
+
+	char *result =  json_dumps(obj,JSON_COMPACT);
+	memcpy(buf,result,strlen(result));
+	json_decref(mac_obj);
+	json_decref(rpc_obj);
+	json_decref(check_sn_obj);
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+
+	json_decref(user_id_obj);
+#else 
+
+	json_decref(check_ssn_obj);
+#endif 
+	json_decref(counter_obj);
+
+	json_decref(obj);
+	free(result);
+	return strlen(buf);
 }
 int sysutils_parse_rpc_json_type(char *buf,int cmdType){
 	 char vendor[64] = {0};
