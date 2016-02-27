@@ -640,6 +640,7 @@ int sysutils_parse_distri_server_ack_step_1(char *buf,int *result,char *challeng
 	}
 	LOGGER_TRC("challenge_code-> %s\n",challenge_code);
 #ifdef  DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+	LOGGER_TRC("try get flag\n");
 	char buffer[20] = {0} ;
 	ret = sysutils_get_json_value_from(json_root,"flag",JSON_STRING,buffer);
 	if(ret < 0){

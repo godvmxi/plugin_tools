@@ -233,7 +233,7 @@ int login_distri_plat_step2_udp(void *dat) {
 	struct timeval tv;
 	char *ip  =  app_domain_info.distri_server.ip_list[app_domain_info.distri_server.cur_ip] ;
 	uint32_t port = app_domain_info.distri_server.udp_port ;
-	LOGGER_DBG("using ip address ->%s \n",ip);
+	LOGGER_DBG("using ip address ->%s %d \n",ip ,port);
 	while (1) { //try send 3 time with interval 
 		bzero(&address, sizeof(address));
 		address.sin_family = AF_INET;
