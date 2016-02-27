@@ -139,51 +139,7 @@ static int  __sysutils_get_buf_md5(char *buf,char *md5,int len){
 
 int sysutils_get_json_rpc_boot(char *buf){
 
-
-	char loid[64] = {0};
-	if (__sysutils_get_sys_loid(loid) <  0){
-		//return 0;
-	}
-	char mac[20] = {0};
-	if (__sysutils_get_wlan_mac(mac) < 0){
-		//return 0;
-	}
-	char token[64] = {0};
-	if (__sysutils_get_sys_token(token) < 0){
-		//return 0;
-	}
-
-	//srand( (unsigned)time( NULL ) );
-	//thread safe
-	//json_object_seed(rand());
-	json_t *obj = json_object();
-	//file rpc
-	json_t *rpc_obj =  json_string("Boot");
-	json_object_set(obj,"RpcMethod",rpc_obj);
-	//file loid
-	json_t *loid_obj =  json_string(loid);
-	json_object_set(obj,"LOID",loid_obj);
-	//file mac
-	json_t *mac_obj =  json_string(mac);
-	json_object_set(obj,"MAC",mac_obj);
-	json_t *token_obj =  json_string(token);
-	json_object_set(obj,"Token",token_obj);
-	//fill counter
-	json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-	json_object_set(obj,"ID",counter_obj);
-	//dump
-	char *result =  json_dumps(obj,JSON_COMPACT);
-	memcpy(buf,result,strlen(result));
-	//free all
-	json_decref(rpc_obj);
-	json_decref(loid_obj);
-	json_decref(mac_obj);
-	json_decref(token_obj);
-	json_decref(counter_obj);
-	json_decref(obj);
-	free(result);
-
-	return 0;
+	return sysutils_get_json_rpc_boot_first(buf);
 }
 int sysutils_get_json_rpc_heartbeat(char *buf){
 	char ip[64] = {0};
@@ -793,6 +749,7 @@ int sysutils_parse_distri_server_ack_step_2_old(char *buf,
 	else {
 		//ipaddr
 		app_domain_info.heartbeat_server.ip_flag =  1;
+		app_domain_info.heartbeat_server.ip_list_number = 1;
 	}
 	// try save  message server info
 	memcpy(app_domain_info.message_server.ip_list[0],message_server_addr,strlen(message_server_addr) );
@@ -805,8 +762,10 @@ int sysutils_parse_distri_server_ack_step_2_old(char *buf,
 	else {
 		//ipaddr
 		app_domain_info.message_server.ip_flag =  1;
+		app_domain_info.message_server.ip_list_number = 1;
 	}
-
+	//current the heartbeat and operate_server is the same server 
+	app_domain_info.operate_server =  app_domain_info.message_server;
 	if(json_root){
 		json_decref(json_root);
 	}
@@ -1971,7 +1930,7 @@ int sysutils_get_json_value_from(json_t *obj, char *key ,json_type  type   ,void
 	char * temp =  NULL ;
 	switch(type){
 		case JSON_STRING :
-		    temp = json_string_value(obj_value);
+		    temp = (char *)json_string_value(obj_value);
 			memcpy(buf,temp,strlen(temp));
 			break;
 		case JSON_INTEGER :

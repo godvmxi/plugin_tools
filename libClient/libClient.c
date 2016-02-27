@@ -191,7 +191,7 @@ int login_distri_plat_step1_udp(void *dat) {
 					if (result == 0) {
 						app_login_distri_server_retry_interval = interval_temp;
 						memset(app_security_info.challenge_code, 0, 64) ;
-						printf("challege_code len -> %d\n",strlen(challenge_code));
+						LOGGER_TRC("challege_code len -> %d\n",(int) strlen(challenge_code) );
 						memcpy(app_security_info.challenge_code, challenge_code,strlen(challenge_code));
 						LOGGER_DBG("boot first registe ok ,continue \n");
 						//server_ip is the wlan ip ,do not care it .
@@ -370,7 +370,6 @@ int sysutils_parse_distri_server_ack_step_2_old(char *buf,
 				}
 				else {
 					LOGGER_TRC("parse json ok,begin login operate server\n");
-					sleep(30);
 					return RET_OK;
 				}
 #else 
@@ -990,6 +989,7 @@ int app_function_flow_ctrl_init(void) {
 	pthread_mutex_unlock(&app_domain_info.mutex_lock);
 
 	memset(&app_domain_info.message_server,0,sizeof(DnsAddressInfo) );
+	memset(&app_domain_info.heartbeat_server,0,sizeof(DnsAddressInfo) );
 	return  0;
 }
 

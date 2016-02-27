@@ -92,6 +92,10 @@ int sysutils_parse_distri_server_ack_step_2(char *buf,
 		char *token,
 		char *exp_date,
 		char *ca_download_url);
+int sysutils_parse_distri_server_ack_step_2_old(char *buf,
+		int *result ,
+		int *interval
+		);
 int sysutils_parse_operate_login_ack(char *buf,int *result);
 int sysutils_parse_json_cmd_type(char *buf, RPC_METHOD_ENUM  *type , int ID);
 int sysutils_parse_json_is_result(char *buf,int *result ,int *id) ;
