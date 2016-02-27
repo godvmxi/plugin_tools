@@ -9,6 +9,7 @@
 #ifndef __FIFO_BUFFER_H_
 #define __FIFO_BUFFER_H_
 #define  MAX_FIFO_BUF_SIZE  512
+#include "debug.h"
 
 typedef struct FIFO_BUFFER_NODE *FIFO_BUFFER_NODE_POINT ;
 struct FIFO_BUFFER_NODE{

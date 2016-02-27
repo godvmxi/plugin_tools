@@ -26,7 +26,7 @@ int  netutils_dns_resolver(char *domain,char *ip_list,int max_ret_ip,int max_len
 	max_ret_ip--;
 	for (i = 0; ( (answer->h_addr_list)[i] != NULL  )|| (i == max_ret_ip ); i++) {
 		inet_ntop(AF_INET, (answer->h_addr_list)[i], ipstr, 16);
-		printf("dns-> %s ->%ld\n", ipstr,ipstr-ip_list);
+		printf("dns-> %d ->%s\n",i ,ipstr);
 		ipstr+= max_len_ip;
 	}
 	return i;

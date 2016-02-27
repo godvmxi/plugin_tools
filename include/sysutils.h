@@ -9,6 +9,7 @@
 #define SYSUTILS_H_
 #include "jansson.h"
 #include <stdarg.h>
+#include "debug.h"
 typedef enum {
 	RPC_METHOD_INVALID = -1,
 	RPC_METHOD_ACK  = 0,

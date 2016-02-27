@@ -20,8 +20,6 @@
 #include "base64.h"
 
 #include "capi.h"
-
-extern FIFO_BUFFER_HEADER socket_rx_fifo_header;
 extern FIFO_BUFFER_HEADER socket_tx_fifo_header;
 //#include "capi.h"
 int sysutils_active_rpc_counter = 0;
@@ -62,7 +60,7 @@ static int  __sysutils_get_plugin_info(char *name){
 }
 static int  __sysutils_get_wlan_mac(char *buf){
 		char mac[] =  {0x84,0x82,0xf4,0x1c,0xe9,0x28 };
-		sprintf(buf,"8482F41CE928");
+		sprintf(buf,"48555F44CA00");
 		return 0;
 		//use capi get system info
 }
@@ -393,7 +391,11 @@ int sysutils_get_json_rpc_boot_first(char *buf ){
 		//json_object_seed(rand());
 		json_t *obj = json_object();
 		//file rpc
+#ifdef DISTRI_SERVER_TEMP_TEST
+		json_t *rpc_obj =  json_string("Boot");
+#else 
 		json_t *rpc_obj =  json_string("BootFirst");
+#endif
 		json_object_set(obj,"RpcMethod",rpc_obj);
 		//file vendor
 		json_t *vendor_obj =  json_string(vendor);

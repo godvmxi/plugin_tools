@@ -1,6 +1,6 @@
 #ifndef __NETUTILS_H__
 #define __NETUTILS_H__
-
+#include "debug.h"
 
 int  netutils_dns_resolver(char *domain,char *ip_list,int max_ret_ip,int max_len_ip);
 

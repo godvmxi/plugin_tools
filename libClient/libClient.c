@@ -65,6 +65,7 @@ int manual_interactive_flow_control(const char *info) {
 }
 int login_distri_plat_step1_udp(void *dat) {
 	LOGGER_TRC("%s\n", __FUNCTION__);
+//	return RET_NO_ACK ;
 	int ret = 0;
 #if DEBUG_FLOW_CONTROL == 1
 	ret = manual_interactive_flow_control(__FUNCTION__);
@@ -78,9 +79,12 @@ int login_distri_plat_step1_udp(void *dat) {
 		ip_num = netutils_dns_resolver(dns, ip_list, NETUTIIS_MAX_IP_PER_DOMAIN, NETUTILS_MAX_IP_LEN);
 		LOGGER_DBG("dns resolver result -> %d\n", ip_num);
 		if (ip_num <= 0 ){
-			LOGGER_ERR("operate_server dns failed,sleep and retry\n");
+			LOGGER_ERR("distri_server dns failed,sleep and retry\n");
 			sleep(app_login_distri_server_retry_interval);
 			return RET_DNS_FAILED ;
+		}
+		else {
+			break;
 		}
 	}
 	app_domain_info.distri_server.cur_ip = 0;
@@ -98,6 +102,10 @@ int login_distri_plat_step1_udp(void *dat) {
 	struct timeval tv;
 
 	while (1) {
+		LOGGER_TRC("begin try ip -> %s %d \n",
+				app_domain_info.distri_server.ip_list[cur_ip_index],
+				app_domain_info.distri_server.udp_port
+				);
 		if (cur_ip_index >= ip_num) {
 			LOGGER_DBG("no valid ip can be used\n");
 			return RET_NO_ACK;
@@ -378,6 +386,145 @@ int login_distri_plat_step1_tcp(void *dat) {
 	ret = manual_interactive_flow_control(__FUNCTION__);
 	return ret;
 #endif
+	int dns_retry_counter = 0 ;
+	char *dns = app_domain_info.distri_server.domain;
+	char *ip_list = app_domain_info.distri_server.ip_list[0];
+	int ip_num  = 0;
+	while (1) {
+		ip_num = netutils_dns_resolver(dns, ip_list, NETUTIIS_MAX_IP_PER_DOMAIN, NETUTILS_MAX_IP_LEN);
+		LOGGER_DBG("dns resolver result -> %d\n", ip_num);
+		if (ip_num <= 0 ){
+			LOGGER_ERR("operate_server dns failed,sleep and retry\n");
+			sleep(app_login_distri_server_retry_interval);
+			return RET_DNS_FAILED ;
+		}
+		else {
+			break;
+		}
+	}
+	app_domain_info.distri_server.cur_ip = 0;
+	app_domain_info.distri_server.ip_list_number = ip_num;
+	int cur_ip_index = 0;
+
+	int socket_descriptor;
+	int iter = 0;
+
+	int send_counter = 0;
+	struct sockaddr_in address;
+	char buf[1024] = { 0 };
+	uint32_t recv_json_len;
+	fd_set rdfds;
+	struct timeval tv;
+
+	while (1) {
+		LOGGER_TRC("begin try ip ->\n");
+		if (cur_ip_index >= ip_num) {
+			LOGGER_DBG("no valid ip can be used\n");
+			return RET_NO_ACK;
+		}
+		bzero(&address, sizeof(address));
+		address.sin_family = AF_INET;
+		address.sin_addr.s_addr = inet_addr(app_domain_info.distri_server.ip_list[cur_ip_index]);
+		address.sin_port = htons(app_domain_info.distri_server.udp_port);
+		//create socket
+		if (socket_descriptor > 0) {
+			close(socket_descriptor);
+			socket_descriptor =  -1;
+		}
+		socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
+
+		ret = connect(socket_descriptor ,&address ,sizeof(address) );
+		if (ret <   0 ){
+			LOGGER_ERR("tcp connect error \n");
+			close(socket_descriptor);
+			sleep(app_login_distri_server_retry_interval);
+			continue ;
+		}
+		LOGGER_TRC("connect result -> %d \n",ret);
+
+		memset(buf, 0, 1024);
+		sysutils_get_json_rpc_boot_first(buf + 4);
+		if(ret < 0 ){
+			LOGGER_ERR("get rpc boot first_json error \n");
+			return RET_SYS_ERROR ;
+		}
+		LOGGER_DBG("json->%s\n", buf + 4);
+		uint32_t buf_len = strlen(buf + 4);
+		uint32_t *json_len = (uint32_t *) buf;
+		*json_len = htons(buf_len);
+		LOGGER_DBG("send -> %d ->%s\n", json_len, buf + 4);
+		sendto(socket_descriptor, buf, buf_len + 4, 0, (struct sockaddr *) &address, sizeof(address));
+		int recv_counter = 0;
+		FD_ZERO(&rdfds);
+		FD_SET(socket_descriptor, &rdfds);
+		tv.tv_sec = 15;
+		tv.tv_usec = 500;
+		ret = select(socket_descriptor + 1, &rdfds, NULL, NULL, &tv);
+		if (ret == 0) {
+			LOGGER_DBG("no data and timeout\n");
+			recv_counter++;
+			sleep(app_login_distri_server_retry_interval);
+			continue;
+		}
+		if (ret < 0)
+			perror("select");/* 这说明select函数出错 */
+		else if (ret == 0) {
+			//have been handler before ,never run to here
+			printf("no data and timeout\n");
+		}
+
+		else { /* 说明等待时间还未到1秒加500毫秒，socket的状态发生了变化 */
+			printf("ret=%d\n", ret); /* if ret>1，more handler changed  */
+
+			if (FD_ISSET(socket_descriptor, &rdfds)) {
+				/* read data */
+				memset(buf, 0, 1024);
+				buf_len = recv(socket_descriptor, buf, 1024, 0);
+				if (buf_len < 0) {
+					LOGGER_DBG("receive data error -> %d\n", buf_len);
+					send_counter++;
+					continue;
+				}
+				recv_json_len = ntohl(  *( (uint32_t *)  buf) );
+				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+				if (recv_json_len != (buf_len - 4)) {
+					LOGGER_ERR("receive data len not match -> %d %d\n", recv_json_len, buf_len);
+					send_counter++;
+					continue;
+				}
+
+				send_counter = 0;
+				int result = -1;
+				int interval_temp = 0;
+				char challenge_code[20] = { 0 };
+				char server_ip[20] = { 0 };
+				ret = sysutils_parse_distri_server_ack_step_1(buf, &result, challenge_code, &interval_temp, server_ip);
+				if (ret == 0) {
+					if (result == 0) {
+						app_login_distri_server_retry_interval = interval_temp;
+						memset(app_security_info.chanllege_code, 0, 16) ;
+						memcpy(app_security_info.chanllege_code, challenge_code, 16);
+						LOGGER_DBG("boot first registe ok ,continue \n");
+						//server_ip is the wlan ip ,do not care it .
+
+						return RET_OK;
+					} else {
+						LOGGER_ERR("Boot first reigister failed \n");
+						sleep(app_login_distri_server_retry_interval * 1000);
+					}
+				}
+				else{
+					LOGGER_ERR("parse ack info error \n");
+					send_counter++;
+					sleep(app_login_distri_server_retry_interval * 1000);
+					continue;
+				}
+
+			}
+
+		}
+	}
+return ret;
 	return ret;
 }
 
@@ -782,17 +929,17 @@ int app_function_flow_ctrl_init(void) {
 
 	memset(&app_domain_info.distri_server, 0, sizeof(DnsAddressInfo));
 	memset(&app_domain_info.operate_server, 0, sizeof(DnsAddressInfo));
-	sprintf(app_domain_info.distri_server.domain, "189cube.com");
+	sprintf(app_domain_info.distri_server.domain, "operatetest.189cube.com");
 	app_domain_info.distri_server.cur_ip = -1;
 	app_domain_info.distri_server.ip_list_number = 0;
-	app_domain_info.distri_server.tcp_port = 12112;
-	app_domain_info.distri_server.udp_port = 12112;
+	app_domain_info.distri_server.tcp_port = 60001;
+	app_domain_info.distri_server.udp_port = 60001;
 
-	sprintf(app_domain_info.operate_server.domain, "189cube.com");
+	sprintf(app_domain_info.operate_server.domain, "operatetest.189cube.com");
 	app_domain_info.operate_server.cur_ip = -1;
 	app_domain_info.operate_server.ip_list_number = 0;
-	app_domain_info.distri_server.tcp_port = 12112;
-	app_domain_info.distri_server.udp_port = 12112;
+	app_domain_info.operate_server.tcp_port = 60004;
+	app_domain_info.operate_server.udp_port = 60004;
 	pthread_mutex_unlock(&app_domain_info.mutex_lock);
 	return  0;
 }

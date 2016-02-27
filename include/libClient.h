@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "netutils.h"
 #include <pthread.h>
+#include "debug.h"
 typedef enum{
 	LOGIN_DISTRI_PLAT_STEP1_UDP=0,
 	LOGIN_DISTRI_PLAT_STEP2_UDP =1 ,
