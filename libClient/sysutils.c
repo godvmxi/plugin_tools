@@ -102,7 +102,7 @@ static int  __sysutils_get_sys_loid(char *buf){
 }
 static int  __sysutils_get_sys_sn(char *buf){
 //	ctSgw_sysGetSSN();
-	sprintf(buf,"sn data");
+	sprintf(buf,"48555F-4384248555F44CA00");
 			return 0;
 	//get storage token data
 }
@@ -494,11 +494,14 @@ int sysutils_get_json_rpc_register_first(char *buf){
 	}
 
 		printf("?????\n");
+	memset(app_security_info.challenge_code,0,64);
+	strcat(app_security_info.challenge_code,"C69AD54D2253C7AF5D11960F9618B79A"  );
+//
 #ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG 
 	//get user_id
 	char user_id[64] = {0} ; //challenge_code+loid 
 	char temp[64] = {0};
-	sprintf(temp,"%s%s",app_security_info.challenge_code,loid );
+	sprintf(temp,"%s%s",sn,loid );
 	if(__sysutils_get_buf_md5(temp,user_id ,strlen(temp)) < 0 ){
 		return -1;
 	}
@@ -510,7 +513,7 @@ int sysutils_get_json_rpc_register_first(char *buf){
 		return -1;
 	}
 	char temp[40] = {0};
-	sprintf(temp,"%s%s",app_security_info.challenge_code,ssn);
+	sprintf(temp,"%s%s",app_security_info.challenge_code,sn);
 	LOGGER_TRC("ssn -> %s : %s\n",ssn,temp);
 	if(__sysutils_get_buf_md5(temp,check_ssn,strlen(temp) ) < 0 ){
 		return -1;
@@ -518,10 +521,13 @@ int sysutils_get_json_rpc_register_first(char *buf){
 	LOGGER_TRC("check_ssn  ->%s \n",check_ssn);
 
 #endif 
+	LOGGER_TRC("challenge_code->%s\n",app_security_info.challenge_code);
+	LOGGER_TRC("sn-> %s \n",sn);
 	//get check sn
 	char check_sn[40] = {0}; //challenge_code + 
 	memset(temp ,0,40);
-	sprintf(temp,"%s%s",app_security_info.challenge_code,check_sn);
+	sprintf(temp,"%s%s",app_security_info.challenge_code,sn);
+//	sprintf(temp,"1234567890\n");
 	if(__sysutils_get_buf_md5(temp,check_sn,strlen(temp)) < 0 ){
 		return -1;
 	}
@@ -553,6 +559,9 @@ int sysutils_get_json_rpc_register_first(char *buf){
 	json_t *mac_obj = json_string(  mac );
 	json_object_set(obj,"MAC",mac_obj);
 
+	//fill flag 
+	json_t *flag_obj = json_integer( 1 );
+	json_object_set(obj,"flag",flag_obj);
 	//fill counter
 	json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
 	json_object_set(obj,"ID",counter_obj);
