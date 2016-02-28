@@ -18,7 +18,6 @@
 *.libs*
 Makefile
 *.gch
-libtool
 main/main
 *.out
 .*.swp
