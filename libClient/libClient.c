@@ -1091,7 +1091,7 @@ int login_no_std_operate_step1_tcp(void *dat) {
 			ret = send(sockfd,buf,buf_len+4 ,0 );
 			LOGGER_DBG("tcp send result -> %d\n",ret);
 			//try receive ack
-			
+
 			FD_ZERO(&rdfds);
 			FD_SET(sockfd, &rdfds);
 			tv.tv_sec = 15;
@@ -1141,62 +1141,76 @@ int login_no_std_operate_step1_tcp(void *dat) {
 				else if (buf_len == 0 ) {
 					continue;
 				}
+				LOGGER_TRC("boot ack ->%s \n",buf+4);
 				//buf has valid data ,just parse it 
 				resend_counter = 0;
-				int id = 0;
+				//try check json len
+				json_len =   ntohl ( * ( (uint32_t *)buf ) );
+				if (json_len != strlen(buf+4 ) ){
+					LOGGER_ERR("json len not match -> %d %d\n",json_len,strlen(buf+4));
+					sleep(5);
+					//TODO : add handler
+				}
+				LOGGER_TRC("json len match \n");
 				memset(challenge_code,0,64);
 				ret = sysutils_parse_operate_server_boot_ack(buf+4,&result,challenge_code );
-				if (ret == 0) {
-					if (result >= 0) {
-						LOGGER_DBG("boot first registe ok ,continue \n");
-						resend_counter = 0;
-						memcpy(app_security_info.challenge_code,challenge_code,64 );
-						LOGGER_TRC("boot ack ->%s \n",buf+4);
-						LOGGER_TRC("challenge_code: %s  flag :%d ->%s \n",challenge_code,flag);
-						//server_ip is the wlan ip ,do not care it .
-						//goto register setup
-					} else {
-						LOGGER_ERR("Boot first reigister failed \n");
-						sleep(app_login_distri_server_retry_interval * 1000);
-						resend_counter++;
-					}
+				if (ret <  0){
+
+					LOGGER_ERR("Boot first reigister failed \n");
+					sleep(app_login_distri_server_retry_interval * 1000);
+					resend_counter++;
+					continue ;
 				}
-				else if (result ==  -1 ){
-					LOGGER_ERR("try another ip -1\n");
-					close(sockfd);
-					sockfd = -1;
+				if (result < 0 ){
+					LOGGER_TRC("boot ack result error -> %d\n",result);
+					//TODO : handler all error code ,but i do no known how many error code
+					sleep(app_login_distri_server_retry_interval);
 					resend_counter++;
 					continue;
 				}
+				LOGGER_DBG("boot first registe ok ,result -> %d \n",result);
+				resend_counter = 0;
+				memcpy(app_security_info.challenge_code,challenge_code,64 );
+				LOGGER_TRC("challenge_code: %s  flag :%d  \n",challenge_code,flag);
+				//server_ip is the wlan ip ,do not care it .
+				//goto register setup
+			}
+			else { //slect fd_set check error
+				LOGGER_ERR("fd set find no fd readable \n");
+				sleep(app_login_distri_server_retry_interval);
+				close(sockfd);
+				sockfd = -1;
+				resend_counter++;
+				continue ;
+			}
 			
-				//
-				//
-				//
-				//
-				//try register
+			//
+			//
+			//
+			//
+			//try register
 
 
-				//
-				//
-				//
-				//
-				//
-				//now login success  .clear flags and try receive 
-				resend_counter = 0 ;
-				//begin handle all socket receive 	
-				ret = socket_data_handler(sockfd);
-				if (ret == RET_NETWORK_DOWN ) {
-					sleep(app_login_distri_server_retry_interval);
-					continue;
-				}
-				if (app_socket_loop_exit_event == ExitEventReConnectDistriServer )
-					return RET_DISTRI_SERVER_RECONNECT ;
-				else {
-
-				}
+			//
+			//
+			//
+			//
+			//
+			//now login success  .clear flags and try receive 
+			resend_counter = 0 ;
+			//begin handle all socket receive 	
+			LOGGER_DBG("begin wait for server cmd\n");
+			ret = socket_data_handler(sockfd);
+			if (ret == RET_NETWORK_DOWN ) {
+				sleep(app_login_distri_server_retry_interval);
+				continue;
+			}
+			if (app_socket_loop_exit_event == ExitEventReConnectDistriServer )
+				return RET_DISTRI_SERVER_RECONNECT ;
+			else {
 
 			}
-		}
+		} //end while send loop
 	}
 	return ret;
 }
