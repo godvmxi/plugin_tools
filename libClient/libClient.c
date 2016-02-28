@@ -1146,9 +1146,105 @@ int login_no_std_operate_step1_tcp(void *dat) {
 						continue;
 					}
 				}
-				//now login success  .clear flags and try receive 
-				resend_counter = 0 ;
-				//begin handle all socket receive 	
+				//
+				//
+				//
+				//
+				//try register
+
+				ret = sysutils_no_std_get_json_rpc_boot(buf+4);		
+				if(ret < 0 ){
+					logger_err("get rpc boot json error \n");
+					return ret_sys_error ;
+				}
+				logger_dbg("json->%s\n", buf + 4);
+				uint32_t buf_len = strlen(buf + 4);
+				uint32_t *json_len = (uint32_t *) buf;
+				*json_len = htonl(buf_len);
+				logger_dbg("send -> %d ->%s\n", json_len, buf + 4);
+				ret = send(sockfd,buf,buf_len+4 ,0 );
+				logger_dbg("tcp send result -> %d\n",ret);
+				//try receive ack
+
+				fd_zero(&rdfds);
+				fd_set(sockfd, &rdfds);
+				tv.tv_sec = 15;
+				tv.tv_usec = 0;
+				ret = select(sockfd + 1, &rdfds, null, null, &tv);
+				logger_trc("select ret -> %d\n",ret);
+				if (ret == 0) {
+					logger_dbg("no data and timeout\n");
+					close(sockfd);
+					resend_counter++ ;
+					logger_dbg("wait for 15s and time out ,no data\n");
+					sleep(app_login_distri_server_retry_interval);
+					continue ;
+				}
+				if (ret < 0)
+				{
+					logger_err("select error ->%d \n",ret);
+				}
+				else if (ret == 0) {
+					//have been handler before ,never run to here
+					printf("no data and timeout\n");
+				}
+				else { //incoming data
+					ssize_t buf_len ;
+					if (fd_isset(sockfd, &rdfds)) {
+						/* read data */
+						memset(buf, 0, 1024);
+						buf_len = recv(sockfd, buf, 1024, 0);
+						logger_dbg("receive data -> %d -> %s\n",buf_len, buf );
+						if (buf_len < 0) {
+							logger_dbg("receive data error -> %d\n", buf_len);
+							resend_counter++;
+							sleep(app_login_distri_server_retry_interval);
+							close(sockfd);
+							sockfd = -1;
+						}
+						else if (buf_len == 0 ) {
+							continue;
+						}
+
+
+						resend_counter = 0;
+						int id = 0;
+						memset(challenge_code,0,64);
+						ret = sysutils_parse_operate_server_boot_ack(buf+4,&result,challenge_code );
+						if (ret == 0) {
+							if (result >= 0) {
+								logger_dbg("boot first registe ok ,continue \n");
+								resend_counter = 0;
+								memcpy(app_security_info.challenge_code,challenge_code,64 );
+								logger_trc("boot ack ->%s \n",buf+4);
+								logger_trc("challenge_code: %s  flag :%d ->%s \n",challenge_code,flag);
+								//server_ip is the wlan ip ,do not care it .
+								//goto register setup
+							} else {
+								logger_err("boot first reigister failed \n");
+								sleep(app_login_distri_server_retry_interval * 1000);
+								resend_counter++;
+							}
+						}
+						else if (result ==  -1 ){
+							logger_err("try another ip -1\n");
+							close(sockfd);
+							sockfd = -1;
+							resend_counter++;
+							continue;
+						}
+					}
+
+
+
+					//
+					//
+					//
+					//
+					//
+					//now login success  .clear flags and try receive 
+					resend_counter = 0 ;
+					//begin handle all socket receive 	
 				ret = socket_data_handler(sockfd);
 				if (ret == RET_NETWORK_DOWN ) {
 					sleep(app_login_distri_server_retry_interval);
