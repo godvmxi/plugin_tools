@@ -20,7 +20,7 @@
 #include "base64.h"
 #include "libClient.h"
 
-#include "capi.h"
+//#include "capi.h"
 extern FIFO_BUFFER_HEADER socket_tx_fifo_header;
 extern AppSecurityInfo app_security_info;
 //#include "capi.h"
