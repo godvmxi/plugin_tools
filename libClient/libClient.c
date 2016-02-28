@@ -37,7 +37,7 @@ AppSocketLoopExitEvent  app_socket_loop_exit_event  = ExitEventNone ;
 
 int app_login_distri_server_retry_interval = 30;
 int app_login_operate_server_retry_interval = 60;
-int app_login_operate_server_heartbeat_interval = 60;
+int app_login_operate_server_heartbeat_interval = 10;
 int app_socket_working_state =  1;
 int app_theard_exit_flag = 0;
 #define APP_DEFAULT_FIFO_BUFFER_SIZE   10
@@ -794,12 +794,15 @@ int socket_data_handler(int sockfd ){
 	time_t time_old ;
 	time_t time_new ;
 	time_t time_rx_monitor ;
-	time(&time_old) ;
-	time_new =time_old ;
+	time(&time_new) ;
+	time_old = 0;
 	time_rx_monitor = time_new ;
+	printf("hearteart interval -> %d\n",app_login_operate_server_heartbeat_interval);
 	while(app_socket_working_state ) { //every 0.5s 检查一次
 		//check reconnect event or others
+		LOGGER_TRC("start new loop\n");
 		if(app_socket_loop_exit_event != ExitEventNone ){
+			LOGGER_TRC("thread exit normal\n");
 			return RET_OK ;
 		}
 		//try to check ack message ,if 3*heartbeat interval no ack message ,will deifine the network down ,try reconnect network
@@ -814,51 +817,56 @@ int socket_data_handler(int sockfd ){
 			LOGGER_TRC("send heartbeat info\n");
 			time_old =  time_new ;
 			time(&time_new) ;
-			while(1){ //try get heartbeat message
-				ret = sysutils_get_json_rpc_heartbeat(buf+4);
-				if (ret < 0 ){
-					if(resend_heartbeat_counter > 3 ){
-						app_socket_working_state = -1;
-						return RET_SYS_ERROR ;
-					}
-					else {
-						sleep(3);
-						resend_heartbeat_counter++;
-						continue;
-					}
+			//try get heartbeat message
+			ret = sysutils_get_json_rpc_heartbeat(buf+4);
+			LOGGER_TRC("heart beart-> %s \n",buf+4);
+			if (ret < 0 ){
+				if(resend_heartbeat_counter > 3 ){
+					app_socket_working_state = -1;
+					return RET_SYS_ERROR ;
 				}
 				else {
-					resend_heartbeat_counter = 0 ;
+					resend_heartbeat_counter++;
 				}
 			}
+			else {
+				resend_heartbeat_counter = 0 ;
+			}
+
 			buf_len =  strlen(buf+4);
 		}
 		else {
+			LOGGER_TRC("try read tx fifo\n");
+#if 0
 			ret = fifo_buffer_get(&socket_tx_fifo_header,buf+4,&buf_len);
 			if(ret  <  0){
-				//LOGGER_TRC("no data for send"\n);
+				LOGGER_TRC("no tx fifo data for send\n");
 				memset(buf,0,5);
 			}
 			buf[buf_len+4] = '\0';
+#endif 
 		}
 		if (buf_len != 0 ){
 			uint32_t *len = (uint32_t *)buf ;
-			*len =  htons(buf_len);
+			*len =  htonl(buf_len);
 			ret = send(sockfd, buf,buf_len+4 ,0);
 			if (ret <  0){
 				LOGGER_ERR("send data error ,network down ,please reconnect\n");
 				app_socket_working_state = -1;
 				return RET_NETWORK_DOWN;
 			}
+			else {
+				LOGGER_TRC("send message ok ->%d\n",ret);
+			}
 		}
 		FD_ZERO(&rdfds);
 		FD_SET(sockfd, &rdfds);
-		tv.tv_sec = 0;
+		tv.tv_sec = 4;
 		tv.tv_usec = 200;
 		ret = select(sockfd + 1, &rdfds, NULL, NULL, &tv);
 		if (ret == 0) {
 			LOGGER_DBG("no data and timeout\n");
-			sleep(app_login_distri_server_retry_interval);
+		//	sleep(app_login_distri_server_retry_interval);
 			continue;
 		}
 		if (ret < 0) {
@@ -866,10 +874,11 @@ int socket_data_handler(int sockfd ){
 		}
 		else if (ret == 0) {
 			//have been handler before ,never run to here
-			printf("no data and timeout\n");
+			printf("select no data and timeout\n");
+			continue;
 		}
 
-		else { /* 说明等待时间还未到1秒加500毫秒，socket的状态发生了变化 */
+		else { 
 			printf("ret=%d\n", ret); /* if ret>1，more handler changed  */
 
 			if (FD_ISSET(sockfd, &rdfds)) {
@@ -883,15 +892,17 @@ int socket_data_handler(int sockfd ){
 				recv_json_len = ntohl(  *( (uint32_t *)  buf) );
 				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
 				if (recv_json_len != (buf_len - 4)) {
-					LOGGER_ERR("receive data len not match -> %d %d,just drop it \n", recv_json_len, buf_len);
+					LOGGER_ERR("receive ?? data len not match -> %d %d,just drop it \n", recv_json_len, buf_len);
 				}
-				fifo_buffer_put(&socket_rx_fifo_header , buf, buf_len);	
+				
+				fifo_buffer_put(&socket_rx_fifo_header , buf+4, buf_len - 4);	
 				//update time_rx_monitor 
 				time(&time_rx_monitor);
 			}
 		}
 
 	}
+	LOGGER_TRC("unexpect exit\n");
 	return RET_NO_ACK ;
 }
 int socket_data_handler_loop(void *dat) {
@@ -906,6 +917,8 @@ int socket_data_handler_loop(void *dat) {
 	return ret;
 }
 int app_function_flow_ctrl_init(void) {
+	fifo_buffer_init(&socket_rx_fifo_header, 10);
+	fifo_buffer_init(&socket_tx_fifo_header,10 );
 	memset(&app_function_flow_ctrl, 0, sizeof(AppFunctionFlowCtrl));
 
 	//init all handler list
@@ -1039,6 +1052,7 @@ int login_no_std_operate_step1_tcp(void *dat) {
 
 	}
 	while(1)  { //check next dns
+		memset(buf,0,1024);
 		if (current_ip_index > app_domain_info.operate_server.ip_list_number ) {
 			LOGGER_ERR("no ip address can reached \n");
 			return RET_NO_ACK ;
@@ -1367,24 +1381,30 @@ int app_function_parse_fifo_buffer_thread(void *dat){
 	char buf[1024];
 	int buf_len = 0 ;
 	int ret = 0;
+	sleep(3);
 	while(1 ){
+		memset(buf,0,1024);
 		if(app_theard_exit_flag  > 0 ){
 			LOGGER_TRC("app thread exit ->%s\n",__FUNCTION__);
 			return 0 ;
 		}
-		ret = fifo_buffer_get(&socket_rx_fifo_header ,buf,&buf_len);
+	//	printf("get tx buffer begin\n");
+		ret = fifo_buffer_get(&socket_rx_fifo_header ,buf+4,&buf_len);
+		printf("get rx buffer -> %d\n",ret);
 		if (ret < 0 ){
 			//no message 
 			sleep(1);
 			continue ;
 		}
-		ret = sysutils_try_handler_ack_result_message(buf);
+		LOGGER_TRC("read rx fifo -> %s  %d\n",buf+4,buf_len);
+		ret = sysutils_try_handler_ack_result_message(buf+4);
 		if(ret  > 0 ){
 			LOGGER_TRC("ack messge \n");
 			continue ;	
 		}
 		else if (ret == 0 ){
-			ret = sysutils_try_handler_server_push_message(buf);
+			LOGGER_TRC("not ack result,try rpc method\n");
+			ret = sysutils_try_handler_server_push_message(buf+4);
 			if(ret  > 0 ){
 				LOGGER_TRC(" push message \n");
 				continue ;	

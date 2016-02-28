@@ -140,7 +140,14 @@ static int  __sysutils_get_buf_md5(char *buf,char *md5,int len){
 	return 0;
 	//get storage token data
 }
-
+int sysutils_get_base64_decode(char *base64,char *decode , int *decode_len){
+	*decode_len = base64_decode(base64,decode);	
+	return 0;
+}
+int sysutils_get_base64_encode(char *bin_dat,char *base64 , int bin_len){
+	base64_encode(bin_dat,base64,bin_len);	
+	return 0;
+}
 int sysutils_get_json_rpc_boot(char *buf){
 
 	return sysutils_get_json_rpc_boot_first(buf);
@@ -175,7 +182,7 @@ int sysutils_get_json_rpc_heartbeat(char *buf){
 
 	//fill counter
 	json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
-	json_object_set(obj,"ID",counter_obj);
+//	json_object_set(obj,"ID",counter_obj);
 	//dump
 
 	char *result =  json_dumps(obj,JSON_COMPACT);
@@ -1489,69 +1496,37 @@ int sysutils_try_handler_ack_result_message(char *buf){
 	json_t *obj_result = NULL;
 	int result = 0 ;
 	char *temp =NULL ;
-	
+	int ret = 0 ;
+	printf("-->%s\n",__FUNCTION__);	
 	json_root = json_loads(buf, 0 ,&json_error);
 	if (json_root == NULL){
 		LOGGER_ERR("parse json error -> %s\n",buf);
-		return -1;
+		ret = -1;
+		goto sysutils_try_handler_ack_result_message_error;
 	}
+	printf("try get rusult key -> \n");
 	//Result
-	obj_result =  json_object_get(json_root,"Result" ) ;
-	if(obj_result == NULL ){
+	ret =  sysutils_get_json_value_from(json_root,"Result",JSON_INTEGER ,&result) ;
+	printf("try parse json result -> %d\n",ret);
+	if(ret < 0 ){
 		//not ack result
-		return 0;
-	}
-
-	if (json_is_number(obj_result)  ==  JSON_TRUE ){
-		result = json_integer_value(obj_result) ;
-	}
-	else if(json_is_string(obj_result ) ==  JSON_TRUE ){
-		temp =  (char *) json_string_value(obj_result ) ;
-		if (temp != NULL) {
-			result = atoi(temp);
-			free(temp);
-		}
-		else {
-			LOGGER_ERR("reuslt get result code error\n");
-			goto sysutils_try_handler_ack_result_message_error ;
-		}
-
+		ret = 0;
 	}
 	else {
-		LOGGER_ERR("reuslt value error\n");
-		goto sysutils_try_handler_ack_result_message_error ;
+		ret = 1;
 	}
+	LOGGER_TRC("try handler result  -> %d %d\n",ret ,result);
 
-	switch (result ){
-		case  0: //ok ,try parse other info
-			break ;
-		case -1: //????
-			LOGGER_DBG("ack result -1, how to handler it ?? \n");
-			break;
-		case -2 :
-			LOGGER_DBG("ack result -2 ,how to handler it ??  \n");
-			break ;
-		case -3:
-			LOGGER_DBG("device should re-register to distri_server\n");
-			break;
-	}
-
-	if (obj_result != NULL){
-		json_decref(obj_result);
-	}
 	if (json_root != NULL){
 		json_decref(json_root);
 	}
-	return 1;
+	return ret;
 sysutils_try_handler_ack_result_message_error:
-	if (obj_result != NULL){
-		json_decref(obj_result);
-	}
 	if (json_root != NULL){
 		json_decref(json_root);
 	}
 
-	return -1;
+	return ret;
 }
 /*
  * 
@@ -1568,92 +1543,96 @@ int sysutils_try_handler_server_push_message(char *buf){
 	RPC_METHOD_ENUM rpc_method_type = 0 ;
 	int result = 0 ;
 	char *temp =NULL ;
-	char rpc_method[20];
+	char rpc_method[40] = {0};
+	int ret  = 0;
+	int id = 0 ;
 	
 	json_root = json_loads(buf, 0 ,&json_error);
 	if (json_root == NULL){
 		LOGGER_ERR("parse json error -> %s\n",buf);
 		return -1;
 	}
+	LOGGER_TRC("parse json ,ok .try get rpc method\n");
+	ret =  sysutils_get_json_value_from(json_root ,"RPCMethod",JSON_STRING,rpc_method);
+	if (ret < 0){
+		ret =  -1;
+		goto sysutils_try_handler_server_push_message_error ;
+	}
+	else if (ret == 0 ) {
+		printf("2\n");
+		ret = 1 ;
+	}
 	//Result
-	obj_rpc_method =  json_object_get(json_root,"RPCMethod" ) ;
-	if(obj_rpc_method == NULL ){
-		//not ack result
-		return 0;
-	}
-
-	if(json_is_string(obj_rpc_method ) ==  JSON_TRUE ){
-		temp =  (char *) json_string_value(obj_rpc_method ) ;
-		if (temp != NULL) {
-			memcpy(rpc_method,temp,strlen(temp));
-			free(temp);
+	//
+	if (ret ==  1) {
+		/*
+		ret =  sysutils_get_json_value_from(json_root ,"ID",JSON_INTEGER,&id);
+		if (ret < 0){
+			ret =  -1;
+			goto sysutils_try_handler_server_push_message_error ;
 		}
-		else {
-			LOGGER_ERR("get rpc method  error\n");
-			goto sysutils_try_handler_server_push_message_error;
+		LOGGER_TRC("get rpc id -> %d \n",id);
+		*/
+		rpc_method_type =  sysutils_get_rpc_type(rpc_method);
+		/*
+		 * Disconnect
+		 * Install
+		 * Install_query
+		 * Install_cancel
+		 * UnInstall
+		 * Stop
+		 * Run
+		 * FactoryPlugin
+		 * ListPlugin
+		 * SetPlug-inParameterValues
+		 */
+		switch(rpc_method_type) {
+			case RPC_METHOD_DISCONNECT :
+				sysutils_downlink_rpc_handler_disconnect(json_root);
+				break;
+			case RPC_METHOD_INSTALL :
+				sysutils_downlink_rpc_handler_install(json_root);
+
+				break;
+			case RPC_METHOD_INSTALL_QUERY :
+				sysutils_downlink_rpc_handler_install_query(json_root);
+
+				break;
+			case RPC_METHOD_INSTALL_CANCEL :
+				sysutils_downlink_rpc_handler_install_query(json_root);
+
+				break;
+			case RPC_METHOD_UNINSTALL :
+				sysutils_downlink_rpc_handler_uninstall(json_root);
+
+				break;
+			case RPC_METHOD_STOP :
+				sysutils_downlink_rpc_handler_stop(json_root);
+
+				break;
+			case RPC_METHOD_RUN :
+				sysutils_downlink_rpc_handler_run(json_root);
+
+				break;
+			case RPC_METHOD_FACTORY_PLUGIN :
+				sysutils_downlink_rpc_handler_factory_plugin(json_root);
+
+				break;
+			case RPC_METHOD_LIST_PLUGIN :
+				sysutils_downlink_rpc_handler_list_plugin(json_root);
+
+				break;
+			case RPC_METHOD_SET_PLUGIN_PARA :
+				sysutils_downlink_rpc_handler_set_plugin_para(json_root);
+
+				break;
+			case RPC_METHOD_POST :
+				sysutils_downlink_rpc_handler_post(json_root);
+
+				break;
+			default :
+				LOGGER_ERR("unknown rpc method -> %d %s \n",rpc_method_type,rpc_method);
 		}
-
-	}
-	else {
-		LOGGER_ERR("rpc value is error\n");
-		goto sysutils_try_handler_server_push_message_error;
-	}
-//	
-	rpc_method_type =  sysutils_get_rpc_type(rpc_method);
-/*
- * Disconnect
- * Install
- * Install_query
- * Install_cancel
- * UnInstall
- * Stop
- * Run
- * FactoryPlugin
- * ListPlugin
- * SetPlug-inParameterValues
- */
-	switch(rpc_method_type) {
-		case RPC_METHOD_DISCONNECT :
-			sysutils_downlink_rpc_handler_disconnect(json_root);
-			break;
-		case RPC_METHOD_INSTALL :
-			sysutils_downlink_rpc_handler_install(json_root);
-
-			break;
-		case RPC_METHOD_INSTALL_QUERY :
-			sysutils_downlink_rpc_handler_install_query(json_root);
-
-			break;
-		case RPC_METHOD_INSTALL_CANCEL :
-			sysutils_downlink_rpc_handler_install_query(json_root);
-
-			break;
-		case RPC_METHOD_UNINSTALL :
-			sysutils_downlink_rpc_handler_uninstall(json_root);
-
-			break;
-		case RPC_METHOD_STOP :
-			sysutils_downlink_rpc_handler_stop(json_root);
-
-			break;
-		case RPC_METHOD_RUN :
-			sysutils_downlink_rpc_handler_run(json_root);
-
-			break;
-		case RPC_METHOD_FACTORY_PLUGIN :
-			sysutils_downlink_rpc_handler_factory_plugin(json_root);
-
-			break;
-		case RPC_METHOD_LIST_PLUGIN :
-			sysutils_downlink_rpc_handler_list_plugin(json_root);
-
-			break;
-		case RPC_METHOD_SET_PLUGIN_PARA :
-			sysutils_downlink_rpc_handler_set_plugin_para(json_root);
-
-			break;
-		default :
-			LOGGER_ERR("unknown rpc method -> %d %s \n",rpc_method_type,rpc_method);
 	}
 	if(json_root  != NULL)
 		json_decref(json_root);
@@ -1711,6 +1690,9 @@ RPC_METHOD_ENUM sysutils_get_rpc_type(char *buf) {
 	if (strncmp(buf,"SetPlug-inParameterValues",strlen("SetPlug-inParameterValues") ) == 0 ){
 		return RPC_METHOD_SET_PLUGIN_PARA ;
 	}
+	if (strncmp(buf,"Post",strlen("Post") ) == 0 ){
+		return RPC_METHOD_POST ;
+	}
 	return RPC_METHOD_INVALID;
 }
 /*
@@ -1728,6 +1710,7 @@ RPC_METHOD_ENUM sysutils_get_rpc_type(char *buf) {
 int sysutils_downlink_rpc_handler_disconnect(json_t *obj ){
 	//get distri_server info 
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
+	return 1;
 }
 int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
@@ -1982,8 +1965,40 @@ sysutils_downlink_rpc_handler_stop_error :
 	LOGGER_ERR("install query error \n");
 	return -1;
 }
-int sysutils_downlink_rpc_handler_run(json_t *obj ){
+int sysutils_downlink_rpc_handler_post(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
+	char name_buf[64]  = {0};
+	char para_buf[256] = {0};
+	int ret =0 ;
+	int id  = 0 ;
+	char para_decode_buf[2546];
+	int para_decode_len = 0 ;
+	ret = sysutils_get_json_value_from(obj,"Parameter" ,JSON_STRING ,para_buf) ;
+	if (ret < 0) {
+		LOGGER_ERR("get post parameter error \n");
+		return -1;
+	}
+	LOGGER_TRC("para  -> %s\n",para_buf  );
+	printf("1\n");
+	ret = sysutils_get_json_value_from(obj,"ID",JSON_INTEGER ,&id );
+	if (ret < 0) {
+		LOGGER_ERR("get post id error \n");
+		return -1;
+	}
+	LOGGER_TRC("id    -> %d\n",id );
+	printf("1\n");
+	ret = sysutils_get_json_value_from(obj ,"Plugin_Name" ,JSON_STRING ,name_buf) ;
+	if (ret < 0) {
+		LOGGER_ERR("get post name error \n");
+		return -1;
+	}
+	LOGGER_TRC("name  -> %s\n",name_buf  );
+	ret = sysutils_get_base64_decode(para_buf, para_decode_buf , &para_decode_len);
+	LOGGER_TRC("base64 : %s -> %s  %d\n",para_buf,para_decode_buf,para_decode_len);
+
+
+}
+int sysutils_downlink_rpc_handler_run(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 	char name_buf[64]  = {0};
 	char version_buf[64]  = {0};
@@ -2080,6 +2095,7 @@ int sysutils_downlink_rpc_handler_set_plugin_para(json_t *obj ){
 	int upgrade_id  =  0;
 	int id  =  0;
 	int ret = 0 ;
+	return 0;
 	//get Plugin_Name
 	ret = sysutils_get_json_value_from(obj,"Plugin_Name",JSON_STRING,name_buf);
 	if(ret < 0 )
@@ -2239,7 +2255,7 @@ sysutils_send_json_plugin_ack_message_error :
 int sysutils_get_json_value_from(json_t *obj, char *key ,json_type  type   ,void *buf){
 	json_t *obj_value = json_object_get(obj,key);
 	if (!obj_value){
-		LOGGER_ERR("%s get error -> %s ,%d\n",key,type);
+		LOGGER_ERR("get error -> %s ,%d\n",key,type);
 		return -1;
 	}
 	int ret = json_typeof(obj_value) ;

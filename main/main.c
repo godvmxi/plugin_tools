@@ -27,7 +27,7 @@
 #include <pthread.h>
 #include <capisys.h>
 #include <unistd.h>
-
+#include <fifobuffer.h>
 #include "capi-app-mgr.h"
 
 int main(int argc, char **argv) {
@@ -65,17 +65,17 @@ int main(int argc, char **argv) {
 		printf("create thread capi handler  error\n");
 		exit(1);
 	}
+#endif 
 	ret = pthread_create(&thread_downlink_handler,	NULL,(void *)app_function_parse_fifo_buffer_thread ,NULL);
 	if(ret != 0 ){
 		printf("create thread downlink hander error\n");
 		exit(1);
 	}
-#endif 
 	//LOG_DEBUG("maini app is runing ,waiting for all \n");
 	sleep(2);
 	pthread_join(thread_network_handler,NULL);
 //	pthread_join(thread_capi_handler,NULL);
-//	pthread_join(thread_downlink_handler,NULL);
+	pthread_join(thread_downlink_handler,NULL);
 	while(1){
 		sleep(1);
 	}
