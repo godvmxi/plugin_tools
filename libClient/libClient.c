@@ -1024,6 +1024,7 @@ int login_no_std_operate_step1_tcp(void *dat) {
 	int check_sn_buf[64] = {0};
 	char mac[20]  = {0};
 	ssize_t buf_len ;
+	ssize_t json_len ;
 
 	if (app_domain_info.operate_server.ip_flag == 0 ){
 		//do dns resolver
@@ -1078,6 +1079,7 @@ int login_no_std_operate_step1_tcp(void *dat) {
 				sleep(app_login_distri_server_retry_interval);
 				continue ;
 			}
+			//try send boot cmd
 			ret = sysutils_no_std_get_json_rpc_boot(buf+4);		
 			if(ret < 0 ){
 				LOGGER_ERR("get rpc boot json error \n");
@@ -1189,6 +1191,112 @@ int login_no_std_operate_step1_tcp(void *dat) {
 			//
 			//
 			//try register
+			memset(buf,0,1024);
+			ret = sysutils_no_std_get_json_rpc_register(buf+4);		
+			if(ret < 0 ){
+				LOGGER_ERR("get rpc boot json error \n");
+				return RET_SYS_ERROR ;
+			}
+			LOGGER_DBG("json->%s\n", buf + 4);
+			buf_len = strlen(buf + 4);
+			json_len = (uint32_t *) buf;
+			*json_len = htonl(buf_len);
+			LOGGER_DBG("send -> %d ->%s\n", json_len, buf + 4);
+			ret = send(sockfd,buf,buf_len+4 ,0 );
+			LOGGER_DBG("tcp send result -> %d\n",ret);
+			//try receive ack
+
+			FD_ZERO(&rdfds);
+			FD_SET(sockfd, &rdfds);
+			tv.tv_sec = 15;
+			tv.tv_usec = 0;
+			ret = select(sockfd + 1, &rdfds, NULL, NULL, &tv);
+			LOGGER_TRC("select ret -> %d\n",ret);
+			if (ret == 0) {
+				LOGGER_DBG("no data and timeout\n");
+				resend_counter++ ;
+				close(sockfd);
+				sockfd = -1;
+				LOGGER_DBG("wait for 15s and time out ,no data\n");
+				sleep(app_login_distri_server_retry_interval);
+				continue ;
+			}
+			if (ret < 0)
+			{
+				LOGGER_ERR("select error ->%d \n",ret);
+				close(sockfd);
+				sockfd = -1;
+				LOGGER_DBG("wait for 15s and time out ,no data\n");
+				sleep(app_login_distri_server_retry_interval);
+				continue ;
+			}
+			else if (ret == 0) {
+				//have been handler before ,never run to here
+				printf("no data and timeout\n");
+				close(sockfd);
+				sockfd = -1;
+				LOGGER_DBG("wait for 15s and time out ,no data\n");
+				sleep(app_login_distri_server_retry_interval);
+				continue ;
+			}
+			//incoming data
+			if (FD_ISSET(sockfd, &rdfds)) {
+				/* read data */
+				memset(buf, 0, 1024);
+				buf_len = recv(sockfd, buf, 1024, 0);
+				LOGGER_DBG("receive data -> %d -> %s\n",buf_len, buf );
+				if (buf_len < 0) {
+					LOGGER_DBG("receive data error -> %d\n", buf_len);
+					resend_counter++;
+					sleep(app_login_distri_server_retry_interval);
+					close(sockfd);
+					sockfd = -1;
+				}
+				else if (buf_len == 0 ) {
+					continue;
+				}
+				LOGGER_TRC("register ack ->%s \n",buf+4);
+				//buf has valid data ,just parse it 
+				resend_counter = 0;
+				//try check json len
+				json_len =   ntohl ( * ( (uint32_t *)buf ) );
+				if (json_len != strlen(buf+4 ) ){
+					LOGGER_ERR("json len not match -> %d %d\n",json_len,strlen(buf+4));
+					sleep(5);
+					//TODO : add handler
+				}
+				LOGGER_TRC("register ack json len match \n");
+				memset(challenge_code,0,64);
+				ret = sysutils_parse_operate_server_register_ack(buf+4,&result,challenge_code );
+				if (ret <  0){
+
+					LOGGER_ERR("Boot first reigister failed \n");
+					sleep(app_login_distri_server_retry_interval * 1000);
+					resend_counter++;
+					continue ;
+				}
+				if (result < 0 ){
+					LOGGER_TRC("boot ack result error -> %d\n",result);
+					//TODO : handler all error code ,but i do no known how many error code
+					sleep(app_login_distri_server_retry_interval);
+					resend_counter++;
+					continue;
+				}
+				LOGGER_DBG("boot first registe ok ,result -> %d \n",result);
+				resend_counter = 0;
+				memcpy(app_security_info.challenge_code,challenge_code,64 );
+				LOGGER_TRC("challenge_code: %s  flag :%d  \n",challenge_code,flag);
+				//server_ip is the wlan ip ,do not care it .
+				//goto register setup
+			}
+			else { //slect fd_set check error
+				LOGGER_ERR("fd set find no fd readable \n");
+				sleep(app_login_distri_server_retry_interval);
+				close(sockfd);
+				sockfd = -1;
+				resend_counter++;
+				continue ;
+			}
 
 
 			//

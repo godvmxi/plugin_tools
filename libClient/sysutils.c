@@ -678,6 +678,115 @@ sysutils_get_json_rpc_boot_first_error :
 	return -1;
 }
 int sysutils_no_std_get_json_rpc_register(char *buf){
+	char mac[20]  =  {0};
+	if (__sysutils_get_wlan_mac(mac) < 0 ){
+		return -1;
+	}
+	char sn[40] = {0};
+	if (__sysutils_get_sys_sn(sn) <  0 ){
+		return -1;
+	}
+	char ssn[40] = {0};
+	if (__sysutils_get_sys_sn(ssn) <  0 ){
+		return -1;
+	}
+	char loid[40] = {0};
+	if (__sysutils_get_sys_loid(loid) < 0){
+		return -1;
+	}
+
+		printf("?????\n");
+//	memset(app_security_info.challenge_code,0,64);
+//	strcat(app_security_info.challenge_code,"C69AD54D2253C7AF5D11960F9618B79A"  );
+//
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG 
+	//get user_id
+	char user_id[64] = {0} ; //challenge_code+loid 
+	char temp[64] = {0};
+	sprintf(temp,"%s%s",sn,loid );
+	if(__sysutils_get_buf_md5(temp,user_id ,strlen(temp)) < 0 ){
+		return -1;
+	}
+	LOGGER_TRC("user id  ->%s \n",user_id);
+#else 
+	//get check ssn
+	char check_ssn[40] = {0 } ; //challenge_code + ssn
+	if(__sysutils_get_sys_ssn(ssn) < 0){
+		return -1;
+	}
+	char temp[40] = {0};
+	sprintf(temp,"%s%s",app_security_info.challenge_code,sn);
+	LOGGER_TRC("ssn -> %s : %s\n",ssn,temp);
+	if(__sysutils_get_buf_md5(temp,check_ssn,strlen(temp) ) < 0 ){
+		return -1;
+	}
+	LOGGER_TRC("check_ssn  ->%s \n",check_ssn);
+
+#endif 
+	LOGGER_TRC("challenge_code->%s\n",app_security_info.challenge_code);
+	LOGGER_TRC("sn-> %s \n",sn);
+	//get check sn
+	char check_sn[40] = {0}; //challenge_code + 
+	memset(temp ,0,40);
+	sprintf(temp,"%s%s",app_security_info.challenge_code,sn);
+//	sprintf(temp,"1234567890\n");
+	if(__sysutils_get_buf_md5(temp,check_sn,strlen(temp)) < 0 ){
+		return -1;
+	}
+	LOGGER_TRC("check sn-> %s\n",check_sn);
+
+
+
+	json_t *obj = json_object();
+	//file rpc
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+	json_t *rpc_obj =  json_string("Register");
+#else 
+	json_t *rpc_obj =  json_string("RegisterFirst");
+#endif
+	json_object_set(obj,"RPCMethod",rpc_obj);
+	//file check sn
+	json_t *check_sn_obj =  json_string(check_sn);
+	json_object_set(obj,"CheckSN",check_sn_obj);
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+	//file user id 
+	json_t *user_id_obj =  json_string(user_id);
+//	json_object_set(obj,"UserID",user_id_obj);
+#else 
+	//file check ssn
+	json_t *check_ssn_obj =  json_string(check_ssn);
+//	json_object_set(obj,"CheckSSN",check_ssn_obj);
+#endif
+
+	//fill mac
+	json_t *mac_obj = json_string(  mac );
+	json_object_set(obj,"MAC",mac_obj);
+
+	//fill flag 
+	json_t *flag_obj = json_integer( 1 );
+//	json_object_set(obj,"flag",flag_obj);
+	//fill counter
+	json_t *counter_obj = json_integer (sysutils_active_rpc_counter++ );
+	json_object_set(obj,"ID",counter_obj);
+	//dump
+
+	char *result =  json_dumps(obj,JSON_COMPACT);
+	memcpy(buf,result,strlen(result));
+	json_decref(mac_obj);
+	json_decref(rpc_obj);
+	json_decref(check_sn_obj);
+#ifdef DISTRI_SERVER_ERROR_PROTOCOL_DEBUG
+
+	json_decref(user_id_obj);
+#else 
+
+	json_decref(check_ssn_obj);
+#endif 
+	json_decref(counter_obj);
+
+	json_decref(obj);
+	free(result);
+	return strlen(buf);
 
 	return sysutils_get_json_rpc_register_first(buf);
 }
@@ -1326,6 +1435,38 @@ int sysutils_parse_operate_server_boot_ack(char *buf,int *result,char *challenge
 
 	return 0;
 sysutils_parse_opeate_server_boot_ack_error :
+	if (json_root != NULL) {
+		json_decref(json_root);
+	}
+	return -1 ;
+
+
+
+}
+int sysutils_parse_operate_server_register_ack(char *buf,int *result) {
+	int ret = 0 ;
+	json_error_t json_error ;
+	json_t *json_root  = NULL;
+	char *temp= NULL;
+
+	assert(buf != NULL) ;
+	assert(result !=  NULL);
+	printf("parse -> %s\n",buf);
+	json_root = json_loads(buf, 0 ,&json_error);
+	if (json_root == NULL){
+		LOGGER_ERR("parse json error -> %s\n",buf);
+		goto sysutils_parse_opeate_server_register_ack_error ;
+	}
+	//Result
+	ret = sysutils_get_json_value_from(json_root,"Result",JSON_INTEGER,result);
+	if(ret < 0){
+		LOGGER_ERR("get reuslt id error \n");
+		goto sysutils_parse_opeate_server_register_ack_error;
+	}
+	json_decref(json_root);
+
+	return 0;
+sysutils_parse_opeate_server_register_ack_error :
 	if (json_root != NULL) {
 		json_decref(json_root);
 	}
