@@ -1,8 +1,21 @@
 #include "capisys.h"
 #include "logger.h"
 #include <unistd.h>
+#include <stdlib.h>
 //#include <capi.h>
 //get info list
+CapisysHandler capisys_handler[] ={
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+
+	{   {0},
+		NULL ,
+		NULL  },
+
+
+
+} ;
 int app_function_capisys_init(void){
 
 	//LOGGER_DBG("%s \n",__FUNCTION__);
