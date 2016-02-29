@@ -19,6 +19,7 @@
 #include "md5.h"
 #include "base64.h"
 #include "libClient.h"
+#include "capisys.h"
 
 //#include "capi.h"
 extern FIFO_BUFFER_HEADER socket_tx_fifo_header;
@@ -1969,6 +1970,8 @@ int sysutils_downlink_rpc_handler_post(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
 	char name_buf[64]  = {0};
 	char para_buf[256] = {0};
+	char cmd_type[64] = {0};
+	char sequence_id[64] = {0};
 	int ret =0 ;
 	int id  = 0 ;
 	char para_decode_buf[2546];
@@ -1995,7 +1998,6 @@ int sysutils_downlink_rpc_handler_post(json_t *obj ){
 	LOGGER_TRC("name  -> %s\n",name_buf  );
 	ret = sysutils_get_base64_decode(para_buf, para_decode_buf , &para_decode_len);
 	LOGGER_TRC("base64 : %s -> %s  %d\n",para_buf,para_decode_buf,para_decode_len);
-
 
 }
 int sysutils_downlink_rpc_handler_run(json_t *obj ){
@@ -2297,4 +2299,61 @@ int sysutils_download_rpc_post_handler(char *json_buf, int id ){
 	json_t *json_root =  NULL;
 	json_t *obj = NULL;
 	return 0;
+}
+extern CapisysHandler capisys_handler[] ;
+int sysutils_handler_rpc_post_para_message(char *json,char *buf){
+	json_error_t json_error ;
+	json_t *json_root  = NULL;
+	char sequence_id[32] = {0};
+	char cmd_type[32]= {0};
+	int ret = 0 ;
+	json_root = json_loads(buf, 0 ,&json_error);
+	if (json_root == NULL){
+		LOGGER_ERR("parse json error -> %s\n",buf);
+		goto sysutils_handler_rpc_post_para_message_error;
+	}
+	//try get sequence_id
+	ret = sysutils_get_json_value_from(json_root ,"CmdType",JSON_STRING,cmd_type);
+	if (ret < 0 ){
+		LOGGER_ERR("get cmdType error \n");
+		goto sysutils_handler_rpc_post_para_message_error;
+	}
+	ret = sysutils_get_json_value_from(json_root ,"SequenceId",JSON_STRING,sequence_id);
+	if (ret < 0 ){
+		LOGGER_ERR("get sequence_id error \n");
+		goto sysutils_handler_rpc_post_para_message_error;
+	}
+	char temp[1024] = {0};
+	int (*handler) (char *sequence_id,char *cmd_type,char *buf); 
+	for (int i = 0 ;i < 1024;i++){
+		if(capisys_handler[i].handler != NULL ){
+			if(	strncmp(cmd_type,capisys_handler[i].cmd_type ,strlen(capisys_handler[i].cmd_type) ) ==  0 ){
+				handler =  capisys_handler[i].handler ;
+				ret = handler(sequence_id,cmd_type,temp);
+				if(ret < 0 ){
+					LOGGER_ERR("get post result json error \n");
+					goto sysutils_handler_rpc_post_para_message_error;
+				}
+				LOGGER_DBG("ack para -> %s\n",buf);
+				ret = 0;
+				break;
+			}
+		}
+		else {
+			LOGGER_TRC("all handler is over -> %s ,no handler for this \n",cmd_type);
+			ret = -1;
+			break;
+		}
+	}
+	if(ret < 0 ){
+		goto sysutils_handler_rpc_post_para_message_error;
+	}
+	sysutils_get_base64_encode(temp,buf,strlen(temp) );	
+
+	//try parse cmd type
+	if(json_root) json_decref(json_root);
+	return  0;
+sysutils_handler_rpc_post_para_message_error:
+	if(json_root)json_decref(json_root);
+	return -1;
 }

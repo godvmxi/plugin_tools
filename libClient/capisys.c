@@ -2,9 +2,16 @@
 #include "logger.h"
 #include <unistd.h>
 #include <stdlib.h>
+#include <jansson.h>
+#include "capisys.h"
 //#include <capi.h>
 //get info list
 extern int sysutils_encode_json_from_value(char *buf ,int key_num,... );
+int capisys_post_handler(char *json_buf,char *result_buf){
+	
+
+
+}
 int app_function_capisys_init(void){
 
 	//LOGGER_DBG("%s \n",__FUNCTION__);
@@ -25,7 +32,7 @@ int capisys_query_cpu_info(char *sequence_id ,char *cmd_type ) {
 	return 0;
 }
 */
-int capisys_query_mem_info(char *sequence_id ,char *cmd_type ) {
+int capisys_query_mem_info(char *sequence_id ,char *cmd_type ,char *buf) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	char mem_info[64] = {0};
 	char failed_reason[64];
@@ -33,7 +40,12 @@ int capisys_query_mem_info(char *sequence_id ,char *cmd_type ) {
 	//TODO :all fake data
 	if (ret == 0 ){
 		strcat(mem_info,"50%");
-//		sysutils_encode_json_from_value(char *buf ,int key_num,... );
+		sysutils_encode_json_from_value(buf, 4 ,
+				"CmdType",JSON_STRING ,cmd_type ,
+				"SequenceId",JSON_STRING ,sequence_id , 
+				"Status",JSON_INTEGER ,0 ,
+				"Percent",JSON_STRING,mem_info  
+				);
 	}
 	else {
 		strcat(mem_info,"-1");
@@ -178,8 +190,7 @@ CapisysHandler capisys_handler[] ={
 		NULL   },
 	{   {0},
 		NULL ,
-		NULL  },
-
+		NULL  }
 
 
 } ;
