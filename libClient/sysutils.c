@@ -1765,7 +1765,7 @@ int sysutils_downlink_rpc_handler_install(json_t *obj ){
 	//send ack
 	//
 	char buf[1024] = {0} ;
-	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	ret = sysutils_encode_json_from_value("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
 	if(ret < 0 ){
 		LOGGER_ERR("get install ack json error \n");
 		goto sysutils_downlink_rpc_handler_install_error ;
@@ -1811,7 +1811,7 @@ int sysutils_downlink_rpc_handler_install_query(json_t *obj ){
 	//send ack
 	//
 	char buf[1024] = {0} ;
-	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	ret = sysutils_encode_json_from_value("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
 	if(ret < 0 ){
 		LOGGER_ERR("get install ack json error \n");
 		goto sysutils_downlink_rpc_handler_install_query_error ;
@@ -1854,7 +1854,7 @@ int sysutils_downlink_rpc_handler_install_cancel(json_t *obj ){
 	//send ack
 	//
 	char buf[1024] = {0} ;
-	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	ret = sysutils_encode_json_from_value("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
 	if(ret < 0 ){
 		LOGGER_ERR("get install ack json error \n");
 		goto sysutils_downlink_rpc_handler_install_cancel_error ;
@@ -1903,7 +1903,7 @@ int sysutils_downlink_rpc_handler_uninstall(json_t *obj ){
 	//send ack
 	//
 	char buf[1024] = {0} ;
-	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	ret = sysutils_encode_json_from_value("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
 	if(ret < 0 ){
 		LOGGER_ERR("get install ack json error \n");
 		goto sysutils_downlink_rpc_handler_uninstall_error ;
@@ -1948,7 +1948,7 @@ int sysutils_downlink_rpc_handler_stop(json_t *obj ){
 	//send ack
 	//
 	char buf[1024] = {0} ;
-	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	ret = sysutils_encode_json_from_value("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
 	if(ret < 0 ){
 		LOGGER_ERR("get install ack json error \n");
 		goto sysutils_downlink_rpc_handler_stop_error ;
@@ -2025,7 +2025,7 @@ int sysutils_downlink_rpc_handler_run(json_t *obj ){
 	//send ack
 	//
 	char buf[1024] = {0} ;
-	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	ret = sysutils_encode_json_from_value("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
 	if(ret < 0 ){
 		LOGGER_ERR("get install ack json error \n");
 		goto sysutils_downlink_rpc_handler_run_error ;
@@ -2070,7 +2070,7 @@ int sysutils_downlink_rpc_handler_list_plugin(json_t *obj ){
 	//send ack
 	//
 	char buf[1024] = {0} ;
-	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	ret = sysutils_encode_json_from_value("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
 	if(ret < 0 ){
 		LOGGER_ERR("get list ack json error \n");
 		goto sysutils_downlink_rpc_handler_list_plugin_error ;
@@ -2116,7 +2116,7 @@ int sysutils_downlink_rpc_handler_set_plugin_para(json_t *obj ){
 	//send ack
 	//
 	char buf[1024] = {0} ;
-	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	ret = sysutils_encode_json_from_value("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
 	if(ret < 0 ){
 		LOGGER_ERR("get install ack json error \n");
 		goto sysutils_downlink_rpc_handler_set_plugin_error ;
@@ -2161,7 +2161,7 @@ int sysutils_downlink_rpc_handler_factory_plugin(json_t *obj){
 	//send ack
 	//
 	char buf[1024] = {0} ;
-	ret = sysutils_get_json_plugin_ack_message("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
+	ret = sysutils_encode_json_from_value("Result",JSON_INTEGER,ret ,"ID",JSON_INTEGER,id);
 	if(ret < 0 ){
 		LOGGER_ERR("get install ack json error \n");
 		goto sysutils_downlink_rpc_handler_factory_error ;
@@ -2191,8 +2191,8 @@ int sysutils_download_plugin_to_plugin_dir(char *buf,char *local_file){
  * type : 0 : int 1 :string
  *  call like this  (key_num ,key1,type1,value1,key2,type2,value2 ...)
  * */
-#define JSON_MAX_ENCODE_KEYS   20
-int sysutils_get_json_plugin_ack_message(char *buf ,int key_num,... ){
+#define JSON_MAX_ENCODE_KEYS   40
+int sysutils_encode_json_from_value(char *buf ,int key_num,... ){
 	char *key = NULL;
 	char *value = NULL;
 	int value_type = 0 ;
