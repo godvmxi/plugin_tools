@@ -16,6 +16,9 @@ void logger_message( const char *fmt , ...)
 }
 
 void LOGGER_ERR(const char*fmt ,...){
+	if(LOGGER_PRI_ERR < LOGGER_PRI_SET){
+		return ;
+	}
 	va_list ap;
 	char buf[2048];
 	//assert(log_category != NULL);
@@ -28,6 +31,9 @@ void LOGGER_ERR(const char*fmt ,...){
 
 }
 void LOGGER_WARN(const char*fmt ,...){
+	if(LOGGER_PRI_WARN < LOGGER_PRI_SET){
+		return ;
+	}
 	va_list ap;
 	char buf[2048];
 	//assert(log_category != NULL);
@@ -40,6 +46,9 @@ void LOGGER_WARN(const char*fmt ,...){
 
 }
 void LOGGER_INFO(const char*fmt ,...){
+	if(LOGGER_PRI_INFO < LOGGER_PRI_SET){
+		return ;
+	}
 	va_list ap;
 	char buf[2048];
 	//assert(log_category != NULL);
@@ -52,6 +61,9 @@ void LOGGER_INFO(const char*fmt ,...){
 
 }
 void LOGGER_DBG(const char*fmt ,...) {
+	if(LOGGER_PRI_DBG < LOGGER_PRI_SET){
+		return ;
+	}
 	va_list ap;
 	char buf[2048];
 	//assert(log_category != NULL);
@@ -64,6 +76,9 @@ void LOGGER_DBG(const char*fmt ,...) {
 
 }
 void LOGGER_TRC(const char*fmt ,...) {
+	if(LOGGER_PRI_TRC < LOGGER_PRI_SET){
+		return ;
+	}
 	va_list ap;
 	char buf[2048];
 	//assert(log_category != NULL);
