@@ -818,6 +818,7 @@ int socket_data_handler(int sockfd ){
 			time_old =  time_new ;
 			time(&time_new) ;
 			//try get heartbeat message
+			memset(buf,0,1024);
 			ret = sysutils_get_json_rpc_heartbeat(buf+4);
 			LOGGER_TRC("heart beart-> %s \n",buf+4);
 			if (ret < 0 ){
