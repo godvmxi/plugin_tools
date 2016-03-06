@@ -1,6 +1,6 @@
 #include "logger.h"
 #include <stdio.h>
-#define LOGGER_MAX_BUFFER  2048
+#define LOGGER_MAX_BUFFER  1024
 
 void logger_message( const char *fmt , ...)
 {

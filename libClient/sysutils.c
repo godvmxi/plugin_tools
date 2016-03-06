@@ -2327,8 +2327,8 @@ int sysutils_encode_json_from_value(char *buf ,int key_num,... ){
 	memcpy(buf,result,strlen(result));
 	//free all
 	for(int i = 0 ;i< key_num ;i++){
-		if (obj_json_list[i] !=  0 )
-			json_decref((json_t *)obj_json_list[i]);
+//		if (obj_json_list[i] !=  0 )
+//			json_decref((json_t *)obj_json_list[i]);
 	}
 	json_decref(obj);
 	free(result);
