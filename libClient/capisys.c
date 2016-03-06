@@ -348,7 +348,31 @@ int  __capisys_ping_diag_reg(
 			){
 	return 0;
 }
+int __capisys_get_ping_result(
+			char *user_buf,
+			char *pass_buf,
+			char *ping_status,
+			char *ping_result
+		){
+	return 0;
+}
 
+int  __capisys_traceroute_diag_reg(
+			char *user_buf,
+			char *pass_buf,
+			char *dest_buf,
+			char *wan_name_buf 
+			){
+	return 0;
+}
+int __capisys_get_traceroute_result(
+			char *user_buf,
+			char *pass_buf,
+			char *traceroute_status,
+			char *traceroute_result
+		){
+	return 0;
+}
 
 
 
@@ -1404,6 +1428,172 @@ int capisys_ping_diag_reg(char *buf, char *sequence_id ,char *cmd_type ,void *da
 
 
 
+int capisys_get_ping_result(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char ping_status_buf[64] = { 0 };
+	char ping_result_buf[64] = { 0 };
+	char user_buf[64] = { 0  };
+	char pass_buf[64] = { 0  };
+#if 1
+	ret = sysutils_get_json_value_from(data,"USER",JSON_STRING,user_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get user error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"PASSWORD",JSON_STRING,pass_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get password error \n");
+	}
+#endif
+	//TODO :: user & password used for ?
+	ret = __capisys_get_ping_result( 
+				user_buf,
+				pass_buf,
+				ping_status_buf ,
+				ping_result_buf
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 5 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"PingStatus",JSON_STRING,ping_status_buf,
+					"PingResult",JSON_STRING,ping_result_buf
+				);
+
+	}
+	return 0;
+}
+
+
+
+int capisys_traceroute_diag_reg(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char realrate_buf[64] = { 0 };
+	char dest_buf[64] = { 0 };
+	char wan_name_buf[64] = { 0 };
+	char user_buf[64] = { 0  };
+	char pass_buf[64] = { 0  };
+#if 1
+	ret = sysutils_get_json_value_from(data,"USER",JSON_STRING,user_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get user error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"PASSWORD",JSON_STRING,pass_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get password error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"Dest",JSON_STRING,dest_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get dest error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"WANName",JSON_STRING,wan_name_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get wanname error \n");
+	}
+#endif
+	//TODO :: user & password used for ?
+	ret = __capisys_traceroute_diag_reg(
+			user_buf,
+			pass_buf,
+			dest_buf,
+			wan_name_buf 
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 3 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0"
+				);
+
+	}
+	return 0;
+}
+
+
+
+int capisys_get_traceroute_result(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char traceroute_status_buf[64] = { 0 };
+	char traceroute_result_buf[64] = { 0 };
+	char user_buf[64] = { 0  };
+	char pass_buf[64] = { 0  };
+#if 1
+	ret = sysutils_get_json_value_from(data,"USER",JSON_STRING,user_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get user error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"PASSWORD",JSON_STRING,pass_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get password error \n");
+	}
+#endif
+	//TODO :: user & password used for ?
+	ret = __capisys_get_ping_result( 
+				user_buf,
+				pass_buf,
+				traceroute_status_buf ,
+				traceroute_result_buf
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 5 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"TraceStatus",JSON_STRING,traceroute_status_buf,
+					"TraceResult",JSON_STRING,traceroute_result_buf
+				);
+
+	}
+	return 0;
+}
 
 
 
@@ -1492,11 +1682,11 @@ CapisysHandler capisys_handler[] ={
 	{   "PING_DIAG_REQ" ,
 		capisys_ping_diag_reg,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "TRACEROUTE_DIAG_REQ" ,
+		capisys_traceroute_diag_reg,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "GET_TRACEROUTE_RESULT" ,
+		capisys_get_traceroute_result,
 		NULL   },
 	{   "GET_SERVICE" ,
 		NULL,
