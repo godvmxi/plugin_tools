@@ -275,6 +275,10 @@ int  __capisys_query_wan_num(char *num,char *des){
 	sprintf(des,"des 1");
 	return 0;
 }
+int __capisys_get_wan_realrate(char *realrate_buf){
+	sprintf(realrate_buf,"realrate");
+	return 0;
+}
 int  __capisys_query_wan_info(
 		char *wan_name ,
 		char *index ,
@@ -999,6 +1003,51 @@ int capisys_get_lan_net_info(char *buf, char *sequence_id ,char *cmd_type ,void 
 }
 
 
+int capisys_get_wan_realrate(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char realrate_buf[64] = { 0 };
+	char user_buf[64] = { 0 };
+	char pass_buf[64] = { 0 };
+	ret = sysutils_get_json_value_from(data,"USER",JSON_STRING );
+#if 1
+	if(ret < 0 ){
+		LOGGER_ERR("get user error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"PASSWORD",JSON_STRING );
+	if(ret < 0 ){
+		LOGGER_ERR("get password error \n");
+	}
+#endif
+	//TODO :: user & password used for ?
+	ret = __capisys_get_wan_realrate(realrate_buf);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"RealTimeRate",JSON_STRING,realrate_buf
+				);
+
+	}
+	return 0;
+}
+
 
 
 
@@ -1062,7 +1111,7 @@ CapisysHandler capisys_handler[] ={
 		capisys_get_lan_net_info,
 		NULL   },
 	{   "GET_WAN_REALRATE" ,
-		NULL,
+		capisys_get_wan_realrate,
 		NULL   },
 	{   "GET_SERVICE" ,
 		NULL,
