@@ -307,7 +307,7 @@ int  __capisys_query_wan_info(
 		char *ipv6_prifix  ) {
 	return 0;
 }
-int  __capisys_wifi_info( 
+int  __capisys_get_wifi_info( 
 				char *ssid_index_buf ,
 				char *ssid_buf ,
 				char *pwd_buf,
@@ -320,6 +320,10 @@ int  __capisys_wifi_info(
 
 	return 0;
 }
+int __capisys_get_wlan_attach_info( 
+				char *num_buf ,
+				char *info_buf 
+			);	
 int app_function_capisys_init(void){
 
 	//LOGGER_DBG("%s \n",__FUNCTION__);
@@ -750,10 +754,6 @@ int capisys_query_system_info(char *buf, char *sequence_id ,char *cmd_type ,void
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
 }
-int capisys_get_wifi_info(char *buf ,char *sequence_id ,char *cmd_type ,void *data ) {
-	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
-	return 0;
-}
 
 
 int capisys_get_time_duration(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
@@ -1119,7 +1119,7 @@ int capisys_http_download_request(char *buf, char *sequence_id ,char *cmd_type ,
 	return 0;
 }
 
-int capisys_wifi_info(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+int capisys_get_wifi_info(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
 	int ret = 0 ;
 	int all_info_flag = 0 ;
@@ -1138,7 +1138,7 @@ int capisys_wifi_info(char *buf, char *sequence_id ,char *cmd_type ,void *data )
 	}
 #endif
 	//TODO :: user & password used for ?
-	ret = __capisys_wifi_info( 
+	ret = __capisys_get_wifi_info( 
 				ssid_index_buf ,
 				ssid_buf ,
 				pwd_buf,
@@ -1163,7 +1163,7 @@ int capisys_wifi_info(char *buf, char *sequence_id ,char *cmd_type ,void *data )
 				);
 	}else 
 	{
-		ret = sysutils_encode_json_from_value(buf, 4 ,
+		ret = sysutils_encode_json_from_value(buf, 10 ,
 					"CmdType",JSON_STRING ,cmd_type,
 					"SequenceId",JSON_STRING,sequence_id ,
 					"Status",JSON_STRING,"0",
@@ -1174,6 +1174,44 @@ int capisys_wifi_info(char *buf, char *sequence_id ,char *cmd_type ,void *data )
 					"PowerLevel-5G",JSON_STRING,power_level_5g_buf,
 					"Channel",JSON_STRING,channel_buf,
 					"Enable",JSON_STRING,enable_buf
+				);
+
+	}
+	return 0;
+}
+
+int capisys_get_wlan_attach_info(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char num_buf[64] = { 0 };
+	char info_buf[64] = { 0 };
+	//TODO :: user & password used for ?
+	ret = __capisys_get_wlan_attach_info( 
+				num_buf ,
+				info_buf 
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 5 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"Num",JSON_STRING,num_buf,
+					"Info",JSON_STRING,info_buf
 				);
 
 	}
@@ -1259,10 +1297,10 @@ CapisysHandler capisys_handler[] ={
 		capisys_http_download_request,
 		NULL   },
 	{   "GET_WIFI_INFO" ,
-		capisys_wifi_info,
+		capisys_get_wifi_info,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "GET_WLAN_ATTACH_INFO" ,
+		capisys_get_wlan_attach_info,
 		NULL   },
 	{   "GET_SERVICE" ,
 		NULL,
