@@ -5,6 +5,7 @@
 #include <jansson.h>
 #include "capisys.h"
 #include <time.h>
+#include "sysutils.h"
 //#include <capi.h>
 //get info list
 extern int sysutils_encode_json_from_value(char *buf ,int key_num,... );
@@ -390,7 +391,19 @@ int __capisys_get_inform_result(
 	return 0;
 }
 
+int  __capisys_register( 
+			char *user_buf,
+				char *pass_buf,
+				char *province_buf
+		){
+	return 0;
+}
 
+int  __capisys_get_register_stat( 
+				register_status_buf 
+			){
+	return 0;
+}
 
 
 
@@ -1714,7 +1727,93 @@ int capisys_get_inform_result(char *buf, char *sequence_id ,char *cmd_type ,void
 	return 0;
 }
 
+int capisys_register(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char inform_status_buf[64] = { 0 };
+	char inform_result_buf[64] = { 0 };
+	char user_buf[64] = { 0  };
+	char pass_buf[64] = { 0  };
+	char province_buf[64] = { 0  };
+#if 1
+	ret = sysutils_get_json_value_from(data,"USERID",JSON_STRING,user_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get user error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"PASSWORD",JSON_STRING,pass_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get password error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"Province",JSON_STRING,province_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get province error \n");
+	}
+#endif
+	//TODO :: user & password used for ?
+	ret = __capisys_register( 
+				user_buf,
+				pass_buf,
+				province_buf
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 3 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0"
+				);
 
+	}
+	return 0;
+}
+
+int capisys_get_register_stat(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char register_status_buf[64] = { 0 };
+	ret = __capisys_get_register_stat( 
+				register_status_buf 
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"RegisterStatus",JSON_STRING,register_status_buf
+				);
+
+	}
+	return 0;
+}
 
 
 
@@ -1831,14 +1930,14 @@ CapisysHandler capisys_handler[] ={
 	{   "INFORM_DIAG_REQ" ,
 		capisys_inform_diag_reg,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "GET_INFORM_RESULT" ,
+		capisys_get_inform_result,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "REGISTER_GETSTAT" ,
+		capisys_get_register_stat,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "REGISTER" ,
+		capisys_register,
 		NULL   },
 	{   "GET_SERVICE" ,
 		NULL,
