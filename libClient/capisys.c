@@ -224,6 +224,47 @@ int  __capisys_get_version2(char *buf){
 	sprintf(buf,"v2");
 	return 0;
 }
+int __capisys_dial_ppoe_request(
+								char *con_status ,
+								char *wan_status ,
+								char *dail_reason ,
+								char *con1_status ,
+								char *wan1_status ,
+								char *dail1_reason ) {
+	sprintf(con_status,"con");
+	sprintf(wan_status,"wan");
+	sprintf(dail_reason,"dial");
+	sprintf(con1_status,"con1");
+	sprintf(wan1_status,"wan1");
+	sprintf(dail1_reason,"dial1");
+	return 0;
+
+}
+
+int  __capisys_get_lan1_status(char *buf){
+	sprintf(buf,"status lan 1");
+	return 0;
+}
+int  __capisys_get_lan2_status(char *buf){
+	sprintf(buf,"status lan 2");
+	return 0;
+}
+int  __capisys_get_lan3_status(char *buf){
+	sprintf(buf,"status lan 3");
+	return 0;
+}
+int  __capisys_get_lan4_status(char *buf){
+	sprintf(buf,"status lan 4");
+	return 0;
+}
+int  __capisys_get_wan_status(char *buf){
+	sprintf(buf,"status wan 1");
+	return 0;
+}
+int  __capisys_get_wifi_status(char *buf){
+	sprintf(buf,"status wan 1");
+	return 0;
+}
 int app_function_capisys_init(void){
 
 	//LOGGER_DBG("%s \n",__FUNCTION__);
@@ -422,10 +463,116 @@ int capisys_query_wlan_info(char *buf,char *sequence_id ,char *cmd_type ) {
 }
 int capisys_systest(char *buf,char *sequence_id ,char *cmd_type ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char lan1_buf[64] = { 0 };
+	char lan2_buf[64] = { 0 };
+	char lan3_buf[64] = { 0 };
+	char lan4_buf[64] = { 0 };
+	char wan_buf[64] = { 0 };
+	char wifi_buf[64] = { 0 };
+	ret = __capisys_get_lan1_status(lan1_buf);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get lan 1 error\n");
+	}
+	ret = __capisys_get_lan2_status(lan2_buf);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get lan 2 error\n");
+	}
+	ret = __capisys_get_lan4_status(lan3_buf);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get lan 3 error\n");
+	}
+	ret = __capisys_get_lan4_status(lan4_buf);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get lan 4 error\n");
+	}
+	ret = __capisys_get_wan_status(wan_buf);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan1 1 error\n");
+	}
+	ret = __capisys_get_wifi_status(wifi_buf);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wifi error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 6 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"LAN1Status",JSON_STRING,lan1_buf,
+					"LAN2Status",JSON_STRING,lan2_buf,
+					"LAN3Status",JSON_STRING,lan3_buf,
+					"LAN4Status",JSON_STRING,lan4_buf,
+					"WANStatus",JSON_STRING,wan_buf,
+					"WIFIModuleStatus",JSON_STRING,wifi_buf
+				);
+
+	}
 	return 0;
 }
 int capisys_ppoe_diag_req(char *buf ,char *sequence_id ,char *cmd_type ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char connection_status_buf[64] = { 0 };
+	char wan_status_buf[64] = { 0 };
+	char dial_reason_buf[64] = { 0 };
+	char connection_status1_buf[64] = { 0 };
+	char wan_status1_buf[64] = { 0 };
+	char dial_reason1_buf[64] = { 0 };
+	ret = __capisys_dial_ppoe_request(
+			connection_status_buf ,
+			wan_status_buf,
+			dial_reason_buf,
+			connection_status1_buf ,
+			wan_status1_buf,
+			dial_reason1_buf
+			);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get dial ppoe request error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 9 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"ConnectionStatus",JSON_STRING,connection_status_buf,
+					"WANStatus",JSON_STRING,wan_status_buf,
+					"DialReason",JSON_STRING,dial_reason_buf,
+					"ConnectionStatus1",JSON_STRING,connection_status1_buf,
+					"WANStatus1",JSON_STRING,wan_status1_buf,
+					"DialReason1",JSON_STRING,dial_reason1_buf
+				);
+
+	}
 	return 0;
 }
 int capisys_query_system_info(char *buf, char *sequence_id ,char *cmd_type ) {
@@ -505,7 +652,7 @@ int capisys_query_mem_info(char *buf, char *sequence_id ,char *cmd_type ) {
 				);
 	}else 
 	{
-		ret = sysutils_encode_json_from_value(buf, 5 ,
+		ret = sysutils_encode_json_from_value(buf, 4 ,
 					"CmdType",JSON_STRING ,cmd_type,
 					"SequenceId",JSON_STRING,sequence_id ,
 					"Status",JSON_STRING,"0",
@@ -690,7 +837,7 @@ int capisys_get_lan_net_info(char *buf, char *sequence_id ,char *cmd_type ) {
 				);
 	}else 
 	{
-		ret = sysutils_encode_json_from_value(buf, 5 ,
+		ret = sysutils_encode_json_from_value(buf, 4 ,
 					"CmdType",JSON_STRING ,cmd_type,
 					"SequenceId",JSON_STRING,sequence_id ,
 					"Status",JSON_STRING,"0",
