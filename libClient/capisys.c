@@ -307,6 +307,19 @@ int  __capisys_query_wan_info(
 		char *ipv6_prifix  ) {
 	return 0;
 }
+int  __capisys_wifi_info( 
+				char *ssid_index_buf ,
+				char *ssid_buf ,
+				char *pwd_buf,
+				char *encrypt_buf,
+				char *power_level_buf,
+				char *power_level_5g_buf,
+  				char *channel_buf ,
+				char *enable_buf 
+			){
+
+	return 0;
+}
 int app_function_capisys_init(void){
 
 	//LOGGER_DBG("%s \n",__FUNCTION__);
@@ -1096,7 +1109,7 @@ int capisys_http_download_request(char *buf, char *sequence_id ,char *cmd_type ,
 				);
 	}else 
 	{
-		ret = sysutils_encode_json_from_value(buf, 4 ,
+		ret = sysutils_encode_json_from_value(buf, 3 ,
 					"CmdType",JSON_STRING ,cmd_type,
 					"SequenceId",JSON_STRING,sequence_id ,
 					"Status",JSON_STRING,"0"
@@ -1106,6 +1119,66 @@ int capisys_http_download_request(char *buf, char *sequence_id ,char *cmd_type ,
 	return 0;
 }
 
+int capisys_wifi_info(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char ssid_buf[64] = { 0 };
+	char pwd_buf[64] = { 0 };
+	char encrypt_buf[64] = { 0 };
+	char power_level_buf[64] = { 0 };
+	char power_level_5g_buf[64] = { 0 };
+	char channel_buf[64] = { 0 };
+	char enable_buf[64] = { 0 };
+	char ssid_index_buf[64] = { 0 };
+	ret = sysutils_get_json_value_from(data,"SSIDIndex",JSON_STRING, ssid_index_buf);
+#if 1
+	if(ret < 0 ){
+		LOGGER_ERR("get ssid index  error \n");
+	}
+#endif
+	//TODO :: user & password used for ?
+	ret = __capisys_wifi_info( 
+				ssid_index_buf ,
+				ssid_buf ,
+				pwd_buf,
+				encrypt_buf,
+				power_level_buf,
+				power_level_5g_buf,
+  				channel_buf ,
+				enable_buf 
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"SSID",JSON_STRING,ssid_buf,
+					"PWD",JSON_STRING,pwd_buf,
+					"ENCRYPT",JSON_STRING,encrypt_buf,
+					"PowerLevel",JSON_STRING,power_level_buf,
+					"PowerLevel-5G",JSON_STRING,power_level_5g_buf,
+					"Channel",JSON_STRING,channel_buf,
+					"Enable",JSON_STRING,enable_buf
+				);
+
+	}
+	return 0;
+}
 
 
 
@@ -1185,8 +1258,8 @@ CapisysHandler capisys_handler[] ={
 	{   "HTTP_DOWNLOAD_REQUEST" ,
 		capisys_http_download_request,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "GET_WIFI_INFO" ,
+		capisys_wifi_info,
 		NULL   },
 	{   "GET_SERVICE" ,
 		NULL,
