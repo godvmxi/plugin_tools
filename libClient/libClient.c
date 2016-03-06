@@ -800,7 +800,7 @@ int socket_data_handler(int sockfd ){
 	printf("hearteart interval -> %d\n",app_login_operate_server_heartbeat_interval);
 	while(app_socket_working_state ) { //every 0.5s 检查一次
 		//check reconnect event or others
-		LOGGER_TRC("start new loop\n");
+	//	LOGGER_TRC("start new loop\n");
 		if(app_socket_loop_exit_event != ExitEventNone ){
 			LOGGER_TRC("thread exit normal\n");
 			return RET_OK ;
@@ -891,7 +891,7 @@ int socket_data_handler(int sockfd ){
 					continue;
 				}
 				recv_json_len = ntohl(  *( (uint32_t *)  buf) );
-				LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
+			//	LOGGER_DBG("receive data -> %d -> %s\n", recv_json_len, buf + 4);
 				if (recv_json_len != (buf_len - 4)) {
 					LOGGER_ERR("receive ?? data len not match -> %d %d,just drop it \n", recv_json_len, buf_len);
 				}

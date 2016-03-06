@@ -60,11 +60,11 @@ int fifo_buffer_put(FIFO_BUFFER_HEADER *header ,char *buf,int dat_size){
 		printf("fifo is full\n");
 		ret = -1;
 	}
-	printf("fifo size -> %d  :   %d\n",header->cur_size,ret);
+//	printf("fifo size -> %d  :   %d\n",header->cur_size,ret);
 	if (ret == 0 ){
 		p =  header->out;
 		while(p ){
-			printf("fifo dat ->%d  %s\n",p->dat_size,p->buf);
+//			printf("fifo dat ->%d  %s\n",p->dat_size,p->buf);
 			p = p->next ;
 			if (p == NULL){
 				break;
@@ -94,7 +94,7 @@ int fifo_buffer_get(FIFO_BUFFER_HEADER *header ,char *buf,int *dat_size){
 		}
 		if (sav) {
 			printf("try free-> 0x%p\n",sav);
-		//	free(sav);
+			free(sav);
 		}
 		ret = 0;
 	}

@@ -25,9 +25,13 @@ int  __capisys_get_vender(char *buf){
 		//use capi get system info
 }
 int  __capisys_get_user_id(char *buf){
-	sprintf(buf,"F45BB1D7FB5E");
-	return 0;
-	//use capi get system info
+#ifdef   CAPI_INTERFACE_NULL_TEST
+		sprintf(buf,"F45BB1D7FB5E");
+#else 
+		
+#endif 
+		return 0;
+		//use capi get system info
 }
 int  __capisys_get_firmware_ver(char *buf){
 		sprintf(buf,"v1.230");
@@ -41,75 +45,7 @@ int  __capisys_get_sys_model(char *buf){
 int  __capisys_get_hardware_ver(char *buf){
 		sprintf(buf,"sd3.64.418");
 		return 0;
-}
-int  __capisys_get_product_class(char *buf){
-		sprintf(buf,"xxx1.0");
-		return 0;
-}
-int  __capisys_get_cpu_class(char *buf){
-		sprintf(buf,"MipsVendorXXXX1.0");
-		return 0;
-}
-int  __capisys_get_dev_type(char *buf){
-		sprintf(buf,"XXXX1.0");
-		return 0;
-}
-int  __capisys_get_dev_type1(char *buf){
-		sprintf(buf,"XXXX1.0");
-		return 0;
-}
-int  __capisys_get_capability(char *buf){
-		sprintf(buf,"XXXX1.0/2.3/5.6/ssss");
-		return 0;
-}
-int  __capisys_get_uplink(char *buf){
-		sprintf(buf,"1");
-		return 0;
-}
-int  __capisys_get_card_no(char *buf){
-	buf[0] = 0 ;
-//		sprintf(buf,"sd3.64.418");
-		return 0;
-}
-int  __capisys_get_wlan_ipv6(char *buf){
-		sprintf(buf,"0");
-		return 0;
-}
-int  __capisys_get_vlan_bind(char *buf){
-		sprintf(buf,"0");
-		return 0;
-}
-int  __capisys_get_led(char *buf){
-		sprintf(buf,"0");
-		return 0;
-}
-int  __capisys_get_flash_size(char *buf){
-		sprintf(buf,"1024");
-		return 0;
-}
-int  __capisys_get_ram_size(char *buf){
-		sprintf(buf,"2048");
-		return 0;
-}
-int  __capisys_get_dev_name(char *buf){
-		sprintf(buf,"EEEEEEE");
-		return 0;
-}
-int  __capisys_get_wifi_mode(char *buf){
-		sprintf(buf,"2555XXX");
-		return 0;
-}
-int  __capisys_get_nfc(char *buf){
-		sprintf(buf,"1");
-		return 0;
-}
-int  __capisys_get_wan_ip_addr(char *buf){
-		sprintf(buf,"10.9.1.180");
-		return 0;
-}
-int  __capisys_get_lan_ip_addr(char *buf){
-		sprintf(buf,"127.");
-		return 0;
+		//use capi get system info
 }
 int  __capisys_get_os_ver(char *buf){
 		sprintf(buf,"ZhiNengWangGuan OS 1");
@@ -122,6 +58,11 @@ int  __capisys_get_app_ver(char *buf){
 		//use capi get system info
 }
 
+int  __capisys_get_wlan_ip_addr(char *buf){
+		sprintf(buf,"10.9.1.180");
+		return 0;
+		//use capi get system info
+}
 int  __capisys_get_plugin_info(char *name){
 
 
@@ -139,7 +80,7 @@ int  __capisys_get_platform_id(char *buf){
 		//use capi get system info
 }
 int  __capisys_get_sys_card(char *buf){
-		sprintf(buf,"0");
+		buf[0] = '\0';
 		return 0;
 		//use capi get system info
 }
@@ -194,22 +135,6 @@ int  __capisys_get_sys_time(char *buf){
 }
 int  __capisys_query_mem_info(char *buf){
 	sprintf(buf,"50");
-	return 0;
-}
-int  __capisys_get_lan_net_info(char *buf){
-	sprintf(buf,"50");
-	return 0;
-}
-int  __capisys_get_version(char *buf){
-	sprintf(buf,"v0");
-	return 0;
-}
-int  __capisys_get_version1(char *buf){
-	sprintf(buf,"v1");
-	return 0;
-}
-int  __capisys_get_version2(char *buf){
-	sprintf(buf,"v2");
 	return 0;
 }
 int app_function_capisys_init(void){
@@ -296,48 +221,6 @@ int capisys_wlan_intf_info(char *buf ,char *sequence_id ,char *cmd_type ) {
 }
 int capisys_get_version(char *buf ,char *sequence_id ,char *cmd_type ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
-	int ret = 0 ;
-	int all_info_flag = 0 ;
-	char version_buf[64] = { 0 };
-	char version1_buf[64] = { 0 };
-	char version2_buf[64] = { 0 };
-	ret = __capisys_get_version(version_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get version error\n");
-	}
-	ret = __capisys_get_version1(version1_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get version1 error\n");
-	}
-	ret = __capisys_get_version2(version2_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get version2 error\n");
-	}
-	all_info_flag =  0;
-	if(all_info_flag < 0 ){
-		LOGGER_ERR("cal capisys get loid error \n");
-		ret = sysutils_encode_json_from_value(buf, 4 ,
-					"CmdType",JSON_STRING ,cmd_type,
-					"SequenceId",JSON_STRING,sequence_id ,
-					"Status",JSON_STRING,"1",
-					"FailReason",""
-				);
-	}else 
-	{
-		ret = sysutils_encode_json_from_value(buf, 6 ,
-					"CmdType",JSON_STRING ,cmd_type,
-					"SequenceId",JSON_STRING,sequence_id ,
-					"Status",JSON_STRING,"0",
-					"Version",JSON_STRING,version_buf,
-					"Version1",JSON_STRING,version1_buf,
-					"Version2",JSON_STRING,version2_buf
-				);
-
-	}
-	return 0;
 	return 0;
 }
 int capisys_query_wlan_num(char *buf ,char *sequence_id ,char *cmd_type ) {
@@ -399,7 +282,7 @@ int capisys_get_time_duration(char *buf, char *sequence_id ,char *cmd_type ) {
 				);
 	}else 
 	{
-		ret = sysutils_encode_json_from_value(buf, 6 ,
+		ret = sysutils_encode_json_from_value(buf, 5 ,
 					"CmdType",JSON_STRING ,cmd_type,
 					"SequenceId",JSON_STRING,sequence_id ,
 					"Status",JSON_STRING,"0",
@@ -449,160 +332,11 @@ int capisys_query_sys_info(char *buf, char *sequence_id ,char *cmd_type ) {
 	int all_info_flag = 0 ;
 	char hardware_ver_buf[64] = { 0 };
 	char software_ver_buf[64] = { 0 };
-	char product_class_buf[64] = { 0 };
-	char cpu_class_buf[64] = { 0 };
-	char dev_type_buf[64] = { 0 };
-	char dev_type1_buf[64] = { 0 };
-	char capability_buf[64] = { 0 };
-	char card_buf[64] = { 0 };
-	char uplink_buf[64] = { 0 };
-	char card_no_buf[64] = { 0 };
-	char ipv6_buf[64] = { 0 };
-	char vlan_bind_buf[64] = { 0 };
-	char led_buf[64] = { 0 };
-	char flash_size_buf[64] = { 0 };
-	char ram_size_buf[64] = { 0 };
-	char dev_name_buf[64] = { 0 };
-	char wifi_mode_buf[64] = { 0 };
-	char nfc_buf[64] = { 0 };
-	char wan_ip_addr_buf[64] = { 0 };
-	char lan_ip_addr_buf[64] = { 0 };
-	ret = __capisys_get_firmware_ver(software_ver_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get software info  error\n");
-	}
-	ret = __capisys_get_product_class(hardware_ver_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get product class info  error\n");
-	}
-	ret = __capisys_get_cpu_class(cpu_class_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get cpu class   error\n");
-	}
-	ret = __capisys_get_dev_type(dev_type_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get dev type  error\n");
-	}
-	ret = __capisys_get_dev_type1(dev_type1_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get dev type1  error\n");
-	}
-	ret = __capisys_get_capability(capability_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get capability_buf \n");
-	}
-	ret = __capisys_get_card(card_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get card  error\n");
-	}
-	ret = __capisys_get_uplink(uplink_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get uplink buf  error\n");
-	}
-	ret = __capisys_get_card_no(card_no_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get card no error\n");
-	}
-	ret = __capisys_get_wlan_ipv6(ipv6_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get ipv6  error\n");
-	}
-	ret = __capisys_get_vlan_bind(vlan_bind_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get vlan bind  error\n");
-	}
-	ret = __capisys_get_led(led_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get led  error\n");
-	}
-	ret = __capisys_get_flash_size(flash_size_buf);
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get flash_size_buf  error\n");
-	}
-	ret = __capisys_get_dev_name (dev_name_buf  );
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get dev_name_buf  error\n");
-	}
-	ret = __capisys_get_wifi_mode ( wifi_mode_buf );
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get wifi_mode_buf  error\n");
-	}
-	ret = __capisys_get_nfc ( nfc_buf );
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get nfc_buf  error\n");
-	}
-	ret = __capisys_get_wan_ip_addr (wan_ip_addr_buf  );
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get wlan_ip_addr_buf  error\n");
-	}
-	ret = __capisys_get_lan_ip_addr (lan_ip_addr_buf  );
-	if (ret < 0 ){
-		all_info_flag = -1;
-		LOGGER_ERR("get lan_ip_addr_buf  error\n");
-	}
-	all_info_flag =  0;
-	if(all_info_flag < 0 ){
-		LOGGER_ERR("cal capisys get loid error \n");
-		ret = sysutils_encode_json_from_value(buf, 4 ,
-					"CmdType",JSON_STRING ,cmd_type,
-					"SequenceId",JSON_STRING,sequence_id ,
-					"Status",JSON_STRING,"1",
-					"FailReason",""
-				);
-	}else 
-	{
-		ret = sysutils_encode_json_from_value(buf, 23 ,
-					"CmdType",JSON_STRING ,cmd_type,
-					"SequenceId",JSON_STRING,sequence_id ,
-					"Status",JSON_STRING,"0",
-					"SWVersion",JSON_STRING, software_ver_buf ,
-					"HDVersion",JSON_STRING, hardware_ver_buf ,
-					"ProductClass",JSON_STRING, product_class_buf ,
-					"CPUClass",JSON_STRING,  cpu_class_buf,
-					"DEVType",JSON_STRING, dev_type_buf ,
-					"DEVType1",JSON_STRING, dev_type1_buf ,
-					"Capability",JSON_STRING, capability_buf ,
-					"Card",JSON_STRING,  card_buf,
-					"Cardno",JSON_STRING, card_no_buf ,
-					"IPV6",JSON_STRING, ipv6_buf ,
-					"VLANbind",JSON_STRING, vlan_bind_buf ,
-					"LED",JSON_STRING, led_buf ,
-					"FlashSize",JSON_STRING, flash_size_buf ,
-					"RamSize",JSON_STRING,  ram_size_buf,
-					"DevName",JSON_STRING, dev_name_buf ,
-					"WiFiMode",JSON_STRING, wifi_mode_buf ,
-					"NFC",JSON_STRING, nfc_buf ,
-					"WanIPAddr",JSON_STRING, wan_ip_addr_buf ,
-					"LanIPAddr",JSON_STRING, lan_ip_addr_buf 
-				);
-
-	}
-	return 0;
-}
-
-int capisys_get_lan_net_info(char *buf, char *sequence_id ,char *cmd_type ) {
-	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
-	int ret = 0 ;
-	int all_info_flag = 0 ;
-	char lan_net_info_buf[256] = { 0 };
-	ret = __capisys_get_lan_net_info(lan_net_info_buf);
+	char pruduct_class_buf[64] = { 0 };
+	char hw_buf[64] = { 0 };
+	char hw_buf[64] = { 0 };
+	char hw_buf[64] = { 0 };
+	ret = __capisys_query_mem_info(mem_info_buf);
 	if (ret < 0 ){
 		all_info_flag = -1;
 		LOGGER_ERR("get sys mem info  error\n");
@@ -622,12 +356,13 @@ int capisys_get_lan_net_info(char *buf, char *sequence_id ,char *cmd_type ) {
 					"CmdType",JSON_STRING ,cmd_type,
 					"SequenceId",JSON_STRING,sequence_id ,
 					"Status",JSON_STRING,"0",
-					"Info",JSON_STRING,lan_net_info_buf
+					"Percent",JSON_STRING,mem_info_buf
 				);
 
 	}
 	return 0;
 }
+
 
 
 
@@ -687,10 +422,7 @@ CapisysHandler capisys_handler[] ={
 		capisys_query_mem_info,
 		NULL   },
 	{   "QUERY_SYSTEM_INFO" ,
-		capisys_query_sys_info,
-		NULL   },
-	{   "GET_LAN_NET_INFO" ,
-		capisys_get_lan_net_info,
+		capisys_query_sys_info
 		NULL   },
 	{   "GET_WAN_REALRATE" ,
 		NULL,

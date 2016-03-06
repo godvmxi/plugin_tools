@@ -2018,7 +2018,7 @@ int sysutils_downlink_rpc_handler_post(json_t *obj ){
 	ret = sysutils_encode_json_from_value(buf , 3 ,
 			"Result",JSON_INTEGER,0 ,
 			"ID" ,JSON_INTEGER,id,
-			"return_Paremeter" ,JSON_STRING,encoded_base64_buf  );
+			"return_Parameter" ,JSON_STRING,encoded_base64_buf  );
 	LOGGER_TRC("return -> %s\n",buf);
 
 	fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf) );
