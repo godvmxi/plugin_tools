@@ -2,7 +2,7 @@
 #define   __CAPISYS_H__
 
 typedef struct {
-	char cmd_type[20];
+	char cmd_type[40];
 	void *handler ;
 	void *capi_handler ;
 }CapisysHandler ;

@@ -1499,7 +1499,9 @@ int sysutils_try_handler_ack_result_message(char *buf){
 	char *temp =NULL ;
 	int ret = 0 ;
 	printf("-->%s\n",__FUNCTION__);	
+	printf("try parse -> %s %d\n",buf,strlen(buf));
 	json_root = json_loads(buf, 0 ,&json_error);
+	printf("json load result-> %p\n",json_root);
 	if (json_root == NULL){
 		LOGGER_ERR("parse json error -> %s\n",buf);
 		ret = -1;
@@ -1976,20 +1978,21 @@ int sysutils_downlink_rpc_handler_post(json_t *obj ){
 	int id  = 0 ;
 	char para_decode_buf[2546];
 	int para_decode_len = 0 ;
+
+	char encoded_base64_buf[1024] =  { 0  };
+	char buf[1024] = {0};
 	ret = sysutils_get_json_value_from(obj,"Parameter" ,JSON_STRING ,para_buf) ;
 	if (ret < 0) {
 		LOGGER_ERR("get post parameter error \n");
 		return -1;
 	}
 	LOGGER_TRC("para  -> %s\n",para_buf  );
-	printf("1\n");
 	ret = sysutils_get_json_value_from(obj,"ID",JSON_INTEGER ,&id );
 	if (ret < 0) {
 		LOGGER_ERR("get post id error \n");
 		return -1;
 	}
 	LOGGER_TRC("id    -> %d\n",id );
-	printf("1\n");
 	ret = sysutils_get_json_value_from(obj ,"Plugin_Name" ,JSON_STRING ,name_buf) ;
 	if (ret < 0) {
 		LOGGER_ERR("get post name error \n");
@@ -1999,6 +2002,93 @@ int sysutils_downlink_rpc_handler_post(json_t *obj ){
 	ret = sysutils_get_base64_decode(para_buf, para_decode_buf , &para_decode_len);
 	LOGGER_TRC("base64 : %s -> %s  %d\n",para_buf,para_decode_buf,para_decode_len);
 
+	ret =  sysutils_try_handle_post_decode_json(para_decode_buf ,encoded_base64_buf);
+	if(ret <  0 ){
+		LOGGER_ERR("handler post %s error \n",cmd_type);
+		return -1;
+	}
+	else {
+		LOGGER_ERR("handler post %s ok->%s \n",cmd_type,encoded_base64_buf);
+	}
+	if(strlen(encoded_base64_buf) <=  0 ){
+		LOGGER_ERR("current handler may not current handled -> %s\n",cmd_type);
+		return -1;	
+	}
+	memset(buf,0,1024);
+	ret = sysutils_encode_json_from_value(buf , 3 ,
+			"Result",JSON_INTEGER,0 ,
+			"ID" ,JSON_INTEGER,id,
+			"return_Paremeter" ,JSON_STRING,encoded_base64_buf  );
+	LOGGER_TRC("return -> %s\n",buf);
+
+	fifo_buffer_put(&socket_tx_fifo_header,buf,strlen(buf) );
+
+	//TODO ://
+
+}
+extern CapisysHandler capisys_handler[] ;
+int sysutils_try_handle_post_decode_json(char *json_buf,char *encoded_base64 ){
+	json_error_t json_error ;
+	json_t *json_root  = NULL;
+	json_t *obj_rpc_method = NULL;
+	RPC_METHOD_ENUM rpc_method_type = 0 ;
+	int result = 0 ;
+	char *temp =NULL ;
+	char rpc_method[40] = {0};
+	int ret  = 0;
+	int id = 0 ;
+	char cmd_type[64] = { 0};
+	char sequence_id[16] = { 0};
+	char buf[1024] =  {0};
+	
+	json_root = json_loads(json_buf, 0 ,&json_error);
+	if (json_root == NULL){
+		LOGGER_ERR("parse json error -> %s\n",json_buf);
+		return -1;
+	}
+	ret =  sysutils_get_json_value_from(json_root,"CmdType",JSON_STRING,cmd_type);
+	if (ret < 0 )
+	{
+		LOGGER_ERR("get cmd type error \n");
+		goto  sysutils_try_handle_post_decode_json_error;
+	}
+	ret =  sysutils_get_json_value_from(json_root,"SequenceId",JSON_STRING,sequence_id);
+	if (ret < 0 )
+	{
+		LOGGER_ERR("get post sequence id error \n");
+		goto  sysutils_try_handle_post_decode_json_error;
+	}
+	LOGGER_TRC("post info -> %s %s \n",cmd_type,sequence_id);
+	int handler_flag = 0 ;
+	int i  = 0 ;
+	int (*p)(char *buf,char *sequence_id,char *cmd_type) = NULL;
+	for (i  = 0 ;capisys_handler[i].handler != NULL ; i++){
+		LOGGER_TRC("try -> %s\n",capisys_handler[i].cmd_type);
+		if (strncmp(cmd_type ,capisys_handler[i].cmd_type,strlen(capisys_handler[i].cmd_type)  ) ==  0){
+			handler_flag = 1 ;
+			p =  capisys_handler[i].handler ;
+			break;
+		}
+		else {
+			continue;
+		}
+	}
+	if(handler_flag  == 0){
+		LOGGER_TRC("can not find post handler -> %s\n",cmd_type);
+		goto sysutils_try_handle_post_decode_json_error ;
+	}
+	LOGGER_TRC("find post handler -> %s\n", capisys_handler[i].cmd_type);
+	ret = p(buf,sequence_id,cmd_type) ;
+	LOGGER_TRC("post ack ready  -> %s \n",buf);
+	sysutils_get_base64_encode(buf,encoded_base64,strlen(buf) );
+
+
+
+	return 0;
+sysutils_try_handle_post_decode_json_error :
+
+	if(json_root ) json_decref(json_root);
+	return -1;
 }
 int sysutils_downlink_rpc_handler_run(json_t *obj ){
 	LOGGER_TRC("rpc handler -> %s\n",__FUNCTION__);
@@ -2349,6 +2439,8 @@ int sysutils_handler_rpc_post_para_message(char *json,char *buf){
 		goto sysutils_handler_rpc_post_para_message_error;
 	}
 	sysutils_get_base64_encode(temp,buf,strlen(temp) );	
+
+	
 
 	//try parse cmd type
 	if(json_root) json_decref(json_root);

@@ -1407,7 +1407,7 @@ int app_function_parse_fifo_buffer_thread(void *dat){
 			LOGGER_TRC("not ack result,try rpc method\n");
 			ret = sysutils_try_handler_server_push_message(buf+4);
 			if(ret  > 0 ){
-				LOGGER_TRC(" push message \n");
+				LOGGER_TRC(" push message ok \n");
 				continue ;	
 			}
 			else if(ret  ==  0){

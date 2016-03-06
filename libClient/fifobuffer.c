@@ -94,7 +94,7 @@ int fifo_buffer_get(FIFO_BUFFER_HEADER *header ,char *buf,int *dat_size){
 		}
 		if (sav) {
 			printf("try free-> 0x%p\n",sav);
-			free(sav);
+		//	free(sav);
 		}
 		ret = 0;
 	}
