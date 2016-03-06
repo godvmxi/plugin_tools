@@ -196,6 +196,10 @@ int  __capisys_query_mem_info(char *buf){
 	sprintf(buf,"50");
 	return 0;
 }
+int  __capisys_get_cpu_info(char *buf){
+	sprintf(buf,"45");
+	return 0;
+}
 int  __capisys_get_wan_mac(char *buf){
 	sprintf(buf,"48555F44CA00");
 	return 0;
@@ -291,7 +295,34 @@ int capisys_get_hg_loid(char *buf, char *sequence_id ,char *cmd_type ) {
 	return 0;
 }
 int capisys_query_cpu_info(char *buf ,char *sequence_id ,char *cmd_type ) {
-	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	char cpu_info_buf[24] = { 0 };
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	ret = __capisys_get_cpu_info(cpu_info_buf);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get cpu info error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 5 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"Percent",JSON_STRING,cpu_info_buf
+				);
+
+	}
 	return 0;
 }
 int capisys_wlan_intf_info(char *buf ,char *sequence_id ,char *cmd_type ) {
