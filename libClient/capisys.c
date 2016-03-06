@@ -319,19 +319,19 @@ int capisys_query_cpu_info(char *sequence_id ,char *cmd_type ) {
 	return 0;
 }
 */
-int capisys_get_duriation(char *buf,char *sequence_id ,char *cmd_type ) {
+int capisys_get_duriation(char *buf,char *sequence_id ,char *cmd_type ,void *data) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
 }
-int capisys_get_service(char *sequence_id ,char *cmd_type ) {
+int capisys_get_service(char *sequence_id ,char *cmd_type  ,void *data) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
 }
-int capisys_get_wlan_intf_info(char *sequence_id ,char *cmd_type ) {
+int capisys_get_wlan_intf_info(char *sequence_id ,char *cmd_type  ,void *data) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
 }
-int capisys_get_hg_loid(char *buf, char *sequence_id ,char *cmd_type ) {
+int capisys_get_hg_loid(char *buf, char *sequence_id ,char *cmd_type  ,void *data) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
 	char loid_buf[24] = { 0 };
 	char card_buf[64] = {0};
@@ -369,7 +369,7 @@ int capisys_get_hg_loid(char *buf, char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_query_cpu_info(char *buf ,char *sequence_id ,char *cmd_type ) {
+int capisys_query_cpu_info(char *buf ,char *sequence_id ,char *cmd_type  ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
 	char cpu_info_buf[24] = { 0 };
 	int ret = 0 ;
@@ -400,11 +400,11 @@ int capisys_query_cpu_info(char *buf ,char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_wlan_intf_info(char *buf ,char *sequence_id ,char *cmd_type ) {
+int capisys_wlan_intf_info(char *buf ,char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
 }
-int capisys_get_version(char *buf ,char *sequence_id ,char *cmd_type ) {
+int capisys_get_version(char *buf ,char *sequence_id ,char *cmd_type  ,void *data) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	int ret = 0 ;
 	int all_info_flag = 0 ;
@@ -449,7 +449,7 @@ int capisys_get_version(char *buf ,char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_get_sn_info(char *buf ,char *sequence_id ,char *cmd_type ) {
+int capisys_get_sn_info(char *buf ,char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	int ret = 0 ;
 	int all_info_flag = 0 ;
@@ -487,7 +487,7 @@ int capisys_get_sn_info(char *buf ,char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_query_wan_num(char *buf ,char *sequence_id ,char *cmd_type ) {
+int capisys_query_wan_num(char *buf ,char *sequence_id ,char *cmd_type ,void *data) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	int ret = 0 ;
 	int all_info_flag = 0 ;
@@ -520,7 +520,7 @@ int capisys_query_wan_num(char *buf ,char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_query_wan_info(char *buf ,char *sequence_id ,char *cmd_type ) {
+int capisys_query_wan_info(char *buf ,char *sequence_id ,char *cmd_type  ,void *data) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	int ret = 0 ;
 	int all_info_flag = 0 ;
@@ -611,7 +611,7 @@ int capisys_query_wan_info(char *buf ,char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_systest(char *buf,char *sequence_id ,char *cmd_type ) {
+int capisys_systest(char *buf,char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	int ret = 0 ;
 	int all_info_flag = 0 ;
@@ -677,7 +677,7 @@ int capisys_systest(char *buf,char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_ppoe_diag_req(char *buf ,char *sequence_id ,char *cmd_type ) {
+int capisys_ppoe_diag_req(char *buf ,char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	int ret = 0 ;
 	int all_info_flag = 0 ;
@@ -725,17 +725,17 @@ int capisys_ppoe_diag_req(char *buf ,char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_query_system_info(char *buf, char *sequence_id ,char *cmd_type ) {
+int capisys_query_system_info(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
 }
-int capisys_get_wifi_info(char *buf ,char *sequence_id ,char *cmd_type ) {
+int capisys_get_wifi_info(char *buf ,char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
 }
 
 
-int capisys_get_time_duration(char *buf, char *sequence_id ,char *cmd_type ) {
+int capisys_get_time_duration(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
 	int ret = 0 ;
 	int all_info_flag = 0 ;
@@ -781,7 +781,7 @@ int capisys_get_time_duration(char *buf, char *sequence_id ,char *cmd_type ) {
 	return 0;
 }
 
-int capisys_query_mem_info(char *buf, char *sequence_id ,char *cmd_type ) {
+int capisys_query_mem_info(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
 	int ret = 0 ;
 	int all_info_flag = 0 ;
@@ -812,7 +812,7 @@ int capisys_query_mem_info(char *buf, char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_query_sys_info(char *buf, char *sequence_id ,char *cmd_type ) {
+int capisys_query_sys_info(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
 	int ret = 0 ;
 	int all_info_flag = 0 ;
@@ -966,7 +966,7 @@ int capisys_query_sys_info(char *buf, char *sequence_id ,char *cmd_type ) {
 	return 0;
 }
 
-int capisys_get_lan_net_info(char *buf, char *sequence_id ,char *cmd_type ) {
+int capisys_get_lan_net_info(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
 	int ret = 0 ;
 	int all_info_flag = 0 ;

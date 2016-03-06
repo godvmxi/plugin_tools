@@ -2061,7 +2061,7 @@ int sysutils_try_handle_post_decode_json(char *json_buf,char *encoded_base64 ){
 	LOGGER_TRC("post info -> %s %s \n",cmd_type,sequence_id);
 	int handler_flag = 0 ;
 	int i  = 0 ;
-	int (*p)(char *buf,char *sequence_id,char *cmd_type) = NULL;
+	int (*p)(char *buf,char *sequence_id,char *cmd_type,void * data) = NULL;
 	for (i  = 0 ;capisys_handler[i].handler != NULL ; i++){
 		LOGGER_TRC("try -> %s\n",capisys_handler[i].cmd_type);
 		if (strncmp(cmd_type ,capisys_handler[i].cmd_type,strlen(capisys_handler[i].cmd_type)  ) ==  0){
@@ -2078,7 +2078,7 @@ int sysutils_try_handle_post_decode_json(char *json_buf,char *encoded_base64 ){
 		goto sysutils_try_handle_post_decode_json_error ;
 	}
 	LOGGER_TRC("find post handler -> %s\n", capisys_handler[i].cmd_type);
-	ret = p(buf,sequence_id,cmd_type) ;
+	ret = p(buf,sequence_id,cmd_type,json_root) ;
 	LOGGER_TRC("post ack ready  -> %s \n",buf);
 	sysutils_get_base64_encode(buf,encoded_base64,strlen(buf) );
 
