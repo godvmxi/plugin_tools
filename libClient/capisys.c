@@ -270,9 +270,33 @@ int  __capisys_get_wifi_status(char *buf){
 	sprintf(buf,"status wan 1");
 	return 0;
 }
-int  __capisys_query_wlan_num(char *num,char *des){
+int  __capisys_query_wan_num(char *num,char *des){
 	sprintf(num,"1");
 	sprintf(des,"des 1");
+	return 0;
+}
+int  __capisys_query_wan_info(
+		char *wan_name ,
+		char *index ,
+		char *iface ,
+		char *service_list ,
+		char *connection_type,
+		char *vlanid,
+		char *p8021,
+		char *protocol,
+		char *connection_status   ,
+		char *ip_address   ,
+		char *subnetmast   ,
+		char *gateway   ,
+		char *dns1   ,
+		char *dns2   ,
+		char *ipv6_connection_status   ,
+		char *ipv6_address   ,
+		char *ipv6_prefixlength   ,
+		char *ipv6_gateway   ,
+		char *ipv6_dns1   ,
+		char *ipv6_dns2   ,
+		char *ipv6_prifix  ) {
 	return 0;
 }
 int app_function_capisys_init(void){
@@ -463,13 +487,13 @@ int capisys_get_sn_info(char *buf ,char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_query_wlan_num(char *buf ,char *sequence_id ,char *cmd_type ) {
+int capisys_query_wan_num(char *buf ,char *sequence_id ,char *cmd_type ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	int ret = 0 ;
 	int all_info_flag = 0 ;
 	char num_buf[64] = { 0 };
 	char des_buf[64] = { 0 };
-	ret = __capisys_query_wlan_num(num_buf,des_buf);
+	ret = __capisys_query_wan_num(num_buf,des_buf);
 	if (ret < 0 ){
 		all_info_flag = -1;
 		LOGGER_ERR("get version1 error\n");
@@ -496,8 +520,95 @@ int capisys_query_wlan_num(char *buf ,char *sequence_id ,char *cmd_type ) {
 	}
 	return 0;
 }
-int capisys_query_wlan_info(char *buf,char *sequence_id ,char *cmd_type ) {
+int capisys_query_wan_info(char *buf ,char *sequence_id ,char *cmd_type ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char index_buf[64] = { 0 };
+	char iface_buf[64] = { 0 };
+	char service_list_buf[64] = { 0 };
+	char ipv6_connection_type_buf[64] = { 0 };
+	char connection_type_buf[64] = { 0 };
+	char vlanid_buf[64] = { 0 };
+	char p8021_buf[64] = { 0 };
+	char protocol_buf[64] = { 0 };
+	char connection_status_buf[64] = { 0 };
+	char ip_address_buf[64] = { 0 };
+	char subnetmask_buf[64] = { 0 };
+	char gateway_buf[64] = { 0 };
+	char dns1_buf[64] = { 0 };
+	char dns2_buf[64] = { 0 };
+	char ipv6_connection_status_buf[64] = { 0 };
+	char ipv6_address_buf[64] = { 0 };
+	char ipv6_prefixlength_buf[64] = { 0 };
+	char ipv6_gateway_buf[64] = { 0 };
+	char ipv6_dns1_buf[64] = { 0 };
+	char ipv6_dns2_buf[64] = { 0 };
+	char ipv6_prifix_buf[64] = { 0 };
+	ret = __capisys_query_wan_info("wan0",
+			index_buf,
+			iface_buf,
+			service_list_buf,
+			connection_type_buf ,
+			vlanid_buf ,
+			p8021_buf,
+			protocol_buf,
+			connection_status_buf ,
+			ip_address_buf ,
+			subnetmask_buf ,
+			gateway_buf,
+			dns1_buf,
+			dns2_buf,
+			ipv6_connection_status_buf ,
+			ipv6_address_buf ,
+			ipv6_prefixlength_buf,
+			ipv6_gateway_buf ,
+			ipv6_dns1_buf,
+			ipv6_dns2_buf,
+			ipv6_prifix_buf);
+
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get version1 error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 23 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"INDEX",JSON_STRING, index_buf ,
+					"IFNAME",JSON_STRING, iface_buf ,
+					"SERVICELIST",JSON_STRING, service_list_buf ,
+					"CONNECTIONTYPE",JSON_STRING, connection_type_buf ,
+					"VLANID",JSON_STRING, vlanid_buf ,
+					"8021P",JSON_STRING, p8021_buf ,
+					"PROTOCOL",JSON_STRING, protocol_buf ,
+					"CONNECTIONSTATUS",JSON_STRING, connection_status_buf ,
+					"IPADDRESS",JSON_STRING, ip_address_buf ,
+					"SUBNETMASK",JSON_STRING, subnetmask_buf ,
+					"GATEWAY",JSON_STRING, gateway_buf ,
+					"DNS1",JSON_STRING, dns1_buf ,
+					"DNS2",JSON_STRING, dns2_buf ,
+					"IPV6_CONNECTSTATUS",JSON_STRING,ipv6_connection_status_buf  ,
+					"IPV6_ADDRESS",JSON_STRING, ipv6_address_buf ,
+					"IPV6_PREFIXLENGTH",JSON_STRING, ipv6_prefixlength_buf ,
+					"IPV6_GATEWAY",JSON_STRING,  ipv6_gateway_buf,
+					"IPV6_DNS1",JSON_STRING,  ipv6_dns1_buf,
+					"IPV6_DNS2",JSON_STRING,  ipv6_dns2_buf,
+					"IPV6_PRIFIX",JSON_STRING, ipv6_prifix_buf 
+				);
+
+	}
 	return 0;
 }
 int capisys_systest(char *buf,char *sequence_id ,char *cmd_type ) {
@@ -930,10 +1041,10 @@ CapisysHandler capisys_handler[] ={
 		capisys_ppoe_diag_req,
 		NULL   },
 	{   "QUERY_WAN_NUM" ,
-		capisys_query_wlan_num,
+		capisys_query_wan_num,
 		NULL   },
 	{   "QUERY_WAN_INFO" ,
-		capisys_query_wlan_info,
+		capisys_query_wan_info,
 		NULL   },
 	{   "QUERY_SYSTEM_INFO" ,
 		capisys_query_system_info,
