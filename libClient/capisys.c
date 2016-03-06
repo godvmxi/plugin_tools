@@ -196,6 +196,14 @@ int  __capisys_query_mem_info(char *buf){
 	sprintf(buf,"50");
 	return 0;
 }
+int  __capisys_get_wan_mac(char *buf){
+	sprintf(buf,"48555F44CA00");
+	return 0;
+}
+int  __capisys_get_bussiness_status(char *buf){
+	sprintf(buf,"BussinessStatus");
+	return 0;
+}
 int  __capisys_get_lan_net_info(char *buf){
 	sprintf(buf,"50");
 	return 0;
@@ -286,10 +294,6 @@ int capisys_query_cpu_info(char *buf ,char *sequence_id ,char *cmd_type ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
 }
-int capisys_get_sn_info(char *buf,char *sequence_id ,char *cmd_type ) {
-	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
-	return 0;
-}
 int capisys_wlan_intf_info(char *buf ,char *sequence_id ,char *cmd_type ) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
@@ -338,6 +342,43 @@ int capisys_get_version(char *buf ,char *sequence_id ,char *cmd_type ) {
 
 	}
 	return 0;
+}
+int capisys_get_sn_info(char *buf ,char *sequence_id ,char *cmd_type ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char mac_buf[64] = { 0 };
+	char bussiness_status_buf[64] = { 0 };
+	ret = __capisys_get_wan_mac(mac_buf);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan mac error\n");
+	}
+	ret = __capisys_get_bussiness_status(bussiness_status_buf);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get version1 error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 6 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"MAC",JSON_STRING,mac_buf,
+					"BussinessStatus",JSON_STRING,bussiness_status_buf
+				);
+
+	}
 	return 0;
 }
 int capisys_query_wlan_num(char *buf ,char *sequence_id ,char *cmd_type ) {
