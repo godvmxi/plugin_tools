@@ -66,6 +66,11 @@ int  __capisys_get_uplink(char *buf){
 		sprintf(buf,"1");
 		return 0;
 }
+int  __capisys_get_card(char *buf){
+	buf[0] = 0 ;
+//		sprintf(buf,"sd3.64.418");
+		return 0;
+}
 int  __capisys_get_card_no(char *buf){
 	buf[0] = 0 ;
 //		sprintf(buf,"sd3.64.418");
@@ -265,6 +270,11 @@ int  __capisys_get_wifi_status(char *buf){
 	sprintf(buf,"status wan 1");
 	return 0;
 }
+int  __capisys_query_wlan_num(char *num,char *des){
+	sprintf(num,"1");
+	sprintf(des,"des 1");
+	return 0;
+}
 int app_function_capisys_init(void){
 
 	//LOGGER_DBG("%s \n",__FUNCTION__);
@@ -420,13 +430,46 @@ int capisys_get_sn_info(char *buf ,char *sequence_id ,char *cmd_type ) {
 	int ret = 0 ;
 	int all_info_flag = 0 ;
 	char mac_buf[64] = { 0 };
-	char bussiness_status_buf[64] = { 0 };
+	char bussin_buf[64] = { 0 };
 	ret = __capisys_get_wan_mac(mac_buf);
 	if (ret < 0 ){
 		all_info_flag = -1;
-		LOGGER_ERR("get wan mac error\n");
+		LOGGER_ERR("get mac error\n");
 	}
-	ret = __capisys_get_bussiness_status(bussiness_status_buf);
+	ret = __capisys_get_bussiness_status(bussin_buf);
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get BussinessStatus error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 5 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"MAC",JSON_STRING,mac_buf,
+					"BussinessStatus",JSON_STRING,bussin_buf
+				);
+
+	}
+	return 0;
+}
+int capisys_query_wlan_num(char *buf ,char *sequence_id ,char *cmd_type ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char num_buf[64] = { 0 };
+	char des_buf[64] = { 0 };
+	ret = __capisys_query_wlan_num(num_buf,des_buf);
 	if (ret < 0 ){
 		all_info_flag = -1;
 		LOGGER_ERR("get version1 error\n");
@@ -442,19 +485,15 @@ int capisys_get_sn_info(char *buf ,char *sequence_id ,char *cmd_type ) {
 				);
 	}else 
 	{
-		ret = sysutils_encode_json_from_value(buf, 6 ,
+		ret = sysutils_encode_json_from_value(buf, 5 ,
 					"CmdType",JSON_STRING ,cmd_type,
 					"SequenceId",JSON_STRING,sequence_id ,
 					"Status",JSON_STRING,"0",
-					"MAC",JSON_STRING,mac_buf,
-					"BussinessStatus",JSON_STRING,bussiness_status_buf
+					"NUM",JSON_STRING,num_buf,
+					"Description",JSON_STRING,des_buf
 				);
 
 	}
-	return 0;
-}
-int capisys_query_wlan_num(char *buf ,char *sequence_id ,char *cmd_type ) {
-	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
 }
 int capisys_query_wlan_info(char *buf,char *sequence_id ,char *cmd_type ) {
