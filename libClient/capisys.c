@@ -324,6 +324,10 @@ int __capisys_get_wlan_attach_info(
 				char *num_buf ,
 				char *info_buf 
 			);	
+int __capisys_get_voip_info( 
+				char *name1_buf ,
+				char *name2_buf 
+			);	
 int app_function_capisys_init(void){
 
 	//LOGGER_DBG("%s \n",__FUNCTION__);
@@ -1218,6 +1222,44 @@ int capisys_get_wlan_attach_info(char *buf, char *sequence_id ,char *cmd_type ,v
 	return 0;
 }
 
+int capisys_get_voip_info(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char voip_name1_buf[64] = { 0 };
+	char voip_name2_buf[64] = { 0 };
+	//TODO :: user & password used for ?
+	ret = __capisys_get_voip_info( 
+				voip_name1_buf ,
+				voip_name2_buf 
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 5 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"VOIPNAME1",JSON_STRING,voip_name1_buf,
+					"VOIPNAME2",JSON_STRING,voip_name2_buf
+				);
+
+	}
+	return 0;
+}
+
 
 
 
@@ -1301,6 +1343,72 @@ CapisysHandler capisys_handler[] ={
 		NULL   },
 	{   "GET_WLAN_ATTACH_INFO" ,
 		capisys_get_wlan_attach_info,
+		NULL   },
+	{   "GET_VOIP_INFO" ,
+		capisys_get_voip_info,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
+		NULL   },
+	{   "GET_SERVICE" ,
+		NULL,
 		NULL   },
 	{   "GET_SERVICE" ,
 		NULL,
