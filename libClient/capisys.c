@@ -10,7 +10,7 @@
 //get info list
 extern int sysutils_encode_json_from_value(char *buf ,int key_num,... );
 
-//TODO : add your custom capi interface
+//TODO : add your custom capi interface  ,just add in __func 
 int capisys_post_handler(char *json_buf,char *result_buf){
 	
 
@@ -321,6 +321,20 @@ int  __capisys_get_wifi_info(
 
 	return 0;
 }
+int  __capisys_get_wlan_intf_info( 
+				char *ssid_buf ,
+				char *pwd_buf,
+				char *encrypt_buf,
+				char *power_level_buf,
+				char *power_level_5g_buf,
+  				char *channel_buf ,
+				char *enable_buf  ,
+				char *recv_buf ,
+				char *send_buf
+			){
+
+	return 0;
+}
 int __capisys_get_wlan_attach_info( 
 				char *num_buf ,
 				char *info_buf 
@@ -467,10 +481,6 @@ int capisys_get_duriation(char *buf,char *sequence_id ,char *cmd_type ,void *dat
 	return 0;
 }
 int capisys_get_service(char *sequence_id ,char *cmd_type  ,void *data) {
-	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
-	return 0;
-}
-int capisys_get_wlan_intf_info(char *sequence_id ,char *cmd_type  ,void *data) {
 	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);
 	return 0;
 }
@@ -2038,6 +2048,64 @@ int capisys_set_hg_date_time_sync(char *buf, char *sequence_id ,char *cmd_type ,
 }
 
 
+int capisys_get_wlan_intf_info(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char ssid_buf[64] = { 0 };
+	char pwd_buf[64] = { 0 };
+	char encrypt_buf[64] = { 0 };
+	char power_level_buf[64] = { 0 };
+	char power_level_5g_buf[64] = { 0 };
+	char channel_buf[64] = { 0 };
+	char enable_buf[64] = { 0 };
+	char ssid_index_buf[64] = { 0 };
+	char recv_buf[64] = {0 };
+	char send_buf[64] = { 0 };
+	//TODO :: user & password used for ?
+	ret = __capisys_get_wlan_intf_info( 
+				ssid_buf ,
+				pwd_buf,
+				encrypt_buf,
+				power_level_buf,
+				power_level_5g_buf,
+  				channel_buf ,
+				enable_buf  ,
+				recv_buf,
+				send_buf
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 10 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"SSID",JSON_STRING,ssid_buf,
+					"ENCRYPT",JSON_STRING,encrypt_buf,
+					"PowerLevel",JSON_STRING,power_level_buf,
+					"PowerLevel-5G",JSON_STRING,power_level_5g_buf,
+					"Channel",JSON_STRING,channel_buf,
+					"Enable",JSON_STRING,enable_buf ,
+					"RECV",JSON_STRING,recv_buf ,
+					"SEND",JSON_STRING,send_buf
+				);
+
+	}
+	return 0;
+}
 
 
 
@@ -2168,8 +2236,8 @@ CapisysHandler capisys_handler[] ={
 	{   "SET_HG_DATE_TIME_SYNC" ,
 		capisys_set_hg_date_time_sync,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "GET_WLAN_INTF_INFO" ,
+		capisys_get_wlan_intf_info,
 		NULL   },
 	{   "GET_SERVICE" ,
 		NULL,
