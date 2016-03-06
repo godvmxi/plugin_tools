@@ -421,7 +421,21 @@ int  __capisys_get_pon_status(
 	return 0;
 }
 
+int  __capisys_set_http_cfg( 
+			char *user_buf,
+				char *pass_buf,
+				char *url_buf
+		){
+	return 0;
+}
 
+int  __capisys_set_hg_date_time_sync( 
+			char *user_buf,
+				char *pass_buf,
+				char *time_buf
+		){
+	return 0;
+}
 
 
 
@@ -1919,6 +1933,109 @@ int capisys_get_pon_status(char *buf, char *sequence_id ,char *cmd_type ,void *d
 	return 0;
 }
 
+int capisys_set_http_cfg(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char user_buf[64] = { 0  };
+	char pass_buf[64] = { 0  };
+	char url_buf[64] = { 0  };
+#if 1
+	ret = sysutils_get_json_value_from(data,"USERID",JSON_STRING,user_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get user error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"PASSWORD",JSON_STRING,pass_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get password error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"URL",JSON_STRING,url_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get url error \n");
+	}
+#endif
+	//TODO :: user & password used for ?
+	ret = __capisys_set_http_cfg( 
+				user_buf,
+				pass_buf,
+				url_buf
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 3 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0"
+				);
+
+	}
+	return 0;
+}
+
+int capisys_set_hg_date_time_sync(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char user_buf[64] = { 0  };
+	char pass_buf[64] = { 0  };
+	char time_buf[64] = { 0  };
+#if 1
+	ret = sysutils_get_json_value_from(data,"USERID",JSON_STRING,user_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get user error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"PASSWORD",JSON_STRING,pass_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get password error \n");
+	}
+	ret = sysutils_get_json_value_from(data,"Time",JSON_STRING,time_buf );
+	if(ret < 0 ){
+		LOGGER_ERR("get time error \n");
+	}
+#endif
+	//TODO :: user & password used for ?
+	ret = __capisys_set_hg_date_time_sync( 
+				user_buf,
+				pass_buf,
+				time_buf
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get wan realrate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 3 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0"
+				);
+
+	}
+	return 0;
+}
 
 
 
@@ -2045,11 +2162,11 @@ CapisysHandler capisys_handler[] ={
 	{   "GET_PON_STATUS" ,
 		capisys_get_pon_status,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "SET_HTTP_CFG" ,
+		capisys_set_http_cfg,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "SET_HG_DATE_TIME_SYNC" ,
+		capisys_set_hg_date_time_sync,
 		NULL   },
 	{   "GET_SERVICE" ,
 		NULL,
