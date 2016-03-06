@@ -400,8 +400,19 @@ int  __capisys_register(
 }
 
 int  __capisys_get_register_stat( 
-				register_status_buf 
+				char *register_status_buf 
 			){
+	return 0;
+}
+int __capisys_get_power_info(
+		char *voltage ,
+		char *current ,
+		char *tx_power ,
+		char *rx_power ){
+
+	return 0;
+}
+int __capisys_get_temperate(char *temp){
 	return 0;
 }
 
@@ -1816,6 +1827,57 @@ int capisys_get_register_stat(char *buf, char *sequence_id ,char *cmd_type ,void
 }
 
 
+int capisys_get_poninform_req(char *buf, char *sequence_id ,char *cmd_type ,void *data ) {
+	LOGGER_DBG("capisys handler -> %s\n",__FUNCTION__);	 
+	int ret = 0 ;
+	int all_info_flag = 0 ;
+	char temperate_buf[64] = { 0 };
+	char voltage_buf[64] = { 0 };
+	char current_buf[64] = { 0 };
+	char rx_power_buf[64] = { 0 };
+	char tx_power_buf[64] = { 0 };
+	ret = __capisys_get_power_info( 
+				voltage_buf,
+				current_buf ,
+				tx_power_buf,
+				rx_power_buf
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get power  error\n");
+	}
+	ret = __capisys_get_temperate( 
+				temperate_buf
+			);	
+	if (ret < 0 ){
+		all_info_flag = -1;
+		LOGGER_ERR("get temperate  error\n");
+	}
+	all_info_flag =  0;
+	if(all_info_flag < 0 ){
+		LOGGER_ERR("cal capisys get loid error \n");
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"1",
+					"FailReason",""
+				);
+	}else 
+	{
+		ret = sysutils_encode_json_from_value(buf, 4 ,
+					"CmdType",JSON_STRING ,cmd_type,
+					"SequenceId",JSON_STRING,sequence_id ,
+					"Status",JSON_STRING,"0",
+					"Temperature",JSON_STRING,temperate_buf,
+					"Vottage",JSON_STRING,voltage_buf,
+					"Current",JSON_STRING,current_buf,
+					"TXPower",JSON_STRING,tx_power_buf,
+					"RXPower",JSON_STRING,rx_power_buf
+				);
+
+	}
+	return 0;
+}
 
 
 
@@ -1939,8 +2001,8 @@ CapisysHandler capisys_handler[] ={
 	{   "REGISTER" ,
 		capisys_register,
 		NULL   },
-	{   "GET_SERVICE" ,
-		NULL,
+	{   "GET_PONINFORM_REQ" ,
+		capisys_get_poninform_req,
 		NULL   },
 	{   "GET_SERVICE" ,
 		NULL,
